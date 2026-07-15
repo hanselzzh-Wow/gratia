@@ -1,12 +1,32 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { wishesClient, WishApiError } from "../lib/wishes-client";
+import {
+  deliveryTypeLabels,
+  type DeliveryType,
+  type PublicWish,
+} from "../lib/wishes-contract";
 
 type Tab = "pool" | "publish" | "tasks" | "profile";
 
-const wishes = [
+type WishCardModel = {
+  id: string;
+  city: string;
+  landmark: string;
+  type: string;
+  deadline: string;
+  reward: number;
+  distance: string;
+  copy: string;
+  format: string;
+  color: "blue" | "orange" | "green";
+  isDemo?: boolean;
+};
+
+const demoWishes: WishCardModel[] = [
   {
-    id: 1,
+    id: "demo-shanghai-birthday",
     city: "上海",
     landmark: "外滩",
     type: "生日祝福",
@@ -16,9 +36,10 @@ const wishes = [
     copy: "请在江边替我对小满说一句：二十四岁，也要继续闪闪发光。",
     format: "30 秒口播视频",
     color: "blue",
+    isDemo: true,
   },
   {
-    id: 2,
+    id: "demo-beijing-graduation",
     city: "北京",
     landmark: "鼓楼",
     type: "毕业加油",
@@ -28,9 +49,10 @@ const wishes = [
     copy: "想把鼓楼傍晚的钟声送给即将毕业的室友，祝她勇敢去远方。",
     format: "景色 + 画外音",
     color: "orange",
+    isDemo: true,
   },
   {
-    id: 3,
+    id: "demo-chengdu-encouragement",
     city: "成都",
     landmark: "IFS 熊猫",
     type: "日常鼓励",
@@ -40,8 +62,25 @@ const wishes = [
     copy: "朋友最近有点低落，想请你和熊猫同框比个耶，告诉她：慢一点也没关系。",
     format: "照片 + 手写卡片",
     color: "green",
+    isDemo: true,
   },
 ];
+
+function toWishCard(wish: PublicWish): WishCardModel {
+  const color: WishCardModel["color"] = wish.city === "上海" ? "blue" : wish.city === "北京" ? "orange" : "green";
+  return {
+    id: wish.id,
+    city: wish.city,
+    landmark: wish.landmark,
+    type: wish.occasion,
+    deadline: wish.deadlineText,
+    reward: wish.rewardFen / 100,
+    distance: "平台审核通过",
+    copy: wish.message,
+    format: deliveryTypeLabels[wish.deliveryType],
+    color,
+  };
+}
 
 const nav: { key: Tab; label: string; icon: string }[] = [
   { key: "pool", label: "愿望池", icon: "⌁" },
@@ -53,13 +92,31 @@ const nav: { key: Tab; label: string; icon: string }[] = [
 export default function Home() {
   const [tab, setTab] = useState<Tab>("pool");
   const [city, setCity] = useState("附近");
-  const [accepted, setAccepted] = useState<number[]>([]);
-  const [published, setPublished] = useState(false);
+  const [liveWishes, setLiveWishes] = useState<WishCardModel[]>([]);
+  const [accepted, setAccepted] = useState<string[]>([]);
+  const [published, setPublished] = useState<{ code: string } | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState("");
   const [toast, setToast] = useState("");
+
+  const wishes = useMemo(() => [...liveWishes, ...demoWishes], [liveWishes]);
+
+  useEffect(() => {
+    let active = true;
+    wishesClient
+      .list()
+      .then((result) => {
+        if (active) setLiveWishes(result.wishes.map(toWishCard));
+      })
+      .catch(() => {
+        // The public demo cards remain available while the backend is offline.
+      });
+    return () => { active = false; };
+  }, []);
 
   const visibleWishes = useMemo(
     () => (city === "附近" || city === "全部" ? wishes : wishes.filter((w) => w.city === city)),
-    [city],
+    [city, wishes],
   );
 
   function flash(message: string) {
@@ -67,16 +124,43 @@ export default function Home() {
     window.setTimeout(() => setToast(""), 2400);
   }
 
-  function acceptWish(id: number) {
+  function acceptWish(id: string) {
     if (accepted.includes(id)) return;
     setAccepted((current) => [...current, id]);
     flash("接单成功，心愿已加入你的行程");
   }
 
-  function publishWish(event: FormEvent<HTMLFormElement>) {
+  async function publishWish(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setPublished(true);
-    flash("心愿已提交，等待平台审核");
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    setPublishing(true);
+    setPublishError("");
+    try {
+      const result = await wishesClient.create({
+        requesterName: String(data.get("requesterName") ?? ""),
+        contact: String(data.get("contact") ?? ""),
+        city: String(data.get("city") ?? ""),
+        landmark: String(data.get("landmark") ?? ""),
+        occasion: String(data.get("occasion") ?? ""),
+        message: String(data.get("message") ?? ""),
+        deliveryType: String(data.get("deliveryType") ?? "") as DeliveryType,
+        deadlineText: String(data.get("deadlineText") ?? ""),
+        rewardFen: Number(data.get("rewardFen") ?? 1800),
+        contactConsent: data.get("contactConsent") === "on",
+        website: String(data.get("website") ?? ""),
+      });
+      setPublished({ code: result.wish.publicCode });
+      flash(result.created ? "心愿已提交，等待平台审核" : "已找到刚刚提交的同一心愿");
+    } catch (requestError) {
+      if (requestError instanceof WishApiError && requestError.fields) {
+        setPublishError(Object.values(requestError.fields)[0] ?? requestError.message);
+      } else {
+        setPublishError(requestError instanceof Error ? requestError.message : "提交失败，请稍后再试");
+      }
+    } finally {
+      setPublishing(false);
+    }
   }
 
   return (
@@ -157,25 +241,36 @@ export default function Home() {
                 {published ? (
                   <div className="success-card">
                     <div className="success-orb">✓</div>
-                    <span>心愿编号 #HW0715</span>
+                    <span>心愿编号 #{published.code}</span>
                     <h2>你的心愿已经起飞</h2>
                     <p>我们会先完成内容审核，再把它投进当地的愿望池。有人回应时会第一时间通知你。</p>
                     <div className="status-line"><i className="active" /><i /><i /><i /></div>
                     <div className="status-labels"><span>已提交</span><span>审核中</span><span>待响应</span><span>待交付</span></div>
-                    <button onClick={() => { setPublished(false); setTab("pool"); }}>回到愿望池</button>
+                    <button onClick={() => { setPublished(null); setTab("pool"); }}>回到愿望池</button>
                   </div>
                 ) : (
                   <form className="wish-form" onSubmit={publishWish}>
-                    <label><span><b>01</b> 心愿场景</span><select required defaultValue="生日祝福"><option>生日祝福</option><option>加油鼓励</option><option>毕业祝福</option><option>浪漫表白</option><option>节日问候</option></select></label>
+                    <label><span><b>01</b> 心愿场景</span><select name="occasion" required defaultValue="生日祝福"><option>生日祝福</option><option>加油鼓励</option><option>毕业祝福</option><option>浪漫表白</option><option>节日问候</option></select></label>
                     <div className="form-row">
-                      <label><span><b>02</b> 城市</span><select required defaultValue="上海"><option>上海</option><option>北京</option><option>广州</option><option>深圳</option><option>成都</option></select></label>
-                      <label><span>地标</span><select required defaultValue="外滩"><option>外滩</option><option>东方明珠</option><option>武康路</option></select></label>
+                      <label><span><b>02</b> 城市</span><select name="city" required defaultValue="上海"><option>上海</option><option>北京</option><option>广州</option><option>深圳</option><option>成都</option></select></label>
+                      <label><span>地标</span><select name="landmark" required defaultValue="外滩"><option>外滩</option><option>东方明珠</option><option>武康路</option></select></label>
                     </div>
-                    <label><span><b>03</b> 想说的话</span><textarea required maxLength={120} placeholder="例如：请替我对小满说，二十四岁也要继续闪闪发光。" /><small>仅接受祝福、鼓励与善意表达 · 最多120字</small></label>
-                    <label><span><b>04</b> 交付方式</span><div className="format-picks"><label><input type="radio" name="format" defaultChecked />口播视频</label><label><input type="radio" name="format" />景色配音</label><label><input type="radio" name="format" />手写卡片</label></div></label>
-                    <div className="price-box"><div><span>发布费</span><small>用于审核与过滤无效请求</small></div><strong>¥ 5.00</strong></div>
-                    <button className="primary-submit" type="submit">确认发布心愿 <span>→</span></button>
-                    <p className="form-note">提交即表示同意《心愿发布规范》，审核不通过将原路退款。</p>
+                    <label><span><b>03</b> 想说的话</span><textarea name="message" required minLength={5} maxLength={120} placeholder="例如：请替我对小满说，二十四岁也要继续闪闪发光。" /><small>仅接受祝福、鼓励与善意表达 · 最多120字</small></label>
+                    <label><span><b>04</b> 交付方式</span><div className="format-picks"><label><input type="radio" name="deliveryType" value="spoken_video" defaultChecked />口播视频</label><label><input type="radio" name="deliveryType" value="scenery_voiceover" />景色配音</label><label><input type="radio" name="deliveryType" value="handwritten_card" />手写卡片</label></div></label>
+                    <div className="form-row">
+                      <label><span><b>05</b> 期望时间</span><input name="deadlineText" required minLength={2} maxLength={40} defaultValue="本周内" placeholder="例如：本周内" /></label>
+                      <label><span>感谢金</span><select name="rewardFen" defaultValue="1800"><option value="1200">¥12</option><option value="1800">¥18</option><option value="2800">¥28</option></select></label>
+                    </div>
+                    <div className="form-row">
+                      <label><span><b>06</b> 你的称呼</span><input name="requesterName" required maxLength={30} placeholder="方便运营与你确认" /></label>
+                      <label><span>微信或手机号</span><input name="contact" required minLength={3} maxLength={80} autoComplete="tel" placeholder="仅运营可见" /></label>
+                    </div>
+                    <label className="honeypot" aria-hidden="true"><span>网站</span><input name="website" tabIndex={-1} autoComplete="off" /></label>
+                    <label className="contact-consent"><input type="checkbox" name="contactConsent" required /><span>同意运营人员仅为审核、匹配与履约联系我</span></label>
+                    <div className="price-box"><div><span>发布费</span><small>首轮测试由运营人工确认</small></div><strong>¥ 5.00</strong></div>
+                    {publishError && <div className="form-error" role="alert">{publishError}</div>}
+                    <button className="primary-submit" type="submit" disabled={publishing}>{publishing ? "正在提交…" : <>确认发布心愿 <span>→</span></>}</button>
+                    <p className="form-note">当前页面不会自动扣款；审核通过后由运营与你确认测试安排。</p>
                   </form>
                 )}
               </section>
@@ -197,7 +292,7 @@ export default function Home() {
               <section className="view profile-view">
                 <div className="profile-hero"><div className="large-avatar">韩</div><h2>远方来信</h2><p>上海祝福官 · Lv.2</p><div><span><b>8</b>完成心愿</span><span><b>4.9</b>感动值</span><span><b>3</b>城市徽章</span></div></div>
                 <div className="badge-card"><span>本周身份</span><h3>外滩愿望响应者</h3><p>再完成 2 个心愿，解锁「城市信使」徽章</p><div><i /></div></div>
-                <div className="menu-card"><button><span>♡</span>我的心愿<i>2 个进行中</i></button><button><span>⌁</span>帮助记录<i>8 次抵达</i></button><button><span>☆</span>我的徽章<i>3 枚</i></button><button><span>⚙</span>设置与规则<i>›</i></button></div>
+                <div className="menu-card"><button><span>♡</span>我的心愿<i>2 个进行中</i></button><button><span>⌁</span>帮助记录<i>8 次抵达</i></button><button><span>☆</span>我的徽章<i>3 枚</i></button><button onClick={() => { window.location.href = "/ops"; }}><span>⚙</span>运营工作台<i>›</i></button></div>
                 <button className="logout" onClick={() => flash("演示模式暂不需要登录")}>退出体验账号</button>
               </section>
             )}
