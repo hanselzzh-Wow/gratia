@@ -3,7 +3,10 @@ import type {
   AdminWishActionInput,
   ApiErrorPayload,
   CreateWishInput,
+  CreateWishResponseInput,
   PublicWish,
+  TrackedWish,
+  WishResponse,
 } from "./wishes-contract";
 
 const configuredBase = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/$/, "") ?? "";
@@ -29,7 +32,7 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
     headers: {
       accept: "application/json",
-      ...(init?.body ? { "content-type": "application/json" } : {}),
+      ...(typeof init?.body === "string" ? { "content-type": "application/json" } : {}),
       ...init?.headers,
     },
   });
@@ -57,6 +60,20 @@ export const wishesClient = {
     });
   },
 
+  async respond(wishId: string, input: CreateWishResponseInput) {
+    return requestJson<{ response: WishResponse; created: boolean }>(
+      `/api/wishes/${encodeURIComponent(wishId)}/responses`,
+      { method: "POST", body: JSON.stringify(input) },
+    );
+  },
+
+  async track(publicCode: string, contact: string) {
+    return requestJson<{ wish: TrackedWish }>("/api/wishes/track", {
+      method: "POST",
+      body: JSON.stringify({ publicCode, contact }),
+    });
+  },
+
   async listAdmin(adminKey: string, status?: string) {
     const query = status ? `?status=${encodeURIComponent(status)}` : "";
     return requestJson<{ wishes: AdminWish[] }>(`/api/admin/wishes${query}`, {
@@ -70,5 +87,19 @@ export const wishesClient = {
       headers: { "x-admin-key": adminKey },
       body: JSON.stringify(input),
     });
+  },
+
+  async uploadDeliverable(adminKey: string, id: string, file: File, note?: string) {
+    const form = new FormData();
+    form.set("file", file);
+    if (note) form.set("note", note);
+    return requestJson<{ wish: AdminWish }>(
+      `/api/admin/wishes/${encodeURIComponent(id)}/deliverables/upload`,
+      {
+        method: "POST",
+        headers: { "x-admin-key": adminKey },
+        body: form,
+      },
+    );
   },
 };

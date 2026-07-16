@@ -45,6 +45,14 @@ export interface CreateWishInput {
   website?: string;
 }
 
+export interface CreateWishResponseInput {
+  responderName: string;
+  responderContact: string;
+  note?: string;
+  contactConsent: boolean;
+  website?: string;
+}
+
 export interface PublicWish {
   id: string;
   publicCode: string;
@@ -77,6 +85,30 @@ export interface WishDeliverable {
   createdAt: number;
 }
 
+export interface WishResponse {
+  id: string;
+  responderName: string;
+  responderContact: string;
+  note: string | null;
+  status: "pending" | "selected" | "declined";
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface WishEvent {
+  eventType: string;
+  fromStatus: WishStatus | null;
+  toStatus: WishStatus | null;
+  createdAt: number;
+}
+
+export interface TrackedWish extends PublicWish {
+  updatedAt: number;
+  assignment: Pick<WishAssignment, "providerName" | "status"> | null;
+  deliverable: WishDeliverable | null;
+  events: WishEvent[];
+}
+
 export interface AdminWish extends PublicWish {
   requesterName: string;
   contact: string;
@@ -85,6 +117,7 @@ export interface AdminWish extends PublicWish {
   updatedAt: number;
   assignment: WishAssignment | null;
   deliverable: WishDeliverable | null;
+  responses: WishResponse[];
 }
 
 export const adminWishActions = [
@@ -106,6 +139,7 @@ export interface AdminWishActionInput {
   providerName?: string;
   providerContact?: string;
   deliveryUrl?: string;
+  responseId?: string;
 }
 
 export interface ApiErrorPayload {

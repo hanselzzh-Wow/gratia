@@ -3,6 +3,7 @@ import {
   deliveryTypes,
   type AdminWishActionInput,
   type CreateWishInput,
+  type CreateWishResponseInput,
   type DeliveryType,
 } from "./wishes-contract";
 
@@ -88,6 +89,52 @@ export function normalizeCreateWish(payload: unknown): CreateWishInput {
   };
 }
 
+export function normalizeWishResponse(payload: unknown): CreateWishResponseInput {
+  if (!payload || typeof payload !== "object") {
+    throw new WishInputError("请完整填写响应信息");
+  }
+  const input = payload as Record<string, unknown>;
+  if (cleanText(input.website)) throw new WishInputError("提交未通过校验");
+
+  const fields: Record<string, string> = {};
+  const responderName = boundedText(input.responderName, "responderName", "称呼", 1, 30, fields);
+  const responderContact = boundedText(
+    input.responderContact,
+    "responderContact",
+    "联系方式",
+    3,
+    80,
+    fields,
+  );
+  const note = cleanText(input.note).slice(0, 160);
+  if (input.contactConsent !== true) {
+    fields.contactConsent = "请确认允许运营人员为撮合联系你";
+  }
+  if (Object.keys(fields).length > 0) {
+    throw new WishInputError("请检查响应信息", fields);
+  }
+  return {
+    responderName,
+    responderContact,
+    note: note || undefined,
+    contactConsent: true,
+  };
+}
+
+export function normalizeTrackingInput(payload: unknown) {
+  if (!payload || typeof payload !== "object") {
+    throw new WishInputError("请填写心愿编号和联系方式");
+  }
+  const input = payload as Record<string, unknown>;
+  const fields: Record<string, string> = {};
+  const publicCode = boundedText(input.publicCode, "publicCode", "心愿编号", 8, 24, fields).toUpperCase();
+  const contact = boundedText(input.contact, "contact", "联系方式", 3, 80, fields);
+  if (Object.keys(fields).length > 0) {
+    throw new WishInputError("请检查查询信息", fields);
+  }
+  return { publicCode, contact };
+}
+
 export function normalizeAdminAction(payload: unknown): AdminWishActionInput {
   if (!payload || typeof payload !== "object") {
     throw new WishInputError("缺少运营操作");
@@ -105,5 +152,6 @@ export function normalizeAdminAction(payload: unknown): AdminWishActionInput {
     providerName: cleanText(input.providerName).slice(0, 40) || undefined,
     providerContact: cleanText(input.providerContact).slice(0, 80) || undefined,
     deliveryUrl: cleanText(input.deliveryUrl).slice(0, 500) || undefined,
+    responseId: cleanText(input.responseId).slice(0, 80) || undefined,
   };
 }

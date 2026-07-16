@@ -17,6 +17,8 @@ type WishDraft = {
   providerName?: string;
   providerContact?: string;
   deliveryUrl?: string;
+  responseId?: string;
+  file?: File;
 };
 
 function money(fen: number) {
@@ -82,12 +84,35 @@ export default function OperationsPage() {
     try {
       const result = await wishesClient.applyAdminAction(adminKey, wish.id, {
         action,
-        ...draft,
+        note: draft.note,
+        providerName: draft.providerName,
+        providerContact: draft.providerContact,
+        deliveryUrl: draft.deliveryUrl,
+        responseId: draft.responseId,
       });
       setWishes((current) => current.map((item) => (item.id === wish.id ? result.wish : item)));
       setDrafts((current) => ({ ...current, [wish.id]: {} }));
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "操作失败，请重试");
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function upload(wish: AdminWish) {
+    const draft = drafts[wish.id] ?? {};
+    if (!draft.file) {
+      setError("请先选择要交付的照片或视频");
+      return;
+    }
+    setBusyId(wish.id);
+    setError("");
+    try {
+      const result = await wishesClient.uploadDeliverable(adminKey, wish.id, draft.file, draft.note);
+      setWishes((current) => current.map((item) => (item.id === wish.id ? result.wish : item)));
+      setDrafts((current) => ({ ...current, [wish.id]: {} }));
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "文件上传失败，请重试");
     } finally {
       setBusyId("");
     }
@@ -190,11 +215,14 @@ export default function OperationsPage() {
 
                   {wish.status === "pending_review" && <div className="ops-button-row"><button disabled={busy} onClick={() => void act(wish, "approve")}>审核通过</button><button className="danger" disabled={busy} onClick={() => void act(wish, "reject")}>不予通过</button></div>}
 
-                  {wish.status === "matching" && <><div className="ops-field-row"><label><span>响应者称呼</span><input value={draft.providerName ?? ""} onChange={(event) => updateDraft(wish.id, { providerName: event.target.value })} /></label><label><span>响应者联系方式</span><input value={draft.providerContact ?? ""} onChange={(event) => updateDraft(wish.id, { providerContact: event.target.value })} /></label></div><button disabled={busy} onClick={() => void act(wish, "assign")}>确认手工派单</button></>}
+                  {wish.status === "matching" && <>
+                    {wish.responses.length > 0 && <div className="ops-responses"><span>{wish.responses.length} 位在场者已报名</span>{wish.responses.map((response) => <button key={response.id} className={draft.responseId === response.id ? "selected" : ""} onClick={() => updateDraft(wish.id, { responseId: response.id, providerName: response.responderName, providerContact: response.responderContact })}><b>{response.responderName}</b><small>{response.responderContact}{response.note ? ` · ${response.note}` : ""}</small></button>)}</div>}
+                    <div className="ops-field-row"><label><span>响应者称呼</span><input value={draft.providerName ?? ""} onChange={(event) => updateDraft(wish.id, { providerName: event.target.value, responseId: undefined })} /></label><label><span>响应者联系方式</span><input value={draft.providerContact ?? ""} onChange={(event) => updateDraft(wish.id, { providerContact: event.target.value, responseId: undefined })} /></label></div><button disabled={busy} onClick={() => void act(wish, "assign")}>确认手工派单</button>
+                  </>}
 
                   {wish.status === "assigned" && <button disabled={busy} onClick={() => void act(wish, "accept")}>记录响应者已接单</button>}
 
-                  {wish.status === "in_progress" && <><label><span>HTTPS 交付链接</span><input type="url" value={draft.deliveryUrl ?? ""} onChange={(event) => updateDraft(wish.id, { deliveryUrl: event.target.value })} placeholder="https://…" /></label><button disabled={busy} onClick={() => void act(wish, "mark_delivered")}>记录已交付</button></>}
+                  {wish.status === "in_progress" && <><label><span>直接上传照片或短视频（最大 25MB）</span><input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" onChange={(event) => updateDraft(wish.id, { file: event.target.files?.[0] })} /></label>{draft.file && <small className="ops-file-name">已选择：{draft.file.name}</small>}<button disabled={busy || !draft.file} onClick={() => void upload(wish)}>上传并记录交付</button><div className="ops-divider"><span>或使用外部链接</span></div><label><span>HTTPS 交付链接</span><input type="url" value={draft.deliveryUrl ?? ""} onChange={(event) => updateDraft(wish.id, { deliveryUrl: event.target.value })} placeholder="https://…" /></label><button className="secondary" disabled={busy} onClick={() => void act(wish, "mark_delivered")}>用链接记录交付</button></>}
 
                   {wish.status === "delivered" && <button disabled={busy} onClick={() => void act(wish, "complete")}>发布者已确认，完成订单</button>}
 

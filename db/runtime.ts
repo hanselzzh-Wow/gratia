@@ -39,6 +39,8 @@ const schemaStatements = [
     assignment_id TEXT,
     kind TEXT NOT NULL,
     url TEXT NOT NULL,
+    storage_key TEXT,
+    access_token TEXT,
     note TEXT,
     created_at INTEGER NOT NULL,
     FOREIGN KEY (wish_id) REFERENCES wishes(id) ON DELETE CASCADE,
@@ -55,11 +57,32 @@ const schemaStatements = [
     created_at INTEGER NOT NULL,
     FOREIGN KEY (wish_id) REFERENCES wishes(id) ON DELETE CASCADE
   )`,
+  `CREATE TABLE IF NOT EXISTS wish_responses (
+    id TEXT PRIMARY KEY NOT NULL,
+    wish_id TEXT NOT NULL,
+    responder_name TEXT NOT NULL,
+    responder_contact TEXT NOT NULL,
+    note TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    FOREIGN KEY (wish_id) REFERENCES wishes(id) ON DELETE CASCADE
+  )`,
+  `CREATE TABLE IF NOT EXISTS rate_limits (
+    fingerprint TEXT NOT NULL,
+    action TEXT NOT NULL,
+    window_start INTEGER NOT NULL,
+    count INTEGER NOT NULL DEFAULT 1,
+    updated_at INTEGER NOT NULL,
+    PRIMARY KEY (fingerprint, action)
+  )`,
   "CREATE INDEX IF NOT EXISTS wishes_status_created_idx ON wishes(status, created_at)",
   "CREATE INDEX IF NOT EXISTS wishes_city_status_idx ON wishes(city, status)",
   "CREATE INDEX IF NOT EXISTS assignments_wish_created_idx ON assignments(wish_id, created_at)",
   "CREATE INDEX IF NOT EXISTS deliverables_wish_created_idx ON deliverables(wish_id, created_at)",
   "CREATE INDEX IF NOT EXISTS wish_events_wish_created_idx ON wish_events(wish_id, created_at)",
+  "CREATE UNIQUE INDEX IF NOT EXISTS wish_responses_wish_contact_unique ON wish_responses(wish_id, responder_contact)",
+  "CREATE INDEX IF NOT EXISTS wish_responses_wish_created_idx ON wish_responses(wish_id, created_at)",
 ] as const;
 
 export function ensureWishSchema(db: D1Database) {

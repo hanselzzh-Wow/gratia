@@ -5,10 +5,14 @@ import {
   type AdminWish,
   type AdminWishActionInput,
   type CreateWishInput,
+  type CreateWishResponseInput,
   type DeliveryType,
   type PublicWish,
+  type TrackedWish,
   type WishAssignment,
   type WishDeliverable,
+  type WishEvent,
+  type WishResponse,
   type WishStatus,
 } from "../lib/wishes-contract";
 
@@ -44,6 +48,17 @@ type AdminWishRow = WishRow & {
   deliverable_url: string | null;
   deliverable_note: string | null;
   deliverable_created_at: number | null;
+};
+
+type WishResponseRow = {
+  id: string;
+  wish_id: string;
+  responder_name: string;
+  responder_contact: string;
+  note: string | null;
+  status: string;
+  created_at: number;
+  updated_at: number;
 };
 
 const adminSelect = `
@@ -141,7 +156,19 @@ function toDeliverable(row: AdminWishRow): WishDeliverable | null {
   };
 }
 
-function toAdminWish(row: AdminWishRow): AdminWish {
+function toWishResponse(row: WishResponseRow): WishResponse {
+  return {
+    id: row.id,
+    responderName: row.responder_name,
+    responderContact: row.responder_contact,
+    note: row.note,
+    status: row.status as WishResponse["status"],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toAdminWish(row: AdminWishRow, responses: WishResponse[] = []): AdminWish {
   return {
     ...toPublicWish(row),
     requesterName: row.requester_name,
@@ -151,6 +178,7 @@ function toAdminWish(row: AdminWishRow): AdminWish {
     updatedAt: row.updated_at,
     assignment: toAssignment(row),
     deliverable: toDeliverable(row),
+    responses,
   };
 }
 
@@ -170,6 +198,14 @@ async function getAdminWishRow(db: D1Database, id: string) {
     .prepare(`${adminSelect} WHERE w.id = ? LIMIT 1`)
     .bind(id)
     .first<AdminWishRow>();
+}
+
+async function getWishResponses(db: D1Database, wishId: string) {
+  const result = await db
+    .prepare("SELECT * FROM wish_responses WHERE wish_id = ? ORDER BY created_at DESC")
+    .bind(wishId)
+    .all<WishResponseRow>();
+  return result.results.map(toWishResponse);
 }
 
 export async function createWish(db: D1Database, input: CreateWishInput) {
@@ -254,6 +290,83 @@ export async function listPublicWishes(db: D1Database, city?: string) {
   return result.results.map(toPublicWish);
 }
 
+export async function createWishResponse(
+  db: D1Database,
+  wishId: string,
+  input: CreateWishResponseInput,
+) {
+  await ensureWishSchema(db);
+  const wish = await db.prepare("SELECT * FROM wishes WHERE id = ? LIMIT 1").bind(wishId).first<WishRow>();
+  if (!wish) throw new WishWorkflowError("未找到该心愿", 404);
+  if (wish.status !== "matching") {
+    throw new WishWorkflowError("该心愿目前不再接受新的响应", 409);
+  }
+
+  const duplicate = await db
+    .prepare("SELECT * FROM wish_responses WHERE wish_id = ? AND responder_contact = ? LIMIT 1")
+    .bind(wishId, input.responderContact)
+    .first<WishResponseRow>();
+  if (duplicate) return { response: toWishResponse(duplicate), created: false };
+
+  const id = crypto.randomUUID();
+  const now = Date.now();
+  await db.batch([
+    db
+      .prepare(
+        "INSERT INTO wish_responses (id, wish_id, responder_name, responder_contact, note, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)",
+      )
+      .bind(id, wishId, input.responderName, input.responderContact, input.note ?? null, now, now),
+    db
+      .prepare(
+        "INSERT INTO wish_events (wish_id, event_type, from_status, to_status, actor, note, created_at) VALUES (?, 'response_submitted', 'matching', 'matching', 'responder', ?, ?)",
+      )
+      .bind(wishId, input.note ?? null, now),
+  ]);
+  return {
+    created: true,
+    response: {
+      id,
+      responderName: input.responderName,
+      responderContact: input.responderContact,
+      note: input.note ?? null,
+      status: "pending" as const,
+      createdAt: now,
+      updatedAt: now,
+    },
+  };
+}
+
+export async function trackWish(db: D1Database, publicCode: string, contact: string): Promise<TrackedWish> {
+  await ensureWishSchema(db);
+  const row = await db
+    .prepare(`${adminSelect} WHERE w.public_code = ? AND w.contact = ? LIMIT 1`)
+    .bind(publicCode, contact)
+    .first<AdminWishRow>();
+  if (!row) throw new WishWorkflowError("没有找到匹配的心愿，请检查编号和联系方式", 404);
+  const adminWish = toAdminWish(row);
+  const eventResult = await db
+    .prepare(
+      "SELECT event_type, from_status, to_status, created_at FROM wish_events WHERE wish_id = ? ORDER BY created_at ASC LIMIT 50",
+    )
+    .bind(row.id)
+    .all<{ event_type: string; from_status: string | null; to_status: string | null; created_at: number }>();
+  const events: WishEvent[] = eventResult.results.map((event) => ({
+    eventType: event.event_type,
+    fromStatus: event.from_status ? asWishStatus(event.from_status) : null,
+    toStatus: event.to_status ? asWishStatus(event.to_status) : null,
+    createdAt: event.created_at,
+  }));
+  return {
+    ...toPublicWish(row),
+    updatedAt: row.updated_at,
+    assignment: adminWish.assignment
+      ? { providerName: adminWish.assignment.providerName, status: adminWish.assignment.status }
+      : null,
+    deliverable: adminWish.deliverable,
+    events,
+  };
+}
+
 export async function listAdminWishes(db: D1Database, status?: string) {
   await ensureWishSchema(db);
   const validStatus = status && wishStatuses.includes(status as WishStatus) ? status : null;
@@ -262,8 +375,17 @@ export async function listAdminWishes(db: D1Database, status?: string) {
         .prepare(`${adminSelect} WHERE w.status = ? ORDER BY w.created_at DESC LIMIT 100`)
         .bind(validStatus)
     : db.prepare(`${adminSelect} ORDER BY w.created_at DESC LIMIT 100`);
-  const result = await query.all<AdminWishRow>();
-  return result.results.map(toAdminWish);
+  const [result, responseResult] = await Promise.all([
+    query.all<AdminWishRow>(),
+    db.prepare("SELECT * FROM wish_responses ORDER BY created_at DESC LIMIT 300").all<WishResponseRow>(),
+  ]);
+  const responsesByWish = new Map<string, WishResponse[]>();
+  for (const row of responseResult.results) {
+    const current = responsesByWish.get(row.wish_id) ?? [];
+    current.push(toWishResponse(row));
+    responsesByWish.set(row.wish_id, current);
+  }
+  return result.results.map((row) => toAdminWish(row, responsesByWish.get(row.id) ?? []));
 }
 
 function requireStatus(wish: AdminWish, allowed: WishStatus[]) {
@@ -291,7 +413,7 @@ export async function applyAdminWishAction(
   await ensureWishSchema(db);
   const currentRow = await getAdminWishRow(db, id);
   if (!currentRow) throw new WishWorkflowError("未找到该心愿", 404);
-  const wish = toAdminWish(currentRow);
+  const wish = toAdminWish(currentRow, await getWishResponses(db, id));
   const now = Date.now();
   const statements: D1PreparedStatement[] = [];
   let nextStatus: WishStatus;
@@ -309,7 +431,23 @@ export async function applyAdminWishAction(
       break;
     case "assign": {
       requireStatus(wish, ["matching"]);
-      if (!input.providerName || !input.providerContact) {
+      let providerName = input.providerName;
+      let providerContact = input.providerContact;
+      if (input.responseId) {
+        const selectedResponse = await db
+          .prepare("SELECT * FROM wish_responses WHERE id = ? AND wish_id = ? LIMIT 1")
+          .bind(input.responseId, wish.id)
+          .first<WishResponseRow>();
+        if (!selectedResponse) throw new WishWorkflowError("未找到所选响应者", 404);
+        providerName = selectedResponse.responder_name;
+        providerContact = selectedResponse.responder_contact;
+        statements.push(
+          db
+            .prepare("UPDATE wish_responses SET status = 'selected', updated_at = ? WHERE id = ?")
+            .bind(now, selectedResponse.id),
+        );
+      }
+      if (!providerName || !providerContact) {
         throw new WishWorkflowError("请填写响应者称呼和联系方式");
       }
       nextStatus = "assigned";
@@ -321,8 +459,8 @@ export async function applyAdminWishAction(
           .bind(
             crypto.randomUUID(),
             wish.id,
-            input.providerName,
-            input.providerContact,
+            providerName,
+            providerContact,
             input.note ?? null,
             now,
             now,
@@ -416,7 +554,73 @@ export async function applyAdminWishAction(
 
   const updated = await getAdminWishRow(db, id);
   if (!updated) throw new WishWorkflowError("更新后未找到心愿", 500);
-  return toAdminWish(updated);
+  return toAdminWish(updated, await getWishResponses(db, id));
+}
+
+export async function recordUploadedDeliverable(
+  db: D1Database,
+  id: string,
+  upload: {
+    deliverableId: string;
+    storageKey: string;
+    accessToken: string;
+    url: string;
+    note?: string;
+  },
+) {
+  await ensureWishSchema(db);
+  const currentRow = await getAdminWishRow(db, id);
+  if (!currentRow) throw new WishWorkflowError("未找到该心愿", 404);
+  const wish = toAdminWish(currentRow, await getWishResponses(db, id));
+  requireStatus(wish, ["in_progress"]);
+  if (!wish.assignment) throw new WishWorkflowError("该心愿还没有派单记录", 409);
+
+  const now = Date.now();
+  const results = await db.batch([
+    db
+      .prepare("UPDATE wishes SET status = 'delivered', moderation_note = ?, updated_at = ? WHERE id = ? AND status = 'in_progress'")
+      .bind(upload.note ?? wish.moderationNote, now, wish.id),
+    db
+      .prepare("UPDATE assignments SET status = 'delivered', delivered_at = ?, updated_at = ? WHERE id = ?")
+      .bind(now, now, wish.assignment.id),
+    db
+      .prepare(
+        "INSERT INTO deliverables (id, wish_id, assignment_id, kind, url, storage_key, access_token, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+      .bind(
+        upload.deliverableId,
+        wish.id,
+        wish.assignment.id,
+        wish.deliveryType,
+        upload.url,
+        upload.storageKey,
+        upload.accessToken,
+        upload.note ?? null,
+        now,
+      ),
+    db
+      .prepare(
+        "INSERT INTO wish_events (wish_id, event_type, from_status, to_status, actor, note, created_at) VALUES (?, 'file_uploaded', 'in_progress', 'delivered', 'operator', ?, ?)",
+      )
+      .bind(wish.id, upload.note ?? null, now),
+  ]);
+  if ((results[0].meta.changes ?? 0) !== 1) {
+    throw new WishWorkflowError("心愿状态刚刚发生变化，请刷新后重试", 409);
+  }
+
+  const updated = await getAdminWishRow(db, id);
+  if (!updated) throw new WishWorkflowError("更新后未找到心愿", 500);
+  return toAdminWish(updated, await getWishResponses(db, id));
+}
+
+export async function getStoredDeliverable(db: D1Database, id: string, accessToken: string) {
+  await ensureWishSchema(db);
+  return db
+    .prepare(
+      "SELECT id, storage_key AS storageKey FROM deliverables WHERE id = ? AND access_token = ? AND storage_key IS NOT NULL LIMIT 1",
+    )
+    .bind(id, accessToken)
+    .first<{ id: string; storageKey: string }>();
 }
 
 export async function getWishHealth(db: D1Database) {

@@ -1,11 +1,14 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { wishesClient, WishApiError } from "../lib/wishes-client";
 import {
   deliveryTypeLabels,
+  wishStatusLabels,
   type DeliveryType,
   type PublicWish,
+  type TrackedWish,
 } from "../lib/wishes-contract";
 
 type Tab = "pool" | "publish" | "tasks" | "profile";
@@ -94,9 +97,16 @@ export default function Home() {
   const [city, setCity] = useState("附近");
   const [liveWishes, setLiveWishes] = useState<WishCardModel[]>([]);
   const [accepted, setAccepted] = useState<string[]>([]);
+  const [responded, setResponded] = useState<string[]>([]);
+  const [respondingWish, setRespondingWish] = useState<WishCardModel | null>(null);
+  const [responding, setResponding] = useState(false);
+  const [responseError, setResponseError] = useState("");
   const [published, setPublished] = useState<{ code: string } | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState("");
+  const [trackedWish, setTrackedWish] = useState<TrackedWish | null>(null);
+  const [tracking, setTracking] = useState(false);
+  const [trackingError, setTrackingError] = useState("");
   const [toast, setToast] = useState("");
 
   const wishes = useMemo(() => [...liveWishes, ...demoWishes], [liveWishes]);
@@ -124,10 +134,59 @@ export default function Home() {
     window.setTimeout(() => setToast(""), 2400);
   }
 
-  function acceptWish(id: string) {
-    if (accepted.includes(id)) return;
-    setAccepted((current) => [...current, id]);
-    flash("接单成功，心愿已加入你的行程");
+  function acceptWish(wish: WishCardModel) {
+    if (wish.isDemo) {
+      if (accepted.includes(wish.id)) return;
+      setAccepted((current) => [...current, wish.id]);
+      flash("演示心愿已加入你的行程");
+      return;
+    }
+    if (responded.includes(wish.id)) return;
+    setResponseError("");
+    setRespondingWish(wish);
+  }
+
+  async function submitResponse(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!respondingWish) return;
+    const data = new FormData(event.currentTarget);
+    setResponding(true);
+    setResponseError("");
+    try {
+      const result = await wishesClient.respond(respondingWish.id, {
+        responderName: String(data.get("responderName") ?? ""),
+        responderContact: String(data.get("responderContact") ?? ""),
+        note: String(data.get("note") ?? ""),
+        contactConsent: data.get("contactConsent") === "on",
+        website: String(data.get("website") ?? ""),
+      });
+      setResponded((current) => current.includes(respondingWish.id) ? current : [...current, respondingWish.id]);
+      setRespondingWish(null);
+      flash(result.created ? "响应已提交，等待运营联系" : "你已经响应过这个心愿");
+    } catch (requestError) {
+      setResponseError(requestError instanceof Error ? requestError.message : "响应失败，请稍后重试");
+    } finally {
+      setResponding(false);
+    }
+  }
+
+  async function trackPublishedWish(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    setTracking(true);
+    setTrackingError("");
+    try {
+      const result = await wishesClient.track(
+        String(data.get("publicCode") ?? "").trim(),
+        String(data.get("trackingContact") ?? "").trim(),
+      );
+      setTrackedWish(result.wish);
+    } catch (requestError) {
+      setTrackedWish(null);
+      setTrackingError(requestError instanceof Error ? requestError.message : "查询失败，请稍后重试");
+    } finally {
+      setTracking(false);
+    }
   }
 
   async function publishWish(event: FormEvent<HTMLFormElement>) {
@@ -166,7 +225,7 @@ export default function Home() {
   return (
     <main className="app-shell">
       <aside className="brand-panel">
-        <div className="brand-mark"><img src="/hlwd.png" alt="哈喽卧得" /></div>
+        <div className="brand-mark"><Image src="/hlwd.png" alt="哈喽卧得" width={56} height={56} priority /></div>
         <p className="eyebrow">HELLO WORLD · 心愿正在发生</p>
         <h1>让不在场的你，<br />也能抵达远方。</h1>
         <p className="brand-copy">请一个恰好在那里的人，替你拍下一处风景、说出一句想说的话。</p>
@@ -185,7 +244,7 @@ export default function Home() {
         <div className="phone-app">
           <header className="topbar">
             <div className="mini-brand">
-              <img src="/hlwd.png" alt="" />
+              <Image src="/hlwd.png" alt="" width={38} height={38} priority />
               <div><b>哈喽卧得</b><span>Hello World · 唾手可得</span></div>
             </div>
             <button className="avatar" onClick={() => setTab("profile")} aria-label="打开个人中心">韩</button>
@@ -224,8 +283,8 @@ export default function Home() {
                       <p>{wish.copy}</p>
                       <div className="wish-foot">
                         <span>▣ {wish.format}</span>
-                        <button className={accepted.includes(wish.id) ? "done" : ""} onClick={() => acceptWish(wish.id)}>
-                          {accepted.includes(wish.id) ? "已加入行程" : "我恰好在这里"}
+                        <button className={accepted.includes(wish.id) || responded.includes(wish.id) ? "done" : ""} onClick={() => acceptWish(wish)}>
+                          {accepted.includes(wish.id) ? "已加入行程" : responded.includes(wish.id) ? "已提交响应" : "我恰好在这里"}
                         </button>
                       </div>
                     </article>
@@ -292,11 +351,21 @@ export default function Home() {
               <section className="view profile-view">
                 <div className="profile-hero"><div className="large-avatar">韩</div><h2>远方来信</h2><p>上海祝福官 · Lv.2</p><div><span><b>8</b>完成心愿</span><span><b>4.9</b>感动值</span><span><b>3</b>城市徽章</span></div></div>
                 <div className="badge-card"><span>本周身份</span><h3>外滩愿望响应者</h3><p>再完成 2 个心愿，解锁「城市信使」徽章</p><div><i /></div></div>
+                <form className="tracking-card" onSubmit={trackPublishedWish}>
+                  <div><span>查询我的心愿</span><b>用编号查看最新状态</b></div>
+                  <input name="publicCode" required minLength={8} maxLength={24} placeholder="例如 HW260715-ABCDE" />
+                  <input name="trackingContact" required minLength={3} maxLength={80} placeholder="发布时填写的联系方式" />
+                  <button type="submit" disabled={tracking}>{tracking ? "查询中…" : "查询状态"}</button>
+                  {trackingError && <p className="tracking-error" role="alert">{trackingError}</p>}
+                  {trackedWish && <div className="tracked-result"><span>{trackedWish.city} · {trackedWish.landmark}</span><strong>{wishStatusLabels[trackedWish.status]}</strong><p>{trackedWish.message}</p>{trackedWish.assignment && <small>响应者：{trackedWish.assignment.providerName}</small>}<div className="tracked-timeline">{trackedWish.events.map((event, index) => <div key={`${event.eventType}-${event.createdAt}-${index}`}><i /><span>{event.toStatus ? wishStatusLabels[event.toStatus] : "已提交"}</span><time>{new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(event.createdAt))}</time></div>)}</div>{trackedWish.deliverable && <a href={trackedWish.deliverable.url} target="_blank" rel="noreferrer">查看交付内容 ↗</a>}</div>}
+                </form>
                 <div className="menu-card"><button><span>♡</span>我的心愿<i>2 个进行中</i></button><button><span>⌁</span>帮助记录<i>8 次抵达</i></button><button><span>☆</span>我的徽章<i>3 枚</i></button><button onClick={() => { window.location.href = "/ops"; }}><span>⚙</span>运营工作台<i>›</i></button></div>
                 <button className="logout" onClick={() => flash("演示模式暂不需要登录")}>退出体验账号</button>
               </section>
             )}
           </div>
+
+          {respondingWish && <div className="response-backdrop" role="presentation"><form className="response-sheet" onSubmit={submitResponse} role="dialog" aria-modal="true" aria-labelledby="response-title"><button className="response-close" type="button" onClick={() => setRespondingWish(null)} aria-label="关闭">×</button><span>我恰好在这里</span><h2 id="response-title">响应 {respondingWish.city} · {respondingWish.landmark}</h2><p>留下联系方式后，由运营人员确认时间与交付要求；提交响应不会自动接单。</p><label><span>你的称呼</span><input name="responderName" required maxLength={30} /></label><label><span>微信或手机号</span><input name="responderContact" required minLength={3} maxLength={80} /></label><label><span>补充说明</span><textarea name="note" maxLength={160} placeholder="例如：周六下午在外滩附近" /></label><label className="response-consent"><input type="checkbox" name="contactConsent" required /><span>同意运营人员仅为本次撮合联系我</span></label><label className="honeypot" aria-hidden="true"><span>网站</span><input name="website" tabIndex={-1} autoComplete="off" /></label>{responseError && <div className="form-error" role="alert">{responseError}</div>}<button className="response-submit" type="submit" disabled={responding}>{responding ? "提交中…" : "提交响应"}</button></form></div>}
 
           <nav className="bottom-nav">
             {nav.map((item) => <button key={item.key} onClick={() => setTab(item.key)} className={tab === item.key ? "active" : ""}><i>{item.icon}</i><span>{item.label}</span></button>)}

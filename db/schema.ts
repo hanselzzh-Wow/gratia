@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const wishes = sqliteTable(
   "wishes",
@@ -58,6 +58,8 @@ export const deliverables = sqliteTable(
     }),
     kind: text("kind").notNull(),
     url: text("url").notNull(),
+    storageKey: text("storage_key"),
+    accessToken: text("access_token"),
     note: text("note"),
     createdAt: integer("created_at").notNull(),
   },
@@ -79,4 +81,36 @@ export const wishEvents = sqliteTable(
     createdAt: integer("created_at").notNull(),
   },
   (table) => [index("wish_events_wish_created_idx").on(table.wishId, table.createdAt)],
+);
+
+export const wishResponses = sqliteTable(
+  "wish_responses",
+  {
+    id: text("id").primaryKey(),
+    wishId: text("wish_id")
+      .notNull()
+      .references(() => wishes.id, { onDelete: "cascade" }),
+    responderName: text("responder_name").notNull(),
+    responderContact: text("responder_contact").notNull(),
+    note: text("note"),
+    status: text("status").notNull().default("pending"),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("wish_responses_wish_contact_unique").on(table.wishId, table.responderContact),
+    index("wish_responses_wish_created_idx").on(table.wishId, table.createdAt),
+  ],
+);
+
+export const rateLimits = sqliteTable(
+  "rate_limits",
+  {
+    fingerprint: text("fingerprint").notNull(),
+    action: text("action").notNull(),
+    windowStart: integer("window_start").notNull(),
+    count: integer("count").notNull().default(1),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.fingerprint, table.action] })],
 );
