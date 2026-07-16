@@ -12,6 +12,7 @@
     "test": "npm run build && node --test tests/*.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .wrangler",
     "db:generate": "drizzle-kit generate",
+    "build:github-pages": "node scripts/build-github-pages.mjs",
     "secrets:cloudflare:init": "node scripts/cloudflare-secrets.mjs",
     "deploy:cloudflare": "node scripts/deploy-cloudflare.mjs",
     "deploy:cloudflare:dry-run": "node scripts/deploy-cloudflare.mjs --dry-run",

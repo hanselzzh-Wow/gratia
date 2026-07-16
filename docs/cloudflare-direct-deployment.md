@@ -18,6 +18,7 @@
 1. 先运行只读检查：`npm run verify:production -- https://<worker>.workers.dev`。
 2. 再运行完整闭环：`npm run verify:production -- https://<worker>.workers.dev --full`。
 3. 完整闭环会验证健康状态、CORS、未授权拦截、发布、审核、供应者派单、R2 文件交付、追踪、隐私字段、完结和运营导出；测试供应者最后会自动暂停。
-4. 验收通过后，再以 `NEXT_PUBLIC_API_BASE_URL=<workers.dev 地址>` 重新构建 GitHub Pages 前端。
+4. 验收通过后，运行 `npm run build:github-pages -- https://<worker>.workers.dev` 生成已连接完整后端的 `out/` 静态站。
+5. 脚本会拒绝非 HTTPS、带路径或 `chatgpt.site` 地址，并检查首页、运营台、后端地址和 `.nojekyll` 发布要求；确认无误后才把 `out/` 发布到 GitHub Pages。
 
 不要在 API 健康检查和完整测试单通过前切换稳定演示站。
