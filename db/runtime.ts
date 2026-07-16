@@ -112,6 +112,16 @@ async function addCompatibilityColumns(db: D1Database) {
       )
       .run();
   }
+
+  const deliverableColumns = await db
+    .prepare("PRAGMA table_info(deliverables)")
+    .all<{ name: string }>();
+  if (!deliverableColumns.results.some((column) => column.name === "storage_key")) {
+    await db.prepare("ALTER TABLE deliverables ADD COLUMN storage_key TEXT").run();
+  }
+  if (!deliverableColumns.results.some((column) => column.name === "access_token")) {
+    await db.prepare("ALTER TABLE deliverables ADD COLUMN access_token TEXT").run();
+  }
 }
 
 export function ensureWishSchema(db: D1Database) {

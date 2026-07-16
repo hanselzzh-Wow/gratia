@@ -1,12 +1,16 @@
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import process from "node:process";
+import {
+  defaultCloudflareSecretsPath,
+  initializeCloudflareSecrets,
+} from "./cloudflare-secrets.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const wrangler = resolve(root, "node_modules/.bin/wrangler");
 const config = resolve(root, "deploy/cloudflare/wrangler.jsonc");
-const secretsFile = resolve(root, ".cloudflare.secrets");
+const secretsFile = defaultCloudflareSecretsPath;
 const outputDirectory = resolve(root, ".wrangler/direct-deploy");
 const wranglerLog = resolve(outputDirectory, "wrangler.log");
 const dryRun = process.argv.includes("--dry-run");
@@ -29,16 +33,6 @@ function run(command, args, options = {}) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
-function readSecretNames(path) {
-  return new Set(
-    readFileSync(path, "utf8")
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith("#") && line.includes("="))
-      .map((line) => line.slice(0, line.indexOf("=")).trim()),
-  );
-}
-
 run("npm", ["run", "build"]);
 
 if (dryRun) {
@@ -53,20 +47,16 @@ if (dryRun) {
   process.exit(0);
 }
 
-if (!existsSync(secretsFile)) {
-  console.error("缺少 .cloudflare.secrets。请复制 .cloudflare.secrets.example，并替换两个示例值。");
+run(wrangler, ["whoami"]);
+try {
+  const result = initializeCloudflareSecrets(secretsFile);
+  if (result.created) {
+    console.log("已安全生成运营 PIN 和限流盐值，并保存在 .cloudflare.secrets。");
+  }
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
 }
-
-const secretNames = readSecretNames(secretsFile);
-for (const name of ["ADMIN_API_KEY", "RATE_LIMIT_SALT"]) {
-  if (!secretNames.has(name)) {
-    console.error(`.cloudflare.secrets 缺少 ${name}`);
-    process.exit(1);
-  }
-}
-
-run(wrangler, ["whoami"]);
 run(wrangler, [
   "d1",
   "migrations",

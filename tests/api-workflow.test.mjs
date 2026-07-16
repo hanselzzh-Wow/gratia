@@ -88,7 +88,7 @@ class TestR2 {
   }
 }
 
-async function setup({ legacyAssignments = false } = {}) {
+async function setup({ legacyAssignments = false, legacyDeliverables = false } = {}) {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("api-test", `${process.pid}-${Date.now()}`);
   const { default: worker } = await import(workerUrl.href);
@@ -106,6 +106,25 @@ async function setup({ legacyAssignments = false } = {}) {
         updated_at INTEGER NOT NULL,
         accepted_at INTEGER,
         delivered_at INTEGER
+      )
+    `);
+  }
+  if (legacyDeliverables) {
+    database.database.exec(`
+      CREATE TABLE deliverables (
+        id TEXT PRIMARY KEY NOT NULL,
+        wish_id TEXT NOT NULL,
+        assignment_id TEXT,
+        kind TEXT NOT NULL,
+        url TEXT NOT NULL,
+        note TEXT,
+        created_at INTEGER NOT NULL
+      );
+      INSERT INTO deliverables (
+        id, wish_id, assignment_id, kind, url, note, created_at
+      ) VALUES (
+        'legacy-delivery', 'legacy-wish', NULL, 'link',
+        'https://example.com/legacy', 'keep-me', 1
       )
     `);
   }
@@ -128,12 +147,23 @@ async function json(response) {
   return response.json();
 }
 
-test("upgrades an existing local assignments schema without losing data", async () => {
-  const { request, database } = await setup({ legacyAssignments: true });
+test("upgrades existing assignment and delivery schemas without losing data", async () => {
+  const { request, database } = await setup({
+    legacyAssignments: true,
+    legacyDeliverables: true,
+  });
   const health = await request("/api/health");
   assert.equal(health.status, 200);
-  const columns = database.database.prepare("PRAGMA table_info(assignments)").all();
-  assert.ok(columns.some((column) => column.name === "provider_id"));
+  const assignmentColumns = database.database.prepare("PRAGMA table_info(assignments)").all();
+  assert.ok(assignmentColumns.some((column) => column.name === "provider_id"));
+  const deliverableColumns = database.database.prepare("PRAGMA table_info(deliverables)").all();
+  assert.ok(deliverableColumns.some((column) => column.name === "storage_key"));
+  assert.ok(deliverableColumns.some((column) => column.name === "access_token"));
+  const legacyRow = database.database
+    .prepare("SELECT url, note FROM deliverables WHERE id = 'legacy-delivery'")
+    .get();
+  assert.equal(legacyRow.url, "https://example.com/legacy");
+  assert.equal(legacyRow.note, "keep-me");
 });
 
 test("runs the publish, response, matching, and tracking workflow", async () => {
