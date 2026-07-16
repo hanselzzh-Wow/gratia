@@ -4,8 +4,11 @@ import type {
   ApiErrorPayload,
   CreateWishInput,
   CreateWishResponseInput,
+  CreateProviderInput,
+  Provider,
   PublicWish,
   TrackedWish,
+  UpdateProviderInput,
   WishResponse,
 } from "./wishes-contract";
 
@@ -81,6 +84,29 @@ export const wishesClient = {
     });
   },
 
+  async listProviders(adminKey: string, city?: string) {
+    const query = city ? `?city=${encodeURIComponent(city)}` : "";
+    return requestJson<{ providers: Provider[] }>(`/api/admin/providers${query}`, {
+      headers: { "x-admin-key": adminKey },
+    });
+  },
+
+  async createProvider(adminKey: string, input: CreateProviderInput) {
+    return requestJson<{ provider: Provider }>("/api/admin/providers", {
+      method: "POST",
+      headers: { "x-admin-key": adminKey },
+      body: JSON.stringify(input),
+    });
+  },
+
+  async updateProvider(adminKey: string, id: string, input: UpdateProviderInput) {
+    return requestJson<{ provider: Provider }>(`/api/admin/providers/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: { "x-admin-key": adminKey },
+      body: JSON.stringify(input),
+    });
+  },
+
   async applyAdminAction(adminKey: string, id: string, input: AdminWishActionInput) {
     return requestJson<{ wish: AdminWish }>(`/api/admin/wishes/${encodeURIComponent(id)}`, {
       method: "PATCH",
@@ -101,5 +127,16 @@ export const wishesClient = {
         body: form,
       },
     );
+  },
+
+  async exportOperations(adminKey: string) {
+    const response = await fetch(endpoint("/api/admin/export.csv"), {
+      headers: { "x-admin-key": adminKey },
+    });
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => ({ error: "导出失败" }))) as ApiErrorPayload;
+      throw new WishApiError(payload.error || "导出失败", response.status, payload.fields);
+    }
+    return response.blob();
   },
 };

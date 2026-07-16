@@ -44,3 +44,4 @@ next-env.d.ts
 /哈喽卧得/
 /.tools/
 /.dev.vars
+!/.dev.vars.example

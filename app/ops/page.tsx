@@ -7,8 +7,10 @@ import {
   wishStatuses,
   wishStatusLabels,
   deliveryTypeLabels,
+  providerStatusLabels,
   type AdminWish,
   type AdminWishActionInput,
+  type Provider,
   type WishStatus,
 } from "../../lib/wishes-contract";
 
@@ -18,6 +20,7 @@ type WishDraft = {
   providerContact?: string;
   deliveryUrl?: string;
   responseId?: string;
+  providerId?: string;
   file?: File;
 };
 
@@ -38,11 +41,15 @@ export default function OperationsPage() {
   const [pinInput, setPinInput] = useState("");
   const [adminKey, setAdminKey] = useState("");
   const [wishes, setWishes] = useState<AdminWish[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [supplyOpen, setSupplyOpen] = useState(false);
   const [status, setStatus] = useState<WishStatus | "all">("all");
   const [drafts, setDrafts] = useState<Record<string, WishDraft>>({});
   const [busyId, setBusyId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   const visibleWishes = useMemo(
     () => (status === "all" ? wishes : wishes.filter((wish) => wish.status === status)),
@@ -52,13 +59,27 @@ export default function OperationsPage() {
   const pendingCount = wishes.filter((wish) => wish.status === "pending_review").length;
   const matchingCount = wishes.filter((wish) => wish.status === "matching").length;
   const activeCount = wishes.filter((wish) => ["assigned", "in_progress", "delivered"].includes(wish.status)).length;
+  const completedCount = wishes.filter((wish) => wish.status === "completed").length;
+  const availableProviderCount = providers.filter((provider) => provider.status === "available").length;
+  const pilotChecks = [
+    { label: "至少 3 位种子响应者", ready: providers.length >= 3 },
+    { label: "至少 2 位当前可接单", ready: availableProviderCount >= 2 },
+    { label: "至少跑通 1 笔测试单", ready: completedCount >= 1 },
+    { label: "待审核队列已清空", ready: pendingCount === 0 },
+  ];
+  const passedPilotChecks = pilotChecks.filter((check) => check.ready).length;
 
   async function load(key = adminKey) {
     setLoading(true);
     setError("");
+    setNotice("");
     try {
-      const result = await wishesClient.listAdmin(key);
-      setWishes(result.wishes);
+      const [wishResult, providerResult] = await Promise.all([
+        wishesClient.listAdmin(key),
+        wishesClient.listProviders(key),
+      ]);
+      setWishes(wishResult.wishes);
+      setProviders(providerResult.providers);
       setAdminKey(key);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "运营台连接失败");
@@ -81,6 +102,7 @@ export default function OperationsPage() {
     const draft = drafts[wish.id] ?? {};
     setBusyId(wish.id);
     setError("");
+    setNotice("");
     try {
       const result = await wishesClient.applyAdminAction(adminKey, wish.id, {
         action,
@@ -89,13 +111,80 @@ export default function OperationsPage() {
         providerContact: draft.providerContact,
         deliveryUrl: draft.deliveryUrl,
         responseId: draft.responseId,
+        providerId: draft.providerId,
       });
       setWishes((current) => current.map((item) => (item.id === wish.id ? result.wish : item)));
+      if (action === "assign" && draft.providerId) {
+        setProviders((current) => current.map((provider) => provider.id === draft.providerId ? { ...provider, status: "busy", lastAssignedAt: Date.now() } : provider));
+      }
+      if (["cancel", "reopen_matching", "complete"].includes(action) && wish.assignment?.providerId) {
+        setProviders((current) => current.map((provider) => provider.id === wish.assignment?.providerId ? { ...provider, status: "available", completedCount: action === "complete" ? provider.completedCount + 1 : provider.completedCount } : provider));
+      }
       setDrafts((current) => ({ ...current, [wish.id]: {} }));
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "操作失败，请重试");
     } finally {
       setBusyId("");
+    }
+  }
+
+  async function addProvider(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    setLoading(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await wishesClient.createProvider(adminKey, {
+        name: String(data.get("name") ?? ""),
+        contact: String(data.get("contact") ?? ""),
+        city: String(data.get("city") ?? ""),
+        landmarks: String(data.get("landmarks") ?? ""),
+        availabilityNote: String(data.get("availabilityNote") ?? ""),
+      });
+      setProviders((current) => [result.provider, ...current]);
+      form.reset();
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "供应者保存失败");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function setProviderStatus(provider: Provider, status: Provider["status"]) {
+    setBusyId(provider.id);
+    setError("");
+    setNotice("");
+    try {
+      const result = await wishesClient.updateProvider(adminKey, provider.id, { status });
+      setProviders((current) => current.map((item) => item.id === provider.id ? result.provider : item));
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "供应状态更新失败");
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function exportOperations() {
+    setExporting(true);
+    setError("");
+    setNotice("");
+    try {
+      const blob = await wishesClient.exportOperations(adminKey);
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = `haluowode-ops-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+      setNotice("运营数据已导出；文件只用于内部运营，请勿转发。");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "运营数据导出失败");
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -107,6 +196,7 @@ export default function OperationsPage() {
     }
     setBusyId(wish.id);
     setError("");
+    setNotice("");
     try {
       const result = await wishesClient.uploadDeliverable(adminKey, wish.id, draft.file, draft.note);
       setWishes((current) => current.map((item) => (item.id === wish.id ? result.wish : item)));
@@ -154,6 +244,7 @@ export default function OperationsPage() {
         </div>
         <nav>
           <button onClick={() => void load()} disabled={loading}>{loading ? "刷新中…" : "刷新订单"}</button>
+          <button className="secondary" onClick={() => void exportOperations()} disabled={exporting}>{exporting ? "导出中…" : "导出运营表"}</button>
           <button className="quiet" onClick={() => { setAdminKey(""); setPinInput(""); }}>退出</button>
         </nav>
       </header>
@@ -171,6 +262,41 @@ export default function OperationsPage() {
           <article><span>全部心愿</span><strong>{wishes.length}</strong><small>最近 100 条</small></article>
         </div>
 
+        <section className="ops-supply-panel">
+          <button className="ops-supply-toggle" onClick={() => setSupplyOpen((current) => !current)}><span><b>供应者名册</b><small>{providers.length} 人 · {availableProviderCount} 人可接单</small></span><i>{supplyOpen ? "收起" : "管理"}</i></button>
+          {supplyOpen && <div className="ops-supply-body">
+            <form className="ops-provider-form" onSubmit={addProvider}>
+              <div><span className="ops-kicker">SUPPLY FIRST</span><h2>新增种子响应者</h2><p>记录真实可联系的人、常驻城市和地标，派单时直接选择。</p></div>
+              <label><span>称呼</span><input name="name" required maxLength={40} /></label>
+              <label><span>联系方式</span><input name="contact" required minLength={3} maxLength={80} /></label>
+              <label><span>城市</span><select name="city" defaultValue="上海"><option>上海</option><option>北京</option><option>广州</option><option>深圳</option><option>成都</option></select></label>
+              <label><span>常驻地标</span><input name="landmarks" required minLength={2} maxLength={200} placeholder="例如：外滩、陆家嘴、武康路" /></label>
+              <label className="wide"><span>可用时间与备注</span><input name="availabilityNote" maxLength={300} placeholder="例如：周末下午，可拍 30 秒短视频" /></label>
+              <button type="submit" disabled={loading}>加入名册</button>
+            </form>
+            <div className="ops-provider-list">
+              {providers.map((provider) => <article key={provider.id}><div><span className={`provider-status provider-${provider.status}`}>{providerStatusLabels[provider.status]}</span><b>{provider.name}</b><small>{provider.city} · {provider.landmarks}</small></div><p>{provider.contact}{provider.availabilityNote ? ` · ${provider.availabilityNote}` : ""}</p><footer><span>已完成 {provider.completedCount} 单</span>{provider.status === "paused" ? <button disabled={busyId === provider.id} onClick={() => void setProviderStatus(provider, "available")}>恢复接单</button> : provider.status === "available" ? <button disabled={busyId === provider.id} onClick={() => void setProviderStatus(provider, "paused")}>暂停</button> : <button disabled>履约中</button>}</footer></article>)}
+              {!providers.length && <div className="ops-provider-empty">先录入 3–5 位能稳定联系到的种子响应者。</div>}
+            </div>
+          </div>}
+        </section>
+
+        <section className="ops-pilot-panel" aria-label="试运营准备度">
+          <div>
+            <span className="ops-kicker">PILOT READINESS</span>
+            <h2>试运营准备度</h2>
+            <p>{passedPilotChecks === pilotChecks.length ? "基础条件已齐，可以邀请第一小批真实用户。" : "先把未完成项补齐，再邀请真实用户进入。"}</p>
+          </div>
+          <strong>{passedPilotChecks}<small> / {pilotChecks.length}</small></strong>
+          <ul>
+            {pilotChecks.map((check) => (
+              <li className={check.ready ? "ready" : ""} key={check.label}>
+                <span aria-hidden="true">{check.ready ? "✓" : "○"}</span>{check.label}
+              </li>
+            ))}
+          </ul>
+        </section>
+
         <div className="ops-filter" aria-label="订单状态筛选">
           <button className={status === "all" ? "active" : ""} onClick={() => setStatus("all")}>全部</button>
           {wishStatuses.map((item) => (
@@ -181,11 +307,15 @@ export default function OperationsPage() {
         </div>
 
         {error && <div className="ops-error ops-page-error" role="alert">{error}</div>}
+        {notice && <div className="ops-notice" role="status">{notice}</div>}
 
         <div className="ops-list">
           {visibleWishes.map((wish) => {
             const draft = drafts[wish.id] ?? {};
             const busy = busyId === wish.id;
+            const matchingProviders = providers.filter(
+              (provider) => provider.status === "available" && provider.city === wish.city,
+            );
             return (
               <article className="ops-wish" key={wish.id}>
                 <div className="ops-wish-main">
@@ -216,8 +346,9 @@ export default function OperationsPage() {
                   {wish.status === "pending_review" && <div className="ops-button-row"><button disabled={busy} onClick={() => void act(wish, "approve")}>审核通过</button><button className="danger" disabled={busy} onClick={() => void act(wish, "reject")}>不予通过</button></div>}
 
                   {wish.status === "matching" && <>
-                    {wish.responses.length > 0 && <div className="ops-responses"><span>{wish.responses.length} 位在场者已报名</span>{wish.responses.map((response) => <button key={response.id} className={draft.responseId === response.id ? "selected" : ""} onClick={() => updateDraft(wish.id, { responseId: response.id, providerName: response.responderName, providerContact: response.responderContact })}><b>{response.responderName}</b><small>{response.responderContact}{response.note ? ` · ${response.note}` : ""}</small></button>)}</div>}
-                    <div className="ops-field-row"><label><span>响应者称呼</span><input value={draft.providerName ?? ""} onChange={(event) => updateDraft(wish.id, { providerName: event.target.value, responseId: undefined })} /></label><label><span>响应者联系方式</span><input value={draft.providerContact ?? ""} onChange={(event) => updateDraft(wish.id, { providerContact: event.target.value, responseId: undefined })} /></label></div><button disabled={busy} onClick={() => void act(wish, "assign")}>确认手工派单</button>
+                    {matchingProviders.length > 0 && <div className="ops-provider-picks"><span>{wish.city}可接单供应者</span>{matchingProviders.map((provider) => <button key={provider.id} className={draft.providerId === provider.id ? "selected" : ""} onClick={() => updateDraft(wish.id, { providerId: provider.id, responseId: undefined, providerName: provider.name, providerContact: provider.contact })}><b>{provider.name}</b><small>{provider.landmarks} · 已完成 {provider.completedCount} 单</small></button>)}</div>}
+                    {wish.responses.length > 0 && <div className="ops-responses"><span>{wish.responses.length} 位在场者已报名</span>{wish.responses.map((response) => <button key={response.id} className={draft.responseId === response.id ? "selected" : ""} onClick={() => updateDraft(wish.id, { responseId: response.id, providerId: undefined, providerName: response.responderName, providerContact: response.responderContact })}><b>{response.responderName}</b><small>{response.responderContact}{response.note ? ` · ${response.note}` : ""}</small></button>)}</div>}
+                    <div className="ops-field-row"><label><span>响应者称呼</span><input value={draft.providerName ?? ""} onChange={(event) => updateDraft(wish.id, { providerName: event.target.value, responseId: undefined, providerId: undefined })} /></label><label><span>响应者联系方式</span><input value={draft.providerContact ?? ""} onChange={(event) => updateDraft(wish.id, { providerContact: event.target.value, responseId: undefined, providerId: undefined })} /></label></div><button disabled={busy} onClick={() => void act(wish, "assign")}>确认手工派单</button>
                   </>}
 
                   {wish.status === "assigned" && <button disabled={busy} onClick={() => void act(wish, "accept")}>记录响应者已接单</button>}

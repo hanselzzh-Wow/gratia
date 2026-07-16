@@ -1,4 +1,4 @@
-let schemaInitialization: Promise<void> | null = null;
+const schemaInitializations = new WeakMap<D1Database, Promise<void>>();
 
 const schemaStatements = [
   `CREATE TABLE IF NOT EXISTS wishes (
@@ -20,9 +20,23 @@ const schemaStatements = [
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
   )`,
+  `CREATE TABLE IF NOT EXISTS providers (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    contact TEXT NOT NULL UNIQUE,
+    city TEXT NOT NULL,
+    landmarks TEXT NOT NULL,
+    availability_note TEXT,
+    status TEXT NOT NULL DEFAULT 'available',
+    completed_count INTEGER NOT NULL DEFAULT 0,
+    last_assigned_at INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS assignments (
     id TEXT PRIMARY KEY NOT NULL,
     wish_id TEXT NOT NULL,
+    provider_id TEXT,
     provider_name TEXT NOT NULL,
     provider_contact TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'offered',
@@ -31,7 +45,8 @@ const schemaStatements = [
     updated_at INTEGER NOT NULL,
     accepted_at INTEGER,
     delivered_at INTEGER,
-    FOREIGN KEY (wish_id) REFERENCES wishes(id) ON DELETE CASCADE
+    FOREIGN KEY (wish_id) REFERENCES wishes(id) ON DELETE CASCADE,
+    FOREIGN KEY (provider_id) REFERENCES providers(id) ON DELETE SET NULL
   )`,
   `CREATE TABLE IF NOT EXISTS deliverables (
     id TEXT PRIMARY KEY NOT NULL,
@@ -78,6 +93,7 @@ const schemaStatements = [
   )`,
   "CREATE INDEX IF NOT EXISTS wishes_status_created_idx ON wishes(status, created_at)",
   "CREATE INDEX IF NOT EXISTS wishes_city_status_idx ON wishes(city, status)",
+  "CREATE INDEX IF NOT EXISTS providers_city_status_idx ON providers(city, status)",
   "CREATE INDEX IF NOT EXISTS assignments_wish_created_idx ON assignments(wish_id, created_at)",
   "CREATE INDEX IF NOT EXISTS deliverables_wish_created_idx ON deliverables(wish_id, created_at)",
   "CREATE INDEX IF NOT EXISTS wish_events_wish_created_idx ON wish_events(wish_id, created_at)",
@@ -85,16 +101,30 @@ const schemaStatements = [
   "CREATE INDEX IF NOT EXISTS wish_responses_wish_created_idx ON wish_responses(wish_id, created_at)",
 ] as const;
 
-export function ensureWishSchema(db: D1Database) {
-  if (!schemaInitialization) {
-    schemaInitialization = db
-      .batch(schemaStatements.map((statement) => db.prepare(statement)))
-      .then(() => undefined)
-      .catch((error) => {
-        schemaInitialization = null;
-        throw error;
-      });
+async function addCompatibilityColumns(db: D1Database) {
+  const assignmentColumns = await db
+    .prepare("PRAGMA table_info(assignments)")
+    .all<{ name: string }>();
+  if (!assignmentColumns.results.some((column) => column.name === "provider_id")) {
+    await db
+      .prepare(
+        "ALTER TABLE assignments ADD COLUMN provider_id TEXT REFERENCES providers(id) ON DELETE SET NULL",
+      )
+      .run();
   }
+}
 
-  return schemaInitialization;
+export function ensureWishSchema(db: D1Database) {
+  const existing = schemaInitializations.get(db);
+  if (existing) return existing;
+
+  const initialization = db
+    .batch(schemaStatements.map((statement) => db.prepare(statement)))
+    .then(() => addCompatibilityColumns(db))
+    .catch((error) => {
+      schemaInitializations.delete(db);
+      throw error;
+    });
+  schemaInitializations.set(db, initialization);
+  return initialization;
 }

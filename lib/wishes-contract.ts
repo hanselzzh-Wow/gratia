@@ -69,12 +69,53 @@ export interface PublicWish {
 
 export interface WishAssignment {
   id: string;
+  providerId: string | null;
   providerName: string;
   providerContact: string;
   status: "offered" | "accepted" | "arrived" | "delivered" | "declined" | "cancelled";
   note: string | null;
   createdAt: number;
   updatedAt: number;
+}
+
+export const providerStatuses = ["available", "busy", "paused"] as const;
+export type ProviderStatus = (typeof providerStatuses)[number];
+
+export const providerStatusLabels: Record<ProviderStatus, string> = {
+  available: "可接单",
+  busy: "履约中",
+  paused: "已暂停",
+};
+
+export interface Provider {
+  id: string;
+  name: string;
+  contact: string;
+  city: string;
+  landmarks: string;
+  availabilityNote: string | null;
+  status: ProviderStatus;
+  completedCount: number;
+  lastAssignedAt: number | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface CreateProviderInput {
+  name: string;
+  contact: string;
+  city: string;
+  landmarks: string;
+  availabilityNote?: string;
+}
+
+export interface UpdateProviderInput {
+  name?: string;
+  contact?: string;
+  city?: string;
+  landmarks?: string;
+  availabilityNote?: string;
+  status?: ProviderStatus;
 }
 
 export interface WishDeliverable {
@@ -140,6 +181,7 @@ export interface AdminWishActionInput {
   providerContact?: string;
   deliveryUrl?: string;
   responseId?: string;
+  providerId?: string;
 }
 
 export interface ApiErrorPayload {

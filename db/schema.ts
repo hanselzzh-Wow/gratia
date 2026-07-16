@@ -27,6 +27,24 @@ export const wishes = sqliteTable(
   ],
 );
 
+export const providers = sqliteTable(
+  "providers",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    contact: text("contact").notNull().unique(),
+    city: text("city").notNull(),
+    landmarks: text("landmarks").notNull(),
+    availabilityNote: text("availability_note"),
+    status: text("status").notNull().default("available"),
+    completedCount: integer("completed_count").notNull().default(0),
+    lastAssignedAt: integer("last_assigned_at"),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [index("providers_city_status_idx").on(table.city, table.status)],
+);
+
 export const assignments = sqliteTable(
   "assignments",
   {
@@ -34,6 +52,7 @@ export const assignments = sqliteTable(
     wishId: text("wish_id")
       .notNull()
       .references(() => wishes.id, { onDelete: "cascade" }),
+    providerId: text("provider_id").references(() => providers.id, { onDelete: "set null" }),
     providerName: text("provider_name").notNull(),
     providerContact: text("provider_contact").notNull(),
     status: text("status").notNull().default("offered"),

@@ -1,9 +1,12 @@
 import {
   adminWishActions,
   deliveryTypes,
+  providerStatuses,
   type AdminWishActionInput,
   type CreateWishInput,
   type CreateWishResponseInput,
+  type CreateProviderInput,
+  type UpdateProviderInput,
   type DeliveryType,
 } from "./wishes-contract";
 
@@ -135,6 +138,39 @@ export function normalizeTrackingInput(payload: unknown) {
   return { publicCode, contact };
 }
 
+export function normalizeCreateProvider(payload: unknown): CreateProviderInput {
+  if (!payload || typeof payload !== "object") throw new WishInputError("请完整填写供应者信息");
+  const input = payload as Record<string, unknown>;
+  const fields: Record<string, string> = {};
+  const name = boundedText(input.name, "name", "称呼", 1, 40, fields);
+  const contact = boundedText(input.contact, "contact", "联系方式", 3, 80, fields);
+  const city = boundedText(input.city, "city", "城市", 2, 24, fields);
+  const landmarks = boundedText(input.landmarks, "landmarks", "常驻地标", 2, 200, fields);
+  const availabilityNote = cleanText(input.availabilityNote).slice(0, 300);
+  if (Object.keys(fields).length > 0) throw new WishInputError("请检查供应者信息", fields);
+  return { name, contact, city, landmarks, availabilityNote: availabilityNote || undefined };
+}
+
+export function normalizeUpdateProvider(payload: unknown): UpdateProviderInput {
+  if (!payload || typeof payload !== "object") throw new WishInputError("缺少供应者更新信息");
+  const input = payload as Record<string, unknown>;
+  const update: UpdateProviderInput = {};
+  const fields: Record<string, string> = {};
+  if ("name" in input) update.name = boundedText(input.name, "name", "称呼", 1, 40, fields);
+  if ("contact" in input) update.contact = boundedText(input.contact, "contact", "联系方式", 3, 80, fields);
+  if ("city" in input) update.city = boundedText(input.city, "city", "城市", 2, 24, fields);
+  if ("landmarks" in input) update.landmarks = boundedText(input.landmarks, "landmarks", "常驻地标", 2, 200, fields);
+  if ("availabilityNote" in input) update.availabilityNote = cleanText(input.availabilityNote).slice(0, 300);
+  if ("status" in input) {
+    const status = cleanText(input.status) as UpdateProviderInput["status"];
+    if (!status || !providerStatuses.includes(status)) fields.status = "供应状态无效";
+    else update.status = status;
+  }
+  if (Object.keys(fields).length > 0) throw new WishInputError("请检查供应者信息", fields);
+  if (Object.keys(update).length === 0) throw new WishInputError("没有需要更新的内容");
+  return update;
+}
+
 export function normalizeAdminAction(payload: unknown): AdminWishActionInput {
   if (!payload || typeof payload !== "object") {
     throw new WishInputError("缺少运营操作");
@@ -153,5 +189,6 @@ export function normalizeAdminAction(payload: unknown): AdminWishActionInput {
     providerContact: cleanText(input.providerContact).slice(0, 80) || undefined,
     deliveryUrl: cleanText(input.deliveryUrl).slice(0, 500) || undefined,
     responseId: cleanText(input.responseId).slice(0, 80) || undefined,
+    providerId: cleanText(input.providerId).slice(0, 80) || undefined,
   };
 }

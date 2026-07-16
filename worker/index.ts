@@ -4,20 +4,25 @@ import handler from "vinext/server/app-router-entry";
 import {
   WishInputError,
   normalizeAdminAction,
+  normalizeCreateProvider,
   normalizeCreateWish,
   normalizeTrackingInput,
+  normalizeUpdateProvider,
   normalizeWishResponse,
 } from "../lib/wishes-validation";
 import {
   applyAdminWishAction,
+  createProvider,
   createWish,
   createWishResponse,
   getWishHealth,
   listAdminWishes,
+  listProviders,
   listPublicWishes,
   getStoredDeliverable,
   recordUploadedDeliverable,
   trackWish,
+  updateProvider,
   WishWorkflowError,
 } from "../server/wishes-repository";
 import { consumeRateLimit, RateLimitError } from "../server/rate-limit";
@@ -83,6 +88,12 @@ function json(request: Request, env: Env, payload: unknown, status = 200) {
 function safeFilename(name: string) {
   const cleaned = name.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
   return cleaned.slice(-100) || "delivery";
+}
+
+function csvCell(value: unknown) {
+  const text = String(value ?? "");
+  const spreadsheetSafe = /^[\t\r\n ]*[=+\-@]/.test(text) ? `'${text}` : text;
+  return `"${spreadsheetSafe.replaceAll('"', '""')}"`;
 }
 
 async function secureEqual(left: string, right: string) {
@@ -207,6 +218,97 @@ async function handleWishApi(request: Request, env: Env) {
       await requireAdmin(request, env);
       const status = url.searchParams.get("status")?.trim() || undefined;
       return json(request, env, { wishes: await listAdminWishes(env.DB, status) });
+    }
+
+    if (url.pathname === "/api/admin/export.csv" && request.method === "GET") {
+      await requireAdmin(request, env);
+      const [wishes, providers] = await Promise.all([
+        listAdminWishes(env.DB),
+        listProviders(env.DB),
+      ]);
+      const headers = [
+        "记录类型",
+        "编号",
+        "状态",
+        "城市",
+        "地标",
+        "场景/常驻地标",
+        "内容/可用说明",
+        "发布者/供应者",
+        "联系方式",
+        "响应者",
+        "响应者联系方式",
+        "感谢金(元)",
+        "创建时间",
+        "更新时间",
+      ];
+      const rows = [
+        headers,
+        ...wishes.map((wish) => [
+          "心愿",
+          wish.publicCode,
+          wish.status,
+          wish.city,
+          wish.landmark,
+          wish.occasion,
+          wish.message,
+          wish.requesterName,
+          wish.contact,
+          wish.assignment?.providerName ?? "",
+          wish.assignment?.providerContact ?? "",
+          (wish.rewardFen / 100).toFixed(2),
+          new Date(wish.createdAt).toISOString(),
+          new Date(wish.updatedAt).toISOString(),
+        ]),
+        ...providers.map((provider) => [
+          "供应者",
+          provider.id,
+          provider.status,
+          provider.city,
+          "",
+          provider.landmarks,
+          provider.availabilityNote ?? "",
+          provider.name,
+          provider.contact,
+          "",
+          "",
+          "",
+          new Date(provider.createdAt).toISOString(),
+          new Date(provider.updatedAt).toISOString(),
+        ]),
+      ];
+      const csv = `\uFEFF${rows.map((row) => row.map(csvCell).join(",")).join("\r\n")}`;
+      return new Response(csv, {
+        headers: {
+          "content-type": "text/csv; charset=utf-8",
+          "content-disposition": `attachment; filename="haluowode-ops-${new Date().toISOString().slice(0, 10)}.csv"`,
+          "cache-control": "private, no-store",
+          ...corsHeaders(request, env),
+        },
+      });
+    }
+
+    if (url.pathname === "/api/admin/providers" && request.method === "GET") {
+      await requireAdmin(request, env);
+      const city = url.searchParams.get("city")?.trim() || undefined;
+      return json(request, env, { providers: await listProviders(env.DB, city) });
+    }
+
+    if (url.pathname === "/api/admin/providers" && request.method === "POST") {
+      await requireAdmin(request, env);
+      const provider = await createProvider(env.DB, normalizeCreateProvider(await request.json()));
+      return json(request, env, { provider }, 201);
+    }
+
+    const providerMatch = url.pathname.match(/^\/api\/admin\/providers\/([^/]+)$/);
+    if (providerMatch && request.method === "PATCH") {
+      await requireAdmin(request, env);
+      const provider = await updateProvider(
+        env.DB,
+        decodeURIComponent(providerMatch[1]),
+        normalizeUpdateProvider(await request.json()),
+      );
+      return json(request, env, { provider });
     }
 
     const uploadMatch = url.pathname.match(/^\/api\/admin\/wishes\/([^/]+)\/deliverables\/upload$/);

@@ -4,11 +4,15 @@ import {
   wishStatuses,
   type AdminWish,
   type AdminWishActionInput,
+  type CreateProviderInput,
   type CreateWishInput,
   type CreateWishResponseInput,
   type DeliveryType,
   type PublicWish,
+  type Provider,
+  type ProviderStatus,
   type TrackedWish,
+  type UpdateProviderInput,
   type WishAssignment,
   type WishDeliverable,
   type WishEvent,
@@ -37,6 +41,7 @@ type WishRow = {
 
 type AdminWishRow = WishRow & {
   assignment_id: string | null;
+  assignment_provider_id: string | null;
   assignment_provider_name: string | null;
   assignment_provider_contact: string | null;
   assignment_status: string | null;
@@ -48,6 +53,20 @@ type AdminWishRow = WishRow & {
   deliverable_url: string | null;
   deliverable_note: string | null;
   deliverable_created_at: number | null;
+};
+
+type ProviderRow = {
+  id: string;
+  name: string;
+  contact: string;
+  city: string;
+  landmarks: string;
+  availability_note: string | null;
+  status: string;
+  completed_count: number;
+  last_assigned_at: number | null;
+  created_at: number;
+  updated_at: number;
 };
 
 type WishResponseRow = {
@@ -65,6 +84,7 @@ const adminSelect = `
   SELECT
     w.*,
     a.id AS assignment_id,
+    a.provider_id AS assignment_provider_id,
     a.provider_name AS assignment_provider_name,
     a.provider_contact AS assignment_provider_contact,
     a.status AS assignment_status,
@@ -136,12 +156,29 @@ function toAssignment(row: AdminWishRow): WishAssignment | null {
 
   return {
     id: row.assignment_id,
+    providerId: row.assignment_provider_id,
     providerName: row.assignment_provider_name,
     providerContact: row.assignment_provider_contact,
     status: (row.assignment_status ?? "offered") as WishAssignment["status"],
     note: row.assignment_note,
     createdAt: row.assignment_created_at ?? row.created_at,
     updatedAt: row.assignment_updated_at ?? row.updated_at,
+  };
+}
+
+function toProvider(row: ProviderRow): Provider {
+  return {
+    id: row.id,
+    name: row.name,
+    contact: row.contact,
+    city: row.city,
+    landmarks: row.landmarks,
+    availabilityNote: row.availability_note,
+    status: row.status as ProviderStatus,
+    completedCount: row.completed_count,
+    lastAssignedAt: row.last_assigned_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -290,6 +327,73 @@ export async function listPublicWishes(db: D1Database, city?: string) {
   return result.results.map(toPublicWish);
 }
 
+export async function listProviders(db: D1Database, city?: string) {
+  await ensureWishSchema(db);
+  const result = city
+    ? await db
+        .prepare("SELECT * FROM providers WHERE city = ? ORDER BY status ASC, updated_at DESC LIMIT 200")
+        .bind(city)
+        .all<ProviderRow>()
+    : await db.prepare("SELECT * FROM providers ORDER BY city ASC, status ASC, updated_at DESC LIMIT 200").all<ProviderRow>();
+  return result.results.map(toProvider);
+}
+
+export async function createProvider(db: D1Database, input: CreateProviderInput) {
+  await ensureWishSchema(db);
+  const duplicate = await db
+    .prepare("SELECT id FROM providers WHERE contact = ? LIMIT 1")
+    .bind(input.contact)
+    .first<{ id: string }>();
+  if (duplicate) throw new WishWorkflowError("这个联系方式已经在供应者名册中", 409);
+  const id = crypto.randomUUID();
+  const now = Date.now();
+  await db
+    .prepare(
+      "INSERT INTO providers (id, name, contact, city, landmarks, availability_note, status, completed_count, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'available', 0, ?, ?)",
+    )
+    .bind(id, input.name, input.contact, input.city, input.landmarks, input.availabilityNote ?? null, now, now)
+    .run();
+  const row = await db.prepare("SELECT * FROM providers WHERE id = ?").bind(id).first<ProviderRow>();
+  if (!row) throw new WishWorkflowError("供应者保存失败", 500);
+  return toProvider(row);
+}
+
+export async function updateProvider(db: D1Database, id: string, update: UpdateProviderInput) {
+  await ensureWishSchema(db);
+  const current = await db.prepare("SELECT * FROM providers WHERE id = ? LIMIT 1").bind(id).first<ProviderRow>();
+  if (!current) throw new WishWorkflowError("未找到该供应者", 404);
+  if (update.status === "busy" && current.status !== "busy") {
+    throw new WishWorkflowError("履约中状态只能在派单时自动设置", 409);
+  }
+  if (current.status === "busy" && update.status && update.status !== "busy") {
+    throw new WishWorkflowError("供应者仍有进行中的订单，请先完成、取消或退回匹配", 409);
+  }
+  const now = Date.now();
+  try {
+    await db
+      .prepare(
+        "UPDATE providers SET name = ?, contact = ?, city = ?, landmarks = ?, availability_note = ?, status = ?, updated_at = ? WHERE id = ?",
+      )
+      .bind(
+        update.name ?? current.name,
+        update.contact ?? current.contact,
+        update.city ?? current.city,
+        update.landmarks ?? current.landmarks,
+        update.availabilityNote !== undefined ? update.availabilityNote || null : current.availability_note,
+        update.status ?? current.status,
+        now,
+        id,
+      )
+      .run();
+  } catch (error) {
+    if (String(error).includes("UNIQUE")) throw new WishWorkflowError("这个联系方式已经在供应者名册中", 409);
+    throw error;
+  }
+  const row = await db.prepare("SELECT * FROM providers WHERE id = ?").bind(id).first<ProviderRow>();
+  if (!row) throw new WishWorkflowError("供应者更新失败", 500);
+  return toProvider(row);
+}
+
 export async function createWishResponse(
   db: D1Database,
   wishId: string,
@@ -433,7 +537,25 @@ export async function applyAdminWishAction(
       requireStatus(wish, ["matching"]);
       let providerName = input.providerName;
       let providerContact = input.providerContact;
-      if (input.responseId) {
+      let providerId: string | null = null;
+      if (input.providerId) {
+        const selectedProvider = await db
+          .prepare("SELECT * FROM providers WHERE id = ? LIMIT 1")
+          .bind(input.providerId)
+          .first<ProviderRow>();
+        if (!selectedProvider) throw new WishWorkflowError("未找到所选供应者", 404);
+        if (selectedProvider.status !== "available") {
+          throw new WishWorkflowError("所选供应者当前不可接单", 409);
+        }
+        providerId = selectedProvider.id;
+        providerName = selectedProvider.name;
+        providerContact = selectedProvider.contact;
+        statements.push(
+          db
+            .prepare("UPDATE providers SET status = 'busy', last_assigned_at = ?, updated_at = ? WHERE id = ? AND status = 'available'")
+            .bind(now, now, selectedProvider.id),
+        );
+      } else if (input.responseId) {
         const selectedResponse = await db
           .prepare("SELECT * FROM wish_responses WHERE id = ? AND wish_id = ? LIMIT 1")
           .bind(input.responseId, wish.id)
@@ -454,11 +576,12 @@ export async function applyAdminWishAction(
       statements.push(
         db
           .prepare(
-            "INSERT INTO assignments (id, wish_id, provider_name, provider_contact, status, note, created_at, updated_at) VALUES (?, ?, ?, ?, 'offered', ?, ?, ?)",
+            "INSERT INTO assignments (id, wish_id, provider_id, provider_name, provider_contact, status, note, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'offered', ?, ?, ?)",
           )
           .bind(
             crypto.randomUUID(),
             wish.id,
+            providerId,
             providerName,
             providerContact,
             input.note ?? null,
@@ -510,6 +633,13 @@ export async function applyAdminWishAction(
     case "complete":
       requireStatus(wish, ["delivered"]);
       nextStatus = "completed";
+      if (wish.assignment?.providerId) {
+        statements.push(
+          db
+            .prepare("UPDATE providers SET status = 'available', completed_count = completed_count + 1, updated_at = ? WHERE id = ?")
+            .bind(now, wish.assignment.providerId),
+        );
+      }
       break;
     case "cancel":
       requireStatus(wish, ["pending_review", "matching", "assigned", "in_progress", "delivered"]);
@@ -520,6 +650,13 @@ export async function applyAdminWishAction(
             .prepare("UPDATE assignments SET status = 'cancelled', updated_at = ? WHERE id = ?")
             .bind(now, wish.assignment.id),
         );
+        if (wish.assignment.providerId) {
+          statements.push(
+            db
+              .prepare("UPDATE providers SET status = 'available', updated_at = ? WHERE id = ?")
+              .bind(now, wish.assignment.providerId),
+          );
+        }
       }
       break;
     case "reopen_matching":
@@ -532,6 +669,13 @@ export async function applyAdminWishAction(
             .prepare("UPDATE assignments SET status = 'cancelled', updated_at = ? WHERE id = ?")
             .bind(now, wish.assignment.id),
         );
+        if (wish.assignment.providerId) {
+          statements.push(
+            db
+              .prepare("UPDATE providers SET status = 'available', updated_at = ? WHERE id = ?")
+              .bind(now, wish.assignment.providerId),
+          );
+        }
       }
       break;
   }

@@ -88,12 +88,29 @@ class TestR2 {
   }
 }
 
-async function setup() {
+async function setup({ legacyAssignments = false } = {}) {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("api-test", `${process.pid}-${Date.now()}`);
   const { default: worker } = await import(workerUrl.href);
+  const database = new TestD1();
+  if (legacyAssignments) {
+    database.database.exec(`
+      CREATE TABLE assignments (
+        id TEXT PRIMARY KEY NOT NULL,
+        wish_id TEXT NOT NULL,
+        provider_name TEXT NOT NULL,
+        provider_contact TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'offered',
+        note TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        accepted_at INTEGER,
+        delivered_at INTEGER
+      )
+    `);
+  }
   const env = {
-    DB: new TestD1(),
+    DB: database,
     UPLOADS: new TestR2(),
     ADMIN_API_KEY: "test-admin-pin",
     ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) },
@@ -104,15 +121,64 @@ async function setup() {
     return worker.fetch(new Request(`http://localhost${path}`, init), env, ctx);
   }
 
-  return { request };
+  return { request, database };
 }
 
 async function json(response) {
   return response.json();
 }
 
+test("upgrades an existing local assignments schema without losing data", async () => {
+  const { request, database } = await setup({ legacyAssignments: true });
+  const health = await request("/api/health");
+  assert.equal(health.status, 200);
+  const columns = database.database.prepare("PRAGMA table_info(assignments)").all();
+  assert.ok(columns.some((column) => column.name === "provider_id"));
+});
+
 test("runs the publish, response, matching, and tracking workflow", async () => {
   const { request } = await setup();
+  const providerResponse = await request("/api/admin/providers", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+    body: JSON.stringify({
+      name: "种子响应者",
+      contact: "seed-provider-contact",
+      city: "上海",
+      landmarks: "外滩、陆家嘴",
+      availabilityNote: "周末可接单",
+    }),
+  });
+  assert.equal(providerResponse.status, 201);
+  const seedProvider = (await json(providerResponse)).provider;
+  assert.equal(seedProvider.status, "available");
+  const providerList = await json(
+    await request("/api/admin/providers", { headers: { "x-admin-key": "test-admin-pin" } }),
+  );
+  assert.equal(providerList.providers.length, 1);
+  const invalidManualBusy = await request(`/api/admin/providers/${seedProvider.id}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+    body: JSON.stringify({ status: "busy" }),
+  });
+  assert.equal(invalidManualBusy.status, 409);
+  const pausedProvider = await json(
+    await request(`/api/admin/providers/${seedProvider.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+      body: JSON.stringify({ status: "paused" }),
+    }),
+  );
+  assert.equal(pausedProvider.provider.status, "paused");
+  const resumedProvider = await json(
+    await request(`/api/admin/providers/${seedProvider.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+      body: JSON.stringify({ status: "available" }),
+    }),
+  );
+  assert.equal(resumedProvider.provider.status, "available");
+
   const createdResponse = await request("/api/wishes", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -239,6 +305,82 @@ test("runs the publish, response, matching, and tracking workflow", async () => 
     body: JSON.stringify({ action: "approve" }),
   });
   assert.equal(invalidTransition.status, 409);
+
+  const supplyWishResponse = await request("/api/wishes", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      requesterName: "供应闭环测试",
+      contact: "supply-requester-contact",
+      city: "上海",
+      landmark: "陆家嘴",
+      occasion: "加油鼓励",
+      message: "=1+1 请在陆家嘴替我对朋友说一声加油，慢一点也没关系。",
+      deliveryType: "scenery_voiceover",
+      deadlineText: "下周前",
+      rewardFen: 1200,
+      contactConsent: true,
+    }),
+  });
+  const supplyWish = (await json(supplyWishResponse)).wish;
+  await request(`/api/admin/wishes/${supplyWish.id}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+    body: JSON.stringify({ action: "approve" }),
+  });
+  const providerAssignment = await json(
+    await request(`/api/admin/wishes/${supplyWish.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+      body: JSON.stringify({ action: "assign", providerId: seedProvider.id }),
+    }),
+  );
+  assert.equal(providerAssignment.wish.assignment.providerId, seedProvider.id);
+  assert.equal(
+    (await json(await request("/api/admin/providers", { headers: { "x-admin-key": "test-admin-pin" } }))).providers[0].status,
+    "busy",
+  );
+  const invalidPauseDuringAssignment = await request(`/api/admin/providers/${seedProvider.id}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+    body: JSON.stringify({ status: "paused" }),
+  });
+  assert.equal(invalidPauseDuringAssignment.status, 409);
+  await request(`/api/admin/wishes/${supplyWish.id}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+    body: JSON.stringify({ action: "accept" }),
+  });
+  await request(`/api/admin/wishes/${supplyWish.id}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+    body: JSON.stringify({ action: "mark_delivered", deliveryUrl: "https://example.com/supply-delivery" }),
+  });
+  await request(`/api/admin/wishes/${supplyWish.id}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+    body: JSON.stringify({ action: "complete" }),
+  });
+  const providerAfterCompletion = (
+    await json(await request("/api/admin/providers", { headers: { "x-admin-key": "test-admin-pin" } }))
+  ).providers[0];
+  assert.equal(providerAfterCompletion.status, "available");
+  assert.equal(providerAfterCompletion.completedCount, 1);
+
+  const unauthorizedExport = await request("/api/admin/export.csv");
+  assert.equal(unauthorizedExport.status, 401);
+  const exportResponse = await request("/api/admin/export.csv", {
+    headers: { "x-admin-key": "test-admin-pin" },
+  });
+  assert.equal(exportResponse.status, 200);
+  assert.match(exportResponse.headers.get("content-type") ?? "", /^text\/csv/);
+  assert.equal(exportResponse.headers.get("cache-control"), "private, no-store");
+  const csv = await exportResponse.text();
+  assert.equal(csv.split("\r\n")[0].split(",").length, 14);
+  assert.match(csv, /"供应者"/);
+  assert.match(csv, /"seed-provider-contact"/);
+  assert.match(csv, /"supply-requester-contact"/);
+  assert.match(csv, /"'=1\+1/);
 
   for (let attempt = 0; attempt < 28; attempt += 1) {
     const response = await request("/api/wishes/track", {
