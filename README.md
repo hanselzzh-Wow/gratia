@@ -37,3 +37,5 @@ npm run dev
 ## 部署
 
 `.openai/hosting.json` 声明 Sites 项目与 D1、R2 绑定。数据结构变化后，需要将 `drizzle/` 下的新迁移随同部署产物一起发布。公开生产部署前，先完成试运营手册中的测试单和隐私检查。
+
+如果 `chatgpt.site` 域名被平台安全层拦截，可按[独立 Cloudflare 部署说明](docs/cloudflare-direct-deployment.md)发布到项目所有者自己的 `workers.dev` 地址；这一流程不会覆盖稳定的 GitHub Pages 演示站。

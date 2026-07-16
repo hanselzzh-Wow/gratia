@@ -45,3 +45,5 @@ next-env.d.ts
 /.tools/
 /.dev.vars
 !/.dev.vars.example
+/.cloudflare.secrets
+/.wrangler/direct-deploy/

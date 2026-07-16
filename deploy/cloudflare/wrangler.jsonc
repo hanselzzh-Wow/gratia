@@ -1,0 +1,40 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "haluowode-mvp",
+  "main": "../../dist/server/index.js",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "no_bundle": true,
+  "workers_dev": true,
+  "assets": {
+    "directory": "../../dist/client",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "migrations_dir": "../../drizzle"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "UPLOADS"
+    }
+  ],
+  "vars": {
+    "PUBLIC_APP_ORIGIN": "https://hanselzzh-wow.github.io"
+  },
+  "secrets": {
+    "required": ["ADMIN_API_KEY", "RATE_LIMIT_SALT"]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "rules": [
+    {
+      "type": "ESModule",
+      "globs": ["**/*.js", "**/*.mjs"]
+    }
+  ]
+}
