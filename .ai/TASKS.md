@@ -1,6 +1,6 @@
 # 多 AI 任务板
 
-最后更新：2026-07-17 23:44（Asia/Shanghai）
+最后更新：2026-07-17 23:49（Asia/Shanghai）
 
 永久角色分工见 `.ai/ROLES.md`。
 
@@ -9,8 +9,9 @@
 | ID | 负责人 | 状态 | 任务 | 允许写入 | 停止条件 |
 | --- | --- | --- | --- | --- | --- |
 | COORD-001 | Codex | REVIEW | 审计未分配生成的 iOS 候选工程，建立协作制度并决定保留范围 | `AGENTS.md`、`PROJECT_LOG.md`、`README.md`、`.ai/**` | 收到 Antigravity 交接并完成候选代码保留/拒绝结论后结束 |
-| AG-001 | Antigravity | HANDOFF_ONLY | 停止开发，说明已创建内容、使用命令、设计假设、已验证项、未验证项和已知风险 | 仅 `.ai/handoffs/AG-001-antigravity.md` | 写完交接报告后立即停止，不得修改任何源码 |
+| AG-001 | Antigravity | ACCEPTED | 已提交此前候选工程的文件、命令、假设、验证、未验证项和风险交接 | `.ai/handoffs/AG-001-antigravity.md` | 交接已完成；当前没有新的实现任务，只能参与群聊 |
 | CL-001 | Claude | HANDOFF_ONLY | 根据 `docs/ios-ui-design-brief.md` 产出首轮 UI 设计方案：视觉方向、页面地图、优先 8 组页面低保真/高保真建议、Design System 和界面文案 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 完成设计交接后立即停止，不得修改任何源码 |
+| CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 当前 iOS 候选工程的验收状态
 
@@ -39,3 +40,5 @@
 4. 明确禁止触碰的区域。
 5. 可执行的验收命令或人工验收清单。
 6. 完成后必须停止，不自动领取下一项。
+
+`CHAT-001` 是唯一允许多负责人的长期沟通任务，不适用“唯一负责人”，但仍须遵守只追加和禁止改历史的规则。

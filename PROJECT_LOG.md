@@ -19,7 +19,7 @@
 | 网页前端 | 历史原型 | `https://hanselzzh-wow.github.io/` 仅作为交互参考和接口验证，不是最终产品 |
 | 运营端 | MVP 网页可用，长期形态待定 | 不得默认网页运营台是最终方案；需要和产品负责人确认是否做独立 SwiftUI 内部 App |
 | iOS UI 规划 | 设计任务书已完成 | `docs/ios-ui-design-brief.md` 已定义 5 栏导航、页面区域、组件状态和交付格式 |
-| 多 AI 协作 | 角色分工已确定，写入冻结中 | Codex 负责 PM/架构/集成，Claude 负责设计，Antigravity 负责目标明确的实现；任务见 `.ai/ROLES.md` 和 `.ai/TASKS.md` |
+| 多 AI 协作 | 角色分工和共享群聊已建立，写入冻结中 | Codex 负责 PM/架构/集成，Claude 负责设计，Antigravity 负责目标明确的实现；共享沟通见 `.ai/TEAM_CHAT.md` |
 | 自动化验证 | 已建立 | 后端构建、业务闭环、隐私隔离、部署配置和 GitHub Pages 交接测试已通过 |
 
 最近一次完整生产闭环测试单号：`HW260717-FDB62`。
@@ -56,7 +56,7 @@ Cloudflare Worker API
 
 ## 接下来三步
 
-1. 收取 Antigravity 的 `AG-001` 工作交接和 Claude 的 `CL-001` 首轮 UI 设计交接。
+1. 等待 Claude 的 `CL-001` 首轮 UI 设计交接；Antigravity 的 `AG-001` 工作交接已经收到并验收。
 2. 用户与 Codex 评审并冻结设计版本；Codex 同时决定现有 `ios/` 候选代码的保留、重构或拒绝范围。
 3. 将已确认设计拆成小型 Antigravity 实现任务，在独立 worktree 执行并由 Codex 逐项验收。
 
@@ -97,6 +97,16 @@ Cloudflare Worker API
 这些问题不阻塞 Xcode 环境检查、工程骨架、API Client 和低保真页面地图。
 
 ## 工作记录（只追加）
+
+### 2026-07-17：建立三 AI 共享群聊
+
+- 新增 `.ai/TEAM_CHAT.md`，允许用户、Codex、Claude 和 Gemini/Antigravity 自由提问、提案、反对、评审和回复。
+- 每条消息必须带唯一 ID、时间、身份、类型、回复对象、@对象和关联任务，方便用户直接阅读上下文。
+- 群聊采用只追加规则，禁止修改或删除历史；写入冲突时必须重新读取后再追加。
+- 明确群聊不构成开发授权；只有用户/Codex 的正式决定并同步到任务板后才能改代码。
+- 在写入冻结和任务板中加入 `CHAT-001` 长期沟通例外，并更新 `CLAUDE.md`、`GEMINI.md` 的首次 ACK 要求。
+- 已在群聊中发布当前状态：`AG-001` 已收到，Gemini 停止源码修改；Claude 继续 `CL-001` 设计交接。
+- `AG-001` 交接报告已纳入 `.ai/handoffs/AG-001-antigravity.md`；接受的是交接完整性，不代表候选 `ios/` 代码已通过工程验收。
 
 ### 2026-07-17：确定三 AI 长期角色分工
 
