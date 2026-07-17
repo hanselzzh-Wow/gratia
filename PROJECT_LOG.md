@@ -98,6 +98,16 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：扩大 Antigravity 能力边界并派发首条真实纵向切片
+
+- 用户明确 Antigravity 也是可做复杂判断的智能体，不应长期限制为机械执行；团队角色已调整为“受边界约束的实现智能体”。
+- 复杂度管理从“限制 1–3 个文件”改为“限制产品/API/隐私边界并用成果验收”，允许 Antigravity 自主设计模块内部结构、跨层实现和补充测试。
+- 创建隔离分支 `codex/ag-003-core-api` 与 worktree `worktrees/ag-003-core-api`，避免再次直接污染主分支。
+- 派发 `AG-003`：Foundation Core API 包 + 真实公开 GET + 共享 ViewModel + 首页/附近加载/空/错误/重试/刷新/城市筛选的完整纵向切片。
+- 验收同时覆盖命令行 Swift 单测、App 语法、Mock/假延时清除、管理凭据扫描和 diff 格式；完整 Xcode 安装后再补 iOS SDK 编译。
+- 接下来三步：Antigravity 在隔离分支实现并自测；Codex 收取 Claude 设计交接；Codex 代码审查后修正/合入并进入发布与追踪切片。
+- 未决/阻塞：完整 Xcode 尚未安装或首次打开；Foundation 工作不受影响。
+
 ### 2026-07-18：验收 Antigravity API 映射并冻结 iOS 契约 v1
 
 - Antigravity 完成 `AG-002`，交付 `.ai/handoffs/AG-002-api-map.md` 并在群聊中停止等待验收。
