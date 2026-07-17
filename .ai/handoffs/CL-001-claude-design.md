@@ -2,7 +2,7 @@
 
 负责人：`CLAUDE-DESIGN` · 依据：`docs/ios-ui-design-brief.md` · 状态：首轮 8 组优先页面设计交接，等待用户与 `CODEX-PM` 评审冻结。
 
-本文档只做设计说明和交接，不包含、也不引用任何 SwiftUI/源码实现。所有平面设计图为独立 HTML 文件（393×852pt 画板，无手机外框、无透视样机），存放于 [`CL-001-assets/`](./CL-001-assets/)，可直接用浏览器打开查看。
+本文档只做设计说明和交接，不包含、也不引用任何 SwiftUI/源码实现。所有平面设计图为独立 HTML 文件（393×852pt 画板，无手机外框、无透视样机），存放于 [`CL-001-assets/`](./CL-001-assets/)，可直接用浏览器打开查看。同一批页面已用无头 Chrome 导出为 PNG，位于 [`CL-001-assets/png/`](./CL-001-assets/png/)：`1x/` 为 393×852px 基准尺寸，`3x/` 为 1179×2556px（对应任务书 §9.3 的导出要求），`AppIcon-1024.png` 为无圆角 1024×1024 App Icon 主文件；`41_Tracking_Detail.png` 是四态并列对比图，未单独导出 3x（documentation 用途，非单屏交付）。
 
 ---
 
@@ -68,7 +68,7 @@ v2 是当前**唯一**交付版本；本文档和资产目录中不再包含 v1 
 | 7 | 进度查询与进度详情 | [`screens/40_Tracking_Home.html`](./CL-001-assets/screens/40_Tracking_Home.html)、[`41_Tracking_Detail.html`](./CL-001-assets/screens/41_Tracking_Detail.html) | 40 含空状态；41 一个文件内含 4 个状态帧：匹配中／已接单／未通过／已取消，见 §4 |
 | 8 | Design System 基础页 | [`design-system/00_Foundations.html`](./CL-001-assets/design-system/00_Foundations.html)、[`01_Components.html`](./CL-001-assets/design-system/01_Components.html) | 颜色/字体/间距/圆角/层级/按钮 + 组件与状态库 |
 
-**⚠️ 需要 Codex/用户裁决的文件重名问题**：`screens/` 目录下同时存在 `40_Progress_Home.html` / `41_Progress_Detail.html` 与 `40_Tracking_Home.html` / `41_Tracking_Detail.html` 两套"进度页"文件——评审窗口内出现了并行迭代，两版信息结构一致，仅命名前缀（`Progress` vs `Tracking`）与个别细节（`41_Tracking_Detail.html` 把"未通过/已取消"做成完整独立帧，`41_Progress_Detail.html` 用一段文字注释描述这两种异常态）不同。**本文档以 `Tracking` 前缀版本为准**，因为任务书 §9 命名示例明确写的是 `41_Tracking_Detail`。建议评审后删除 `Progress` 前缀的两个重复文件，避免开发时误用双份基准。
+**✅ 文件重名问题已清理**：交接过程中一度并行产出了 `40_Progress_Home.html` / `41_Progress_Detail.html` 与 `40_Tracking_Home.html` / `41_Tracking_Detail.html` 两套"进度页"文件。已按任务书 §9 的命名示例（`41_Tracking_Detail`）统一，删除 `Progress` 前缀的重复文件，保留信息更完整的 `Tracking` 版本——其中 `41_Tracking_Detail.html` 把"匹配中／已接单／未通过／已取消"做成 4 个并列独立帧（而非用文字注释带过异常态），已重新导出对应 PNG。当前 `screens/` 目录下每个页面只有一份基准文件，不存在双份来源问题。
 
 ---
 
@@ -168,7 +168,7 @@ Large Title 28/34·600、Title2 22/28·600、Title3 18/24·600、Headline 17/22�
 ## 9. 仍待决定事项（需要用户/Codex 裁决）
 
 1. **App Icon 底色**：当前主稿为纯黑底＋白色图形（贴近 Threads 辨识策略）；`App_Icon_Annotated.html` 内附带了品牌蓝 `#2F6FE0` 底色的对比说明，未生成第二版完整文件。需确认最终用纯黑还是品牌蓝，确认后再补齐蓝色版全尺寸导出。
-2. **`40/41` 文件重名**：见 §3 加粗提示，需要 Codex 确认删除 `*_Progress_*` 重复文件，只保留 `*_Tracking_*`。
+2. ~~`40/41` 文件重名~~：已清理，见 §3。
 3. **v1→v2 视觉改版是否需要用户额外确认**：v2（黑白灰 + 单一蓝色强调）已是本轮唯一交付版本，如果用户更偏好 v1 的天空蓝＋暖色渐变方向，请在评审中明确指出，改色本身不影响已定的信息结构和组件规格。
 4. **首次引导三联页文案**：任务书已给出三页主题方向，具体插画风格（图形化 or 纯排版）未定，建议随下一轮页面一起定稿。
 5. **"我的"页面账户体系深度**：任务书要求同时设计未登录/登录后两态，但账户体系本身（登录方式、同步范围）产品侧尚未定案（见 `PROJECT_LOG.md` 未决问题），建议先出未登录态，登录态留出信息位但不细化交互，避免和后续账户方案冲突返工。

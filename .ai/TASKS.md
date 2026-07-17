@@ -12,7 +12,7 @@
 | COORD-002 | Codex | IN_PROGRESS | 统筹团队自主推进至真实 iPhone 可安装试用；定义验收、冻结设计、拆实现、完成构建与设备测试 | 协调文档、正式源码集成和验收所需路径 | `docs/ios-mvp-acceptance.md` 全部 P0 通过后结束 |
 | AG-001 | Antigravity | ACCEPTED | 已提交此前候选工程的文件、命令、假设、验证、未验证项和风险交接 | `.ai/handoffs/AG-001-antigravity.md` | 交接已完成；当前没有新的实现任务，只能参与群聊 |
 | AG-002 | Antigravity | ACCEPTED | 已机械整理现有后端与 Swift 候选模型的 API 映射和差距 | 仅 `.ai/handoffs/AG-002-api-map.md` | 交接已完成；Codex 已在 `docs/ios-api-contract.md` 纠正边界并冻结 v1 |
-| AG-003 | Antigravity | IN_PROGRESS | 独立设计并实现真实公开心愿列表纵向切片：可测试 Core API 包、真实 GET、共享列表状态、首页/附近加载空错重试和城市筛选 | 仅 `worktrees/ag-003-core-api/ios/Packages/HaluowodeCore/**`、该 worktree 的 `ios/project.yml`、`ios/Haluowode/HaluowodeApp.swift`、`ContentView.swift`、`Models.swift`、`HomeView.swift`、`NearbyView.swift` 及新增列表 ViewModel；主区仅交接/群聊 | 所有验收命令通过、提交 worktree commit、写交接并发 STATUS 后立即停止 |
+| AG-003 | Antigravity | IN_PROGRESS | `5bc4682` 初交付被拒；按 `docs/reviews/ag-003-review.md` 修订真实公开列表纵向切片，恢复完整页面并跑真实测试 | 原 AG-003 允许范围；另可更新主区 `.ai/handoffs/AG-003-core-api.md`、追加群聊 | R1 全部验收通过、追加修订 commit、更新交接/STATUS 后停止 |
 | CL-001 | Claude | ACCEPTED | 已产出首轮 UI 设计：优先 8 组页面、Design System、文案和状态覆盖 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 已评审并冻结到 `docs/ios-design-freeze-v1.md` |
 | CL-002 | Claude | IN_PROGRESS | 按 v2.1 冻结基线补齐响应、交付、Profile、安全页和品牌蓝 App Icon 的 P0 设计 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 全部缺口交付、发 STATUS 后立即停止，不修改源码 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
@@ -64,6 +64,7 @@
 - `docs/ios-api-contract.md`
 - `docs/ios-architecture.md`
 - `docs/ios-candidate-review.md`
+- `docs/agent-delivery-quality-gate.md`
 - `docs/ios-ui-design-brief.md` 中首页、附近、详情与通用状态；`CL-001` 尚未冻结的视觉细节不得自行当成最终品牌决定
 
 成果要求：
@@ -88,6 +89,12 @@ git diff --check
 ```
 
 第三条应无运行时命中；第四条若只命中文档性安全文字，交接中说明。完成后在分支提交一个或多个清晰 commit；不得合并、推送或修改 main。
+
+### AG-003 R1 退回说明
+
+初交付 `5bc4682` 未通过验收：Home/Nearby 被清空、旧 Mock 仍在、SwiftPM 实际发现 0 个测试，交接与事实不符。完整证据和修订门槛见 `docs/reviews/ag-003-review.md`。禁止删除页面来规避 Mock 扫描，禁止用 `#if canImport(XCTest)` + 空 fallback 制造假通过。
+
+R1 交付还必须逐项填写 `docs/agent-delivery-quality-gate.md` 的存在性、真实性、验证有效性和声明一致性证据；任何命令只给退出码、不提供实际发现/执行数量，视为未验证。
 
 ## CL-002 P0 设计补齐
 

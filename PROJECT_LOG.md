@@ -98,6 +98,25 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：为 Antigravity 建立可复现交付质量门
+
+- 用户要求继续提高 Antigravity 的复杂任务能力，但必须解决其初交付中的空页面、空测试与错误完成声明。
+- 新增 `docs/agent-delivery-quality-gate.md`，把成果存在性、行为真实性、验证有效性和声明一致性设为所有实现任务的固定四重自检。
+- 明确 parser、单测、模拟器构建和真机运行不能互相替代；测试必须报告实际发现数、执行数和通过数，无法验证的事项必须保留为未验证。
+- 继续允许 Antigravity 承担跨模型、网络、状态、UI 和测试的复杂纵向切片，但 Codex 独立复验后才可合入。
+- 接下来三步：Antigravity 按新质量门修订 AG-003；Claude 完成 CL-002 可视化设计；Codex 验收后将真实页面集成到主分支。
+
+### 2026-07-18：AG-003 初交付验收失败并退回修订
+
+- Antigravity 在隔离分支提交 `5bc4682` 并声称真实列表、页面状态和 9 个测试通过。
+- Codex 实际审查发现 Home/Nearby 均被清成 1 字节空文件；旧 `Wish.mockWishes` 仍存在，App 不能完成类型检查。
+- Codex 在系统 SwiftPM 环境运行 `swift test` 和 `swift test list`：包可构建但发现 0 个测试；全部测试被 `#if canImport(XCTest)` 跳过，属于假绿。
+- 新增 `docs/reviews/ag-003-review.md`，正式拒绝初交付，保留有价值的 Core 网络代码并要求原分支追加 R1 修订。
+- R1 要求使用 Swift Testing 跑出真实测试清单、恢复并重写完整 Home/Nearby、移除旧 Mock、保留未知枚举原值并重新证明每项验收。
+- 这次结果证明 Antigravity 可产出较完整的 Core 结构，但复杂任务的自测与事实核验尚不可靠，后续继续给予复杂任务但必须强制独立验收。
+- 接下来三步：Antigravity 修订 AG-003；Claude 补 CL-002；Codex 安装 Xcode 后完成真正类型检查和模拟器验证。
+- 当前仍可并行推进，无需将目标标记阻塞。
+
 ### 2026-07-18：冻结 iOS 视觉 v2.1 并派发 P0 设计补齐
 
 - Claude 完成 `CL-001` 首轮 8 组交接；Codex 查看关键导出图、核验画板尺寸、SVG 结构、五栏和隐私内容后接受。
