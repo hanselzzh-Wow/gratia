@@ -4,7 +4,7 @@
 
 永久角色分工见 `.ai/ROLES.md`。
 
-状态定义：`PLANNED`、`IN_PROGRESS`、`HANDOFF_ONLY`、`REVIEW`、`ACCEPTED`、`REJECTED`、`BLOCKED`。
+状态定义：`PLANNED`、`IN_PROGRESS`、`HANDOFF_ONLY`、`REVIEW`、`ACCEPTED`、`SUPERSEDED`、`REJECTED`、`BLOCKED`。
 
 | ID | 负责人 | 状态 | 任务 | 允许写入 | 停止条件 |
 | --- | --- | --- | --- | --- | --- |
@@ -12,9 +12,10 @@
 | COORD-002 | Codex | IN_PROGRESS | 统筹团队自主推进至真实 iPhone 可安装试用；定义验收、冻结设计、拆实现、完成构建与设备测试 | 协调文档、正式源码集成和验收所需路径 | `docs/ios-mvp-acceptance.md` 全部 P0 通过后结束 |
 | AG-001 | Antigravity | ACCEPTED | 已提交此前候选工程的文件、命令、假设、验证、未验证项和风险交接 | `.ai/handoffs/AG-001-antigravity.md` | 交接已完成；当前没有新的实现任务，只能参与群聊 |
 | AG-002 | Antigravity | ACCEPTED | 已机械整理现有后端与 Swift 候选模型的 API 映射和差距 | 仅 `.ai/handoffs/AG-002-api-map.md` | 交接已完成；Codex 已在 `docs/ios-api-contract.md` 纠正边界并冻结 v1 |
-| AG-003 | Antigravity | IN_PROGRESS | `5bc4682` 初交付被拒；按 `docs/reviews/ag-003-review.md` 修订真实公开列表纵向切片，恢复完整页面并跑真实测试 | 原 AG-003 允许范围；另可更新主区 `.ai/handoffs/AG-003-core-api.md`、追加群聊 | R1 全部验收通过、追加修订 commit、更新交接/STATUS 后停止 |
+| AG-003 | Antigravity | IN_PROGRESS | `bd87072` R1 有真实进步但仍被拒；按 `docs/reviews/ag-003-r1-review.md` 完成 R2 类型检查、城市筛选、请求测试、取消与依赖注入修订 | 原 AG-003 允许范围；另可新增响应 ViewModel、更新主区交接并追加群聊 | R2 全部验收通过、追加修订 commit、更新交接/STATUS 后停止 |
 | CL-001 | Claude | ACCEPTED | 已产出首轮 UI 设计：优先 8 组页面、Design System、文案和状态覆盖 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 已评审并冻结到 `docs/ios-design-freeze-v1.md` |
-| CL-002 | Claude | IN_PROGRESS | 按 v2.1 冻结基线补齐响应、交付、Profile、安全页和品牌蓝 App Icon 的 P0 设计 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 全部缺口交付、发 STATUS 后立即停止，不修改源码 |
+| CL-002 | Claude | SUPERSEDED | 已补齐 v2.1 的响应、交付、Profile、安全页和蓝色 App Icon；信息结构保留，视觉因用户新反馈不进入实现 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 旧稿保留为状态与文案参考，不再继续迭代 |
+| CL-003 | Claude | IN_PROGRESS | 按 `docs/ios-visual-direction-v3.md` 制作零 Emoji、零渐变、温暖柔和且内容主导的视觉检查点 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、群聊追加 | 完成 3 个 Icon 方向、4 个关键页面、Foundations 与 1x/3x 导出，发 STATUS 后停止等待用户/Codex 评审 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 当前 iOS 候选工程的验收状态
@@ -96,9 +97,13 @@ git diff --check
 
 R1 交付还必须逐项填写 `docs/agent-delivery-quality-gate.md` 的存在性、真实性、验证有效性和声明一致性证据；任何命令只给退出码、不提供实际发现/执行数量，视为未验证。
 
+### AG-003 R2 退回说明
+
+R1 的 12 个测试在 CLT workaround 下已由 Codex 独立确认真实通过，但 App typecheck 存在 `ProgressView` 同名遮蔽；“全部/全国”会发错 query；请求构造、响应 200、真实取消和 consent 明示仍未覆盖。完整证据与 R2 范围见 `docs/reviews/ag-003-r1-review.md`。修复责任继续归 Antigravity，不降低任务复杂度，也不由 Codex 代写。
+
 ## CL-002 P0 设计补齐
 
-唯一基线：`docs/ios-design-freeze-v1.md`。不得另起视觉方向。
+状态：`SUPERSEDED FOR VISUALS`。其业务状态、文案和隐私处理可作为 CL-003 输入，但不得直接作为 SwiftUI 最终视觉。
 
 交付：
 
@@ -112,6 +117,16 @@ R1 交付还必须逐项填写 `docs/agent-delivery-quality-gate.md` 的存在�
 8. 品牌蓝 `#2F6FE0` 底 + 白色线形标志的 1024×1024 PNG、SVG 和带尺寸/安全区说明的标注页；纯黑版标记为备选。
 
 所有屏幕交付 393×852 HTML、1x/3x PNG；写一份完整交接、资产索引、SwiftUI 状态/文案说明和无障碍注意点。本轮不做首次引导、登录态、支付或运营端。
+
+## CL-003 用户视觉重定向
+
+唯一权威视觉输入：`docs/ios-visual-direction-v3.md`。
+
+- 应用内和 App Icon 完全禁用 Emoji，使用原创几何品牌标志和统一单色矢量或 SF Symbols。
+- 参考 Airbnb 的温暖、柔和、内容主导原则，以及 WhatsApp、X、Threads、Instagram 在小尺寸图标上的简洁辨识原则；不得复制其商标。
+- 不使用任何渐变；产品色彩保持克制，丰富色彩留给用户上传的照片和视频。
+- 第一检查点只交付 3 个 Icon 方向、首页、附近、详情与响应、一个复杂信息页和 v3 Foundations；先让用户可视化评审，再全量重画。
+- 卡片圆角、字体字号、行高、字重、间距、描边和图标线宽必须在 Foundations 中给出可追溯 Token。
 
 ## 新任务创建要求
 

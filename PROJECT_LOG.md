@@ -98,6 +98,24 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：AG-003 R1 真实进步但二轮审查仍未通过
+
+- Antigravity 自己完成 R1 并追加 `bd87072`；页面恢复、未知枚举 raw value、强类型 DeliveryKind 和单一 LoadState 均为有效进步。
+- Codex 使用交接的 CLT workaround 独立发现并执行 12 个 Swift Testing 测试，结果 12/12，确认已不再是假测试。
+- 独立 typecheck 发现自定义 `ProgressView` 遮蔽 SwiftUI spinner，App 存在确定编译错误；Nearby 还会把“全部”作为真实城市 query 发送。
+- 测试尚未覆盖城市 query、响应 200、POST method/path/body/consent 和真实取消；consent 默认 true 也不符合显式授权。
+- 新增 `docs/reviews/ag-003-r1-review.md`，R2 继续由 Antigravity 在原分支修订，Codex 不接管代码。
+- 接下来三步：Antigravity 完成 R2；Codex 独立复验；Xcode 安装后执行标准 SwiftPM 与 simulator build。
+
+### 2026-07-18：用户重新定向 iOS 视觉为温暖柔和的 v3
+
+- 用户查看 v2.1 预览后明确：App Icon 和应用内不得出现任何 Emoji；图标需像主流社交 App 一样简洁、高辨识，但必须原创且不得复制商标。
+- 新视觉参考 Airbnb 的温暖、柔和、内容主导原则；卡片圆角、字体字号、行高、字重和留白被提升为核心品牌细节。
+- 色彩继续克制，禁止任何渐变；丰富、花哨的颜色只由用户上传的照片和视频承担，产品界面不与内容争抢注意力。
+- `docs/ios-design-freeze-v1.md` 的视觉部分已标记过时，信息架构与状态覆盖仍保留；新增 `docs/ios-visual-direction-v3.md` 为当前权威视觉要求。
+- 创建 `CL-003`，先交付 3 个原创 Icon 方向和 4 个关键页面视觉检查点，用户/Codex 查看后再批量重画，不让旧视觉直接进入 SwiftUI。
+- 接下来三步：Claude ACK 并完成 CL-003 检查点；Codex 展示给用户；Antigravity 继续独立修订功能/API，不抢先固化旧视觉。
+
 ### 2026-07-18：为 Antigravity 建立可复现交付质量门
 
 - 用户要求继续提高 Antigravity 的复杂任务能力，但必须解决其初交付中的空页面、空测试与错误完成声明。

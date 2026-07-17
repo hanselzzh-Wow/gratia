@@ -1,10 +1,10 @@
 # iOS MVP 设计冻结 v1
 
-状态：`FROZEN v1 / v2.1 visual`
+状态：`SUPERSEDED FOR VISUAL STYLE / INFORMATION ARCHITECTURE REFERENCE ONLY`
 冻结日期：2026-07-18（Asia/Shanghai）
 来源：`CL-001` 设计交接与 Codex 评审
 
-本文件是 SwiftUI MVP 的视觉与交互实现基线。后端字段、状态和隐私边界仍以 `docs/ios-api-contract.md` 为唯一依据；设计图中的示例内容不得覆盖真实契约。
+用户在查看预览后重新打开视觉方向：本文件只保留页面结构、流程、状态和隐私约束作为参考，颜色、字体、圆角、图标、卡片和 App Icon 不再是最终实现基线。新的权威视觉要求见 `docs/ios-visual-direction-v3.md`。后端字段、状态和隐私边界仍以 `docs/ios-api-contract.md` 为唯一依据；设计图中的示例内容不得覆盖真实契约。
 
 ## 评审结论
 
