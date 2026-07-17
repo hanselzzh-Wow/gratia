@@ -1,0 +1,106 @@
+<!-- @dsCard group="Design System v3" -->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>哈喽卧得 · 图标系统 v3（无 Emoji）</title>
+<style>
+  :root{
+    --ink-900:#0A0A0A; --ink-700:#42403C; --ink-500:#7A756D; --ink-300:#B8B2A8;
+    --hairline:#EDE7DD; --hairline-soft:#F5F1EA;
+    --canvas:#FFFFFF; --canvas-warm:#FBF7F0;
+    --accent:#2F6FE0; --accent-soft:#EAF1FC;
+    --radius-md:14px; --radius-lg:22px; --radius-pill:999px;
+    --shadow-card:0 6px 20px rgba(30,22,10,.06), 0 1px 2px rgba(30,22,10,.05);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; padding:40px; background:var(--canvas-warm); font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; color:var(--ink-900);}
+  h1{font-size:22px; font-weight:600; margin:0 0 4px;}
+  .sub{color:var(--ink-500); font-size:14px; margin:0 0 28px; max-width:680px; line-height:1.6;}
+  section{margin-bottom:40px;}
+  h2{font-size:15px; font-weight:600; margin:0 0 4px; padding-bottom:8px; border-bottom:1px solid var(--hairline);}
+  .hint{color:var(--ink-500); font-size:12px; margin:0 0 16px; max-width:640px; line-height:1.6;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px;}
+  .icard{background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-md); padding:16px 10px; display:flex; flex-direction:column; align-items:center; gap:8px;}
+  .icard svg{width:24px; height:24px; color:var(--ink-900);}
+  .icard .name{font-size:11px; color:var(--ink-500); text-align:center; line-height:14px;}
+  .tab-row{display:flex; gap:0; border:1px solid var(--hairline); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-card); max-width:393px;}
+  .tab-item{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:14px 4px 12px; font-size:10.5px; color:var(--ink-300); background:var(--canvas);}
+  .tab-item svg{width:24px; height:24px;}
+  .tab-item.active{color:var(--ink-900); font-weight:600;}
+  .note{background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-md); padding:14px 16px; font-size:13px; line-height:1.7; color:var(--ink-700); max-width:680px;}
+</style>
+</head>
+<body>
+  <h1>图标系统 v3</h1>
+  <p class="sub">不使用任何 Emoji。所有图标为统一风格的单色线性图标：22×22 基准网格，1.6pt 描边，圆角端点，参照 WhatsApp / X / Threads 的极简单色图标语言。实现时优先直接使用等价的 SF Symbol（见每个图标下方标注），本页 SVG 仅供设计预览和未覆盖场景的备用矢量源。</p>
+
+  <div class="note" style="margin-bottom:32px;">决策记录：首轮 <code>CL-001</code>/<code>CL-002</code> 设计稿中用 Emoji（🔒🔔🎬 等）作为图标占位符，用户明确要求"App 里不要出现任何一个 Emoji"。本图标系统替换所有占位符，属于 v3 视觉修订的一部分，见 <code>CL-002-claude-design.md</code> 附录说明。</p>
+
+  <section>
+    <h2>Tab Bar 图标（5 栏，实心/线性区分选中态）</h2>
+    <div class="tab-row">
+      <div class="tab-item active">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l7-6 7 6"/><path d="M6 10v8a1 1 0 0 0 1 1h3v-5h2v5h3a1 1 0 0 0 1-1v-8"/></svg>
+        首页
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20s6-5.7 6-10.2A6 6 0 0 0 5 9.8C5 14.3 11 20 11 20Z"/><circle cx="11" cy="9.6" r="2.1"/></svg>
+        附近
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9.5" fill="currentColor"/><line x1="11" y1="6.8" x2="11" y2="15.2" stroke="#FBF7F0" stroke-width="1.8" stroke-linecap="round"/><line x1="6.8" y1="11" x2="15.2" y2="11" stroke="#FBF7F0" stroke-width="1.8" stroke-linecap="round"/></svg>
+        发布
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="12" r="7.3"/><path d="M11 8.2V12l2.6 1.8"/><path d="M4.6 8.3a7.3 7.3 0 0 1 2-4.1"/></svg>
+        进度
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="7.8" r="3.3"/><path d="M4.3 19c1-3.7 4-5.8 6.7-5.8s5.7 2.1 6.7 5.8"/></svg>
+        我的
+      </div>
+    </div>
+    <p class="hint" style="margin-top:10px;">对应 SF Symbols：<code>house</code> / <code>house.fill</code>、<code>location</code> / <code>location.fill</code>、<code>plus.circle.fill</code>（发布始终高亮，视觉权重最重）、<code>clock.arrow.circlepath</code>、<code>person</code> / <code>person.fill</code>。选中态用 filled 变体或加粗描边 + 近黑色，未选中用 2px 描边、浅灰色。</p>
+  </section>
+
+  <section>
+    <h2>通用图标</h2>
+    <div class="grid">
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="10" width="10" height="8" rx="2"/><path d="M8.5 10V7.5a2.5 2.5 0 0 1 5 0V10"/></svg><div class="name">lock<br/><code>lock</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15V9.6a4 4 0 0 1 8 0V15l1.4 1.4H5.6L7 15Z"/><path d="M9.6 17.6a1.4 1.4 0 0 0 2.8 0"/></svg><div class="name">bell<br/><code>bell</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="9.5" r="5.3"/><line x1="17" y1="17" x2="13.3" y2="13.3"/></svg><div class="name">search<br/><code>magnifyingglass</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 5.5l6 5.5-6 5.5"/></svg><div class="name">chevron-right<br/><code>chevron.right</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8.5l5.5 5.5 5.5-5.5"/></svg><div class="name">caret-down<br/><code>chevron.down</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="12" height="10" rx="2.5"/><path d="M15 9.3l4-2.5v8.4l-4-2.5"/></svg><div class="name">video<br/><code>video</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="6" height="10" rx="3"/><path d="M5 11a6 6 0 0 0 12 0"/><line x1="11" y1="17" x2="11" y2="20"/></svg><div class="name">mic / voiceover<br/><code>mic</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="16" height="12" rx="2.5"/><path d="M7 15l1.4-4.5 5-5 3 3-5 5L7 15Z"/></svg><div class="name">card + pencil<br/><code>square.and.pencil</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12l1.7-6.5h9.6l1.7 6.5"/><path d="M4.5 12v4.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V12"/><path d="M4.5 12h4l1 2h3l1-2h4"/></svg><div class="name">empty tray<br/><code>tray</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3.5" y1="3.5" x2="18.5" y2="18.5"/><path d="M5.7 8.7a10 10 0 0 1 11.7 1.6"/><path d="M8.2 12a5.6 5.6 0 0 1 6.3 1"/><circle cx="11" cy="16.3" r="1" fill="currentColor" stroke="none"/></svg><div class="name">wifi off<br/><code>wifi.slash</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="16" height="13" rx="2.5"/><circle cx="8" cy="9" r="1.5"/><path d="M4.5 15.5l4-4.3 3 3 2.5-2.8 4 4.1"/></svg><div class="name">image<br/><code>photo</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="currentColor" stroke="none"><polygon points="8,6 16.5,11 8,16"/></svg><div class="name">play<br/><code>play.fill</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="5.5" y1="5.5" x2="16.5" y2="16.5"/><line x1="16.5" y1="5.5" x2="5.5" y2="16.5"/></svg><div class="name">close<br/><code>xmark</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.2v10.3"/><path d="M7.3 6.9L11 3.2l3.7 3.7"/><path d="M5 11v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-6"/></svg><div class="name">share<br/><code>square.and.arrow.up</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9.5L5.5 18.5V15.5H4a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z" transform="translate(0.5 -0.5)"/></svg><div class="name">chat / help<br/><code>bubble.left</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.3l6.5 2.6v4.6c0 4.6-2.8 6.9-6.5 8.2-3.7-1.3-6.5-3.6-6.5-8.2V5.9L11 3.3Z"/><path d="M8 11l2 2 4-4"/></svg><div class="name">shield<br/><code>checkmark.shield</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h6l4 4v11.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M12.5 3v4h4"/><line x1="8" y1="12" x2="14.5" y2="12"/><line x1="8" y1="15" x2="14.5" y2="15"/></svg><div class="name">document<br/><code>doc.text</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="11" y1="10" x2="11" y2="15"/><circle cx="11" cy="7.2" r="1" fill="currentColor" stroke="none"/></svg><div class="name">info<br/><code>info.circle</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11.5l4 4 8-8.5"/></svg><div class="name">check<br/><code>checkmark</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="9.5" height="9.5" rx="2"/><path d="M5.5 14V5.5a1 1 0 0 1 1-1H15"/></svg><div class="name">copy<br/><code>doc.on.doc</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5v11"/><path d="M7 11L11 15 15 11"/><path d="M5 17.5h12"/></svg><div class="name">save / download<br/><code>square.and.arrow.down</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3.2" x2="6" y2="18.8"/><path d="M6 4.2h10l-2.6 3.6L16 11.4H6"/></svg><div class="name">flag / report<br/><code>flag</code></div></div>
+      <div class="icard"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.6" cy="9.6" r="5.3"/><line x1="17" y1="17" x2="13.3" y2="13.3"/><line x1="9.6" y1="7.3" x2="9.6" y2="11.9"/><line x1="7.3" y1="9.6" x2="11.9" y2="9.6"/></svg><div class="name">search + add（占位）<br/><code>—</code></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>使用规范</h2>
+    <div class="note">
+      1. 统一描边 1.6–1.8pt，端点和转角均为圆角（<code>stroke-linecap/linejoin: round</code>），与品牌图形（纸飞机 Logo）的线条语气一致。<br/>
+      2. 图标颜色跟随文字语境色（<code>currentColor</code>），不单独上色；唯一例外是发布 Tab 的强调填充圆和状态类图标（如成功勾选可用 <code>success</code> 色）。<br/>
+      3. 列表行图标统一 20×20 或 22×22，行内不与文字重叠、不使用方形色块背景（除 Tab Bar 发布键的强调填充圆）。<br/>
+      4. SwiftUI 实现优先直接使用对应 SF Symbol（已在每个图标下标注），保证系统级 Dynamic Type、无障碍朗读和深色模式自动适配；本页 SVG 仅在 SF Symbol 无法满足自定义构图（如品牌 Logo、图标化插画）时使用。
+    </div>
+  </section>
+</body>
+</html>

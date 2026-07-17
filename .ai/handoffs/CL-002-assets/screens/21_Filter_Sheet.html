@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>21 筛选弹层</title>
+<style>
+  :root{
+    --ink-900:#0A0A0A; --ink-700:#42403C; --ink-500:#7A756D; --ink-300:#B8B2A8;
+    --hairline:#EDE7DD; --hairline-soft:#F5F1EA; --canvas:#FFFFFF; --canvas-warm:#FBF7F0;
+    --accent:#2F6FE0; --accent-soft:#EAF1FC; --gold:#B9791F;
+    --radius-sm:10px; --radius-md:14px; --radius-lg:22px; --radius-xl:28px; --radius-pill:999px;
+    --shadow-card:0 6px 20px rgba(30,22,10,.06), 0 1px 2px rgba(30,22,10,.05);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0;}
+  body{width:393px; height:852px; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; overflow:hidden;}
+  .screen{width:393px; height:852px; position:relative; background:var(--canvas-warm); display:flex; flex-direction:column;}
+  .ic{width:18px; height:18px; flex:0 0 auto;}
+
+  .backdrop{position:absolute; inset:0;}
+  .statusbar{height:47px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:var(--ink-900);}
+  .content{padding:0 20px;}
+  h1{font-size:26px; font-weight:600; margin:2px 0 2px; color:var(--ink-900);}
+  .city{font-size:13px; color:var(--ink-500); margin:0 0 14px;}
+  .search{display:flex; align-items:center; gap:8px; background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:12px; font-size:14px; color:var(--ink-300);}
+  .search .ic{color:var(--ink-300);}
+  .filters{display:flex; gap:8px; margin-bottom:14px;}
+  .chip{flex:0 0 auto; padding:8px 15px; border-radius:var(--radius-pill); font-size:12.5px; font-weight:600; border:1px solid var(--hairline); background:var(--canvas); color:var(--ink-700);}
+  .chip.active{background:var(--ink-900); border-color:var(--ink-900); color:#fff;}
+  .card{background:var(--canvas); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:16px; margin-bottom:12px;}
+  .card .top{display:flex; justify-content:space-between; font-size:13px; color:var(--ink-500); margin-bottom:8px;}
+  .card .price{color:var(--gold); font-weight:700;}
+
+  .scrim{position:absolute; inset:0; background:rgba(20,15,8,.30);}
+
+  .sheet{position:absolute; left:0; right:0; bottom:0; background:#fff; border-radius:var(--radius-xl) var(--radius-xl) 0 0; padding:12px 20px 22px; box-shadow:var(--shadow-float);}
+  .handle{width:36px; height:4px; border-radius:2px; background:var(--hairline); margin:0 auto 14px;}
+  .sheet-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+  .sheet-head h2{font-size:17px; font-weight:600; margin:0; color:var(--ink-900);}
+  .reset{font-size:13px; color:var(--accent); font-weight:600;}
+
+  .group{margin-bottom:18px;}
+  .group label{display:block; font-size:12.5px; font-weight:700; color:var(--ink-700); margin-bottom:10px;}
+  .opt-grid{display:flex; flex-wrap:wrap; gap:8px;}
+  .opt{padding:9px 15px; border-radius:var(--radius-pill); font-size:13px; font-weight:600; border:1px solid var(--hairline); background:var(--canvas); color:var(--ink-700);}
+  .opt.active{background:var(--ink-900); border-color:var(--ink-900); color:#fff;}
+  .opt.accent-active{border:2px solid var(--accent); background:var(--accent-soft); color:var(--accent); padding:8px 14px;}
+
+  .range-row{display:flex; align-items:center; gap:10px;}
+  .range-track{flex:1; height:4px; background:var(--hairline); border-radius:2px; position:relative;}
+  .range-fill{position:absolute; left:20%; right:35%; top:0; bottom:0; background:var(--ink-900); border-radius:2px;}
+  .range-dot{width:16px; height:16px; border-radius:50%; background:#fff; border:2px solid var(--ink-900); position:absolute; top:50%; transform:translate(-50%,-50%);}
+  .range-labels{display:flex; justify-content:space-between; font-size:11px; color:var(--ink-500); margin-top:8px;}
+
+  .cta{width:100%; text-align:center; background:var(--ink-900); color:#fff; font-size:16px; font-weight:600; padding:15px; border-radius:var(--radius-pill); margin-top:6px;}
+</style>
+</head>
+<body>
+  <div class="screen">
+    <div class="backdrop">
+      <div class="statusbar">9:41</div>
+      <div class="content">
+        <h1>附近的心愿</h1>
+        <div class="city">当前城市：上海</div>
+        <div class="search">
+          <svg class="ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="9.5" r="5.3"/><line x1="17" y1="17" x2="13.3" y2="13.3"/></svg>
+          搜索地标或关键词
+        </div>
+        <div class="filters">
+          <span class="chip active">全部</span>
+          <span class="chip">城市</span>
+          <span class="chip">交付方式</span>
+          <span class="chip">期望时间</span>
+          <span class="chip">感谢金</span>
+        </div>
+        <div class="card">
+          <div class="top"><span>外滩 · 陈毅广场</span><span class="price">¥18</span></div>
+        </div>
+        <div class="card">
+          <div class="top"><span>东方明珠</span><span class="price">¥12</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scrim"></div>
+
+    <div class="sheet">
+      <div class="handle"></div>
+      <div class="sheet-head"><h2>筛选</h2><span class="reset">重置</span></div>
+
+      <div class="group">
+        <label>城市</label>
+        <div class="opt-grid">
+          <span class="opt accent-active">上海</span>
+          <span class="opt">北京</span>
+          <span class="opt">广州</span>
+          <span class="opt">成都</span>
+          <span class="opt">不限</span>
+        </div>
+      </div>
+
+      <div class="group">
+        <label>交付方式</label>
+        <div class="opt-grid">
+          <span class="opt active">口播视频</span>
+          <span class="opt">景色配音</span>
+          <span class="opt">手写卡片</span>
+        </div>
+      </div>
+
+      <div class="group">
+        <label>期望时间</label>
+        <div class="opt-grid">
+          <span class="opt">24 小时内</span>
+          <span class="opt active">本周内</span>
+          <span class="opt">不限</span>
+        </div>
+      </div>
+
+      <div class="group">
+        <label>感谢金区间：¥12 – ¥24</label>
+        <div class="range-row">
+          <div class="range-track">
+            <div class="range-fill"></div>
+            <div class="range-dot" style="left:20%;"></div>
+            <div class="range-dot" style="left:65%;"></div>
+          </div>
+        </div>
+        <div class="range-labels"><span>¥0</span><span>¥50+</span></div>
+      </div>
+
+      <div class="cta">查看结果（12）</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>41 进度详情 · 待确认（delivered）</title>
+<style>
+  :root{
+    --ink-900:#0A0A0A; --ink-700:#42403C; --ink-500:#7A756D; --ink-300:#B8B2A8;
+    --hairline:#EDE7DD; --hairline-soft:#F5F1EA; --canvas:#FFFFFF; --canvas-warm:#FBF7F0;
+    --accent:#2F6FE0; --accent-soft:#EAF1FC; --gold:#B9791F;
+    --radius-sm:10px; --radius-md:14px; --radius-lg:22px; --radius-pill:999px;
+    --shadow-card:0 6px 20px rgba(30,22,10,.06), 0 1px 2px rgba(30,22,10,.05);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0;}
+  body{width:393px; height:852px; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; overflow:hidden;}
+  .screen{width:393px; height:852px; position:relative; background:var(--canvas-warm); display:flex; flex-direction:column;}
+  .statusbar{height:47px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:var(--ink-900);}
+  .navbar{flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:2px 20px 10px; font-size:14px; font-weight:600; color:var(--ink-900);}
+  .navbar .side{width:44px; font-size:18px; color:var(--ink-700);}
+  .navbar .side.right{text-align:right; font-size:13px; color:var(--accent); font-weight:600;}
+
+  .content{flex:1; overflow:hidden; padding:0 20px;}
+  .ic{width:16px; height:16px; flex:0 0 auto;}
+
+  .status-card{background:var(--canvas); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:16px; margin-bottom:14px;}
+  .status-tag{display:inline-block; font-size:12px; font-weight:700; background:var(--accent-soft); color:var(--accent); padding:5px 12px; border-radius:var(--radius-pill); margin-bottom:10px;}
+  .status-card h1{font-size:18px; font-weight:600; margin:0 0 6px; color:var(--ink-900);}
+  .status-card .loc{font-size:12.5px; color:var(--ink-500);}
+  .status-card .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; color:var(--ink-500); margin-top:8px;}
+
+  .deliver-card{background:var(--canvas); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); overflow:hidden; margin-bottom:14px;}
+  .deliver-media{height:200px; background:#EFEAE0; display:flex; align-items:center; justify-content:center; color:var(--ink-300); gap:8px; font-size:13px;}
+  .deliver-meta{padding:14px;}
+  .deliver-meta .from{font-size:12.5px; color:var(--ink-500); margin-bottom:6px;}
+  .deliver-meta .note{font-size:14px; color:var(--ink-900); line-height:20px; margin-bottom:10px;}
+  .view-link{font-size:13px; color:var(--accent); font-weight:600;}
+
+  .confirm-box{display:flex; gap:8px; background:var(--canvas); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:16px; font-size:12.5px; line-height:18px; color:var(--ink-700);}
+  .confirm-box .ic{color:var(--ink-500); margin-top:1px;}
+
+  h2{font-size:14px; font-weight:600; margin:0 0 12px; color:var(--ink-900);}
+  .timeline{margin-bottom:16px;}
+  .tl-item{display:flex; gap:12px; padding-bottom:16px; position:relative;}
+  .tl-item:last-child{padding-bottom:0;}
+  .tl-item::before{content:'';position:absolute; left:5px; top:14px; bottom:-2px; width:1px; background:var(--hairline);}
+  .tl-item:last-child::before{display:none;}
+  .tl-dot{width:11px; height:11px; border-radius:50%; background:var(--hairline); margin-top:3px; flex:0 0 auto;}
+  .tl-item.done .tl-dot{background:var(--ink-900);}
+  .tl-item.current .tl-dot{background:var(--accent); box-shadow:0 0 0 4px var(--accent-soft);}
+  .tl-title{font-size:13.5px; font-weight:600; color:var(--ink-900);}
+  .tl-item:not(.done):not(.current) .tl-title{color:var(--ink-300);}
+  .tl-time{font-size:11.5px; color:var(--ink-500); margin-top:2px;}
+
+  .footer{flex:0 0 auto; padding:12px 20px 22px; background:#fff; border-top:1px solid var(--hairline);}
+  .btn{width:100%; text-align:center; font-size:16px; font-weight:600; padding:14px; border-radius:var(--radius-pill); background:var(--ink-900); color:#fff; margin-bottom:6px;}
+  .note-sm{font-size:11px; color:var(--ink-500); text-align:center;}
+</style>
+</head>
+<body>
+  <div class="screen">
+    <div class="statusbar">9:41</div>
+    <div class="navbar"><span class="side">‹</span><span>进度详情</span><span class="side right">帮助</span></div>
+    <div class="content">
+      <div class="status-card">
+        <span class="status-tag">待确认</span>
+        <h1>上海 · 外滩</h1>
+        <div class="loc">响应者「城市漫游者」已完成交付，等待你确认</div>
+        <div class="code">HW260717-ABCDE</div>
+      </div>
+
+      <div class="deliver-card">
+        <div class="deliver-media">
+          <svg viewBox="0 0 22 22" width="22" height="22" fill="currentColor"><polygon points="8,6 16.5,11 8,16"/></svg>
+          视频交付 · 00:22
+        </div>
+        <div class="deliver-meta">
+          <div class="from">来自「城市漫游者」· 07-17 18:20</div>
+          <div class="note">在外滩夜景前录好啦，声音有点风声，但祝福都清楚说到了，祝她生日快乐！</div>
+          <span class="view-link">查看交付 ›</span>
+        </div>
+      </div>
+
+      <div class="confirm-box">
+        <svg class="ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="10" width="10" height="8" rx="2"/><path d="M8.5 10V7.5a2.5 2.5 0 0 1 5 0V10"/></svg>
+        确认收到后，心愿状态将变为「已完成」；如内容有问题，可在交付页内点击"内容有问题"联系客服处理，感谢金结算规则由运营处理。
+      </div>
+
+      <h2>进度时间线</h2>
+      <div class="timeline">
+        <div class="tl-item done"><div class="tl-dot"></div><div><div class="tl-title">已提交</div><div class="tl-time">07-17 09:20</div></div></div>
+        <div class="tl-item done"><div class="tl-dot"></div><div><div class="tl-title">审核通过</div><div class="tl-time">07-17 10:05</div></div></div>
+        <div class="tl-item done"><div class="tl-dot"></div><div><div class="tl-title">匹配中</div><div class="tl-time">07-17 14:30</div></div></div>
+        <div class="tl-item done"><div class="tl-dot"></div><div><div class="tl-title">已接单</div><div class="tl-time">响应者：城市漫游者</div></div></div>
+        <div class="tl-item current"><div class="tl-dot"></div><div><div class="tl-title">待确认</div><div class="tl-time">07-17 18:20 已交付，等待确认</div></div></div>
+        <div class="tl-item"><div class="tl-dot"></div><div><div class="tl-title">已完成</div></div></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="btn">确认收到，完成心愿</div>
+      <div class="note-sm">内容有问题？在交付页内联系客服</div>
+    </div>
+  </div>
+</body>
+</html>

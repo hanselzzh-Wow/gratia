@@ -1,0 +1,139 @@
+<!-- @dsCard group="Design System v3" -->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>哈喽卧得 · Design System 基础 v3</title>
+<style>
+  :root{
+    --ink-900:#0A0A0A; --ink-700:#42403C; --ink-500:#7A756D; --ink-300:#B8B2A8;
+    --hairline:#EDE7DD; --hairline-soft:#F5F1EA;
+    --canvas:#FFFFFF; --canvas-warm:#FBF7F0;
+    --accent:#2F6FE0; --accent-soft:#EAF1FC;
+    --gold:#B9791F; --gold-soft:#FBF3E7;
+    --success:#2E7D4F; --success-soft:#EAF5EE;
+    --danger:#B23B2E; --danger-soft:#FBEDEA;
+    --radius-sm:10px; --radius-md:14px; --radius-lg:22px; --radius-xl:28px; --radius-pill:999px;
+    --shadow-card:0 6px 20px rgba(30,22,10,.06), 0 1px 2px rgba(30,22,10,.05);
+    --shadow-float:0 -6px 20px rgba(30,22,10,.05);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:40px; background:var(--canvas-warm);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;
+    color:var(--ink-900);
+  }
+  h1{font-size:22px; font-weight:600; margin:0 0 4px;}
+  .sub{color:var(--ink-500); font-size:14px; margin:0 0 32px; max-width:660px; line-height:1.6;}
+  section{margin-bottom:44px;}
+  h2{font-size:15px; font-weight:600; margin:0 0 4px; padding-bottom:8px; border-bottom:1px solid var(--hairline);}
+  .hint{color:var(--ink-500); font-size:12px; margin:0 0 16px; max-width:660px; line-height:1.6;}
+  .swatch-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px;}
+  .swatch{border-radius:var(--radius-md); overflow:hidden; border:1px solid var(--hairline); background:var(--canvas);}
+  .swatch .fill{height:64px;}
+  .swatch .meta{padding:8px 10px;}
+  .swatch .name{font-size:12px; font-weight:600;}
+  .swatch .hex{font-size:11px; color:var(--ink-500); font-variant-numeric:tabular-nums;}
+  .type-row{display:flex; align-items:baseline; gap:16px; padding:12px 0; border-bottom:1px solid var(--hairline-soft);}
+  .type-row:last-child{border-bottom:none;}
+  .type-label{width:180px; flex:0 0 auto; font-size:12px; color:var(--ink-500); font-variant-numeric:tabular-nums;}
+  .space-row{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
+  .space-bar{height:12px; background:var(--ink-900); border-radius:2px;}
+  .space-label{width:64px; font-size:12px; color:var(--ink-500); font-variant-numeric:tabular-nums;}
+  .radius-grid{display:flex; gap:16px; flex-wrap:wrap;}
+  .radius-box{width:100px; height:100px; background:var(--canvas); border:1px solid var(--hairline); display:flex; align-items:flex-end; justify-content:center; padding-bottom:10px; font-size:11px; color:var(--ink-500); text-align:center;}
+  .btn-row{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
+  .btn{font-size:15px; font-weight:600; padding:13px 24px; border-radius:var(--radius-pill); border:none; cursor:default;}
+  .btn-primary{background:var(--ink-900); color:#fff;}
+  .btn-secondary{background:transparent; color:var(--ink-900); border:1px solid var(--ink-900);}
+  .btn-text{background:transparent; color:var(--accent); padding:13px 8px;}
+  .btn-danger-text{background:transparent; color:var(--danger); padding:13px 8px;}
+  .btn-disabled{background:var(--hairline-soft); color:var(--ink-300);}
+  .elev-grid{display:flex; gap:20px; flex-wrap:wrap;}
+  .elev-box{width:220px; height:110px; border-radius:var(--radius-lg); background:var(--canvas); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--ink-500); text-align:center; padding:14px;}
+  .elev-box.card{box-shadow:var(--shadow-card);}
+  .elev-box.row{border-radius:0; border-bottom:1px solid var(--hairline);}
+  .note{background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-md); padding:16px 18px; font-size:13px; line-height:1.75; color:var(--ink-700); max-width:700px;}
+</style>
+</head>
+<body>
+  <h1>Design System 基础 v3</h1>
+  <p class="sub">方向调整：在 v2.1（黑白灰 + hairline + 零投影）的克制底色上，融入 Airbnb 式的温暖与柔和——背景更暖、圆角更大、卡片用柔和的低透明度阴影代替纯描边，字号行距更舒展。色彩规则不变：零渐变，强调色只做一件事，花哨鲜艳的颜色留给用户上传的照片/视频内容。</p>
+
+  <section>
+    <div class="note"><b>与 v2.1（<code>docs/ios-design-freeze-v1.md</code>）的差异：</b>① 页面底色从 <code>#FEFCF9</code> 调暖到 <code>#FBF7F0</code>，文字灰阶也从冷灰改为暖灰；② 卡片圆角从 16pt 提升到 22pt（弹层顶部 28pt），观感更柔和；③ 悬浮/内容卡片重新引入低透明度柔和阴影（<code>shadow-card</code>），但列表分隔线、Tab Bar、表单底栏仍用 1px hairline，不是所有层级都加阴影；④ 标题字重从 700 降到 600，行距普遍加宽，减少"网页感"的生硬；⑤ 全面移除 Emoji，改用统一的线性图标系统（见 <a href="./02_Icon_System.html">02_Icon_System.html</a>）。</div>
+  </section>
+
+  <section>
+    <h2>颜色 Color（暖灰替代冷灰）</h2>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="fill" style="background:var(--ink-900)"></div><div class="meta"><div class="name">Ink / 900</div><div class="hex">#0A0A0A</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--ink-700)"></div><div class="meta"><div class="name">Ink / 700</div><div class="hex">#42403C</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--ink-500)"></div><div class="meta"><div class="name">Ink / 500</div><div class="hex">#7A756D</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--ink-300)"></div><div class="meta"><div class="name">Ink / 300</div><div class="hex">#B8B2A8</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--hairline)"></div><div class="meta"><div class="name">Hairline</div><div class="hex">#EDE7DD</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--hairline-soft)"></div><div class="meta"><div class="name">Hairline Soft</div><div class="hex">#F5F1EA</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--canvas); border-bottom:1px solid var(--hairline)"></div><div class="meta"><div class="name">Canvas</div><div class="hex">#FFFFFF</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--canvas-warm); border-bottom:1px solid var(--hairline)"></div><div class="meta"><div class="name">Canvas Warm</div><div class="hex">#FBF7F0</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--accent)"></div><div class="meta"><div class="name">Accent（唯一强调色）</div><div class="hex">#2F6FE0</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--accent-soft)"></div><div class="meta"><div class="name">Accent Soft</div><div class="hex">#EAF1FC</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--gold)"></div><div class="meta"><div class="name">Gold（金额文字）</div><div class="hex">#B9791F</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--success)"></div><div class="meta"><div class="name">Success</div><div class="hex">#2E7D4F</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--danger)"></div><div class="meta"><div class="name">Danger</div><div class="hex">#B23B2E</div></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>字体 Typography（行距更舒展，标题降为 600）</h2>
+    <div class="type-row"><div class="type-label">Large Title 28/36 · 600</div><div style="font-size:28px;font-weight:600;line-height:36px;">附近的心愿</div></div>
+    <div class="type-row"><div class="type-label">Title2 22/30 · 600</div><div style="font-size:22px;font-weight:600;line-height:30px;">把心意送到远方</div></div>
+    <div class="type-row"><div class="type-label">Title3 18/26 · 600</div><div style="font-size:18px;font-weight:600;line-height:26px;">附近正在等待的心愿</div></div>
+    <div class="type-row"><div class="type-label">Headline 17/24 · 600</div><div style="font-size:17px;font-weight:600;line-height:24px;">发布一个心愿</div></div>
+    <div class="type-row"><div class="type-label">Body 17/26 · 400</div><div style="font-size:17px;font-weight:400;line-height:26px;">让恰好在场的人，帮你把心意带到远方的城市。</div></div>
+    <div class="type-row"><div class="type-label">Subhead 15/22 · 400</div><div style="font-size:15px;font-weight:400;line-height:22px;color:var(--ink-500);">联系方式不公开，仅用于审核与匹配</div></div>
+    <div class="type-row"><div class="type-label">Footnote 13/19 · 400</div><div style="font-size:13px;font-weight:400;line-height:19px;color:var(--ink-500);">上海 · 外滩 · 期望本周内完成</div></div>
+    <div class="type-row"><div class="type-label">Caption 12/17 · 400</div><div style="font-size:12px;font-weight:400;line-height:17px;color:var(--ink-500);">HW260717-ABCDE</div></div>
+  </section>
+
+  <section>
+    <h2>间距 Spacing（4/8 网格，不变）</h2>
+    <div class="space-row"><div class="space-label">8</div><div class="space-bar" style="width:8px"></div></div>
+    <div class="space-row"><div class="space-label">12</div><div class="space-bar" style="width:12px"></div></div>
+    <div class="space-row"><div class="space-label">16</div><div class="space-bar" style="width:16px"></div></div>
+    <div class="space-row"><div class="space-label">20</div><div class="space-bar" style="width:20px"></div></div>
+    <div class="space-row"><div class="space-label">24</div><div class="space-bar" style="width:24px"></div></div>
+    <div class="space-row"><div class="space-label">32</div><div class="space-bar" style="width:32px"></div></div>
+  </section>
+
+  <section>
+    <h2>圆角 Radius（更大更柔和）</h2>
+    <div class="radius-grid">
+      <div class="radius-box" style="border-radius:var(--radius-sm)">sm 10 · 输入框</div>
+      <div class="radius-box" style="border-radius:var(--radius-md)">md 14 · 小卡片/图标底</div>
+      <div class="radius-box" style="border-radius:var(--radius-lg)">lg 22 · 主卡片</div>
+      <div class="radius-box" style="border-radius:var(--radius-xl) var(--radius-xl) 0 0">xl 28 · 弹层顶部</div>
+      <div class="radius-box" style="border-radius:var(--radius-pill)">pill · 按钮/标签</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>层级 Elevation（卡片用柔和阴影，列表用分隔线）</h2>
+    <p class="hint">不是"零投影"也不是"到处投影"：独立的内容卡片（Hero、心愿卡、摘要卡、Bottom Sheet）用低透明度、大扩散半径的柔和阴影，制造轻微"漂浮感"但不生硬；同一卡片内部的列表行、Tab Bar、固定表单底栏仍然只用 1px hairline，避免阴影堆叠成"网页感"。</p>
+    <div class="elev-grid">
+      <div class="elev-box card">卡片阴影<br/><code>shadow-card</code></div>
+      <div class="elev-box row">列表行分隔线<br/>（无阴影）</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>按钮 Buttons（不变，胶囊黑色主按钮）</h2>
+    <div class="btn-row">
+      <button class="btn btn-primary">发布一个心愿</button>
+      <button class="btn btn-secondary">我刚好在这里</button>
+      <button class="btn btn-text">查看全部</button>
+      <button class="btn btn-danger-text">删除这条心愿</button>
+      <button class="btn btn-disabled" disabled>继续</button>
+    </div>
+  </section>
+</body>
+</html>

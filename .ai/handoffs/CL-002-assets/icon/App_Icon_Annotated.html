@@ -1,0 +1,114 @@
+<!-- @dsCard group="App Icon" -->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>哈喽卧得 · App Icon（品牌蓝主稿）</title>
+<style>
+  :root{
+    --ink-900:#0A0A0A; --ink-500:#767676; --canvas-warm:#FEFCF9; --canvas:#FFFFFF; --hairline:#E6E6E6;
+    --accent:#2F6FE0; --radius-lg:16px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; padding:40px; background:var(--canvas-warm); font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; color:var(--ink-900);}
+  h1{font-size:22px; font-weight:700; margin:0 0 4px;}
+  .sub{color:var(--ink-500); font-size:14px; margin:0 0 28px; max-width:680px; line-height:1.6;}
+  svg{display:block; width:100%; height:100%;}
+  .row{display:flex; gap:28px; align-items:flex-end; flex-wrap:wrap; margin-bottom:36px;}
+  .cell{text-align:center;}
+  .cell .label{margin-top:10px; font-size:12px; color:var(--ink-500);}
+  .master{width:256px; height:256px; overflow:hidden; position:relative;}
+  .squircle{overflow:hidden;}
+  .s180{width:180px; height:180px; border-radius:40px;}
+  .s120{width:120px; height:120px; border-radius:27px;}
+  .s60{width:60px; height:60px; border-radius:13px;}
+  .s40{width:40px; height:40px; border-radius:9px;}
+  .card{background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-lg);}
+  .rationale{max-width:720px;}
+  .rationale li{margin-bottom:8px; line-height:1.6; font-size:14px; color:var(--ink-900);}
+  .lightbg{background:#F4F4F4; padding:24px; border-radius:var(--radius-lg); display:inline-flex; gap:24px; align-items:flex-end;}
+  .tag-primary{display:inline-block; font-size:11px; font-weight:700; background:var(--accent); color:#fff; padding:3px 10px; border-radius:999px; margin-bottom:8px;}
+  .tag-alt{display:inline-block; font-size:11px; font-weight:700; background:var(--hairline); color:var(--ink-500); padding:3px 10px; border-radius:999px; margin-bottom:8px;}
+  .safe-guide{position:absolute; inset:0;}
+  h2{font-size:16px; margin:0 0 10px;}
+  table{border-collapse:collapse; font-size:13px; margin-bottom:24px;}
+  td, th{border:1px solid var(--hairline); padding:8px 12px; text-align:left;}
+  th{background:#F4F4F4; font-weight:700;}
+</style>
+</head>
+<body>
+  <h1>App Icon</h1>
+  <p class="sub">PM 裁决（<code>docs/ios-design-freeze-v1.md</code>）：品牌蓝 <code>#2F6FE0</code> 底 + 白色线形标志为 MVP 主图标；纯黑底版本保留为实验稿，不进入当前构建资源。图形延续 CL-001 的"纸飞机沿弧线路径从一个起点出发"概念，零渐变、零玻璃拟态、零投影。</p>
+
+  <div>
+    <span class="tag-primary">主稿 · MVP 使用</span>
+  </div>
+  <div class="row">
+    <div class="cell">
+      <div class="master card" style="overflow:hidden;">
+        <svg viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#2F6FE0"/><path d="M 268 690 Q 430 640 560 470" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 30" opacity="0.85"/><circle cx="268" cy="690" r="18" fill="#FFFFFF"/><g transform="translate(560 470) rotate(-38)"><path d="M -150 60 L 190 0 L -150 -60 L -80 0 Z" fill="#FFFFFF"/><path d="M -150 60 L -80 0 L -150 -60 Z" fill="#2F6FE0" opacity="0.32"/></g></svg>
+      </div>
+      <div class="label">主文件 1024×1024（无圆角）<br/><code>app-icon-blue.svg</code></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell">
+      <div class="squircle s180"><svg viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#2F6FE0"/><path d="M 268 690 Q 430 640 560 470" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 30" opacity="0.85"/><circle cx="268" cy="690" r="18" fill="#FFFFFF"/><g transform="translate(560 470) rotate(-38)"><path d="M -150 60 L 190 0 L -150 -60 L -80 0 Z" fill="#FFFFFF"/><path d="M -150 60 L -80 0 L -150 -60 Z" fill="#2F6FE0" opacity="0.32"/></g></svg></div>
+      <div class="label">180×180 · @3x</div>
+    </div>
+    <div class="cell">
+      <div class="squircle s120"><svg viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#2F6FE0"/><path d="M 268 690 Q 430 640 560 470" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 30" opacity="0.85"/><circle cx="268" cy="690" r="18" fill="#FFFFFF"/><g transform="translate(560 470) rotate(-38)"><path d="M -150 60 L 190 0 L -150 -60 L -80 0 Z" fill="#FFFFFF"/><path d="M -150 60 L -80 0 L -150 -60 Z" fill="#2F6FE0" opacity="0.32"/></g></svg></div>
+      <div class="label">120×120 · @2x</div>
+    </div>
+    <div class="cell">
+      <div class="squircle s60"><svg viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#2F6FE0"/><path d="M 268 690 Q 430 640 560 470" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 30" opacity="0.85"/><circle cx="268" cy="690" r="18" fill="#FFFFFF"/><g transform="translate(560 470) rotate(-38)"><path d="M -150 60 L 190 0 L -150 -60 L -80 0 Z" fill="#FFFFFF"/><path d="M -150 60 L -80 0 L -150 -60 Z" fill="#2F6FE0" opacity="0.32"/></g></svg></div>
+      <div class="label">60×60</div>
+    </div>
+    <div class="cell">
+      <div class="squircle s40"><svg viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#2F6FE0"/><path d="M 268 690 Q 430 640 560 470" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 30" opacity="0.85"/><circle cx="268" cy="690" r="18" fill="#FFFFFF"/><g transform="translate(560 470) rotate(-38)"><path d="M -150 60 L 190 0 L -150 -60 L -80 0 Z" fill="#FFFFFF"/><path d="M -150 60 L -80 0 L -150 -60 Z" fill="#2F6FE0" opacity="0.32"/></g></svg></div>
+      <div class="label">40×40 · Spotlight</div>
+    </div>
+  </div>
+
+  <h2>安全区标注</h2>
+  <p class="sub" style="margin-bottom:16px;">系统会自动应用圆角蒙版裁切，设计稿本身仍交付无圆角方形。核心图形（纸飞机+起点+路径）建议控制在居中约 82% 区域内，避免蒙版裁切后视觉失衡；四周预留边距，参考下表。</p>
+  <table>
+    <tr><th>画布</th><th>建议安全区</th><th>四边最小留白</th></tr>
+    <tr><td>1024×1024</td><td>居中 ~840×840</td><td>≥ 92pt</td></tr>
+    <tr><td>180×180 (@3x)</td><td>居中 ~148×148</td><td>≥ 16pt</td></tr>
+    <tr><td>120×120 (@2x)</td><td>居中 ~98×98</td><td>≥ 11pt</td></tr>
+    <tr><td>40×40 (Spotlight)</td><td>居中 ~33×33</td><td>≥ 3.5pt</td></tr>
+  </table>
+  <div class="row">
+    <div class="cell">
+      <div class="master card" style="position:relative;">
+        <svg viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#2F6FE0"/><path d="M 268 690 Q 430 640 560 470" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 30" opacity="0.85"/><circle cx="268" cy="690" r="18" fill="#FFFFFF"/><g transform="translate(560 470) rotate(-38)"><path d="M -150 60 L 190 0 L -150 -60 L -80 0 Z" fill="#FFFFFF"/><path d="M -150 60 L -80 0 L -150 -60 Z" fill="#2F6FE0" opacity="0.32"/></g></svg>
+        <svg class="safe-guide" viewBox="0 0 1024 1024"><rect x="92" y="92" width="840" height="840" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="10 10" opacity="0.6"/></svg>
+      </div>
+      <div class="label">安全区参考线（虚线，不属于交付图形）</div>
+    </div>
+  </div>
+
+  <div class="row" style="align-items:flex-start;">
+    <div class="cell">
+      <span class="tag-alt">备选 · 实验稿，不进入构建</span><br/>
+      <div class="squircle s120"><svg viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#0A0A0A"/><path d="M 268 690 Q 430 640 560 470" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 30" opacity="0.8"/><circle cx="268" cy="690" r="18" fill="#FFFFFF"/><g transform="translate(560 470) rotate(-38)"><path d="M -150 60 L 190 0 L -150 -60 L -80 0 Z" fill="#FFFFFF"/><path d="M -150 60 L -80 0 L -150 -60 Z" fill="#0A0A0A" opacity="0.28"/></g></svg></div>
+      <div class="label">纯黑底版本（<code>app-icon-black-alt.svg</code>），CL-001 首轮方向稿，PM 未选用为 MVP 主图标</div>
+    </div>
+  </div>
+
+  <div class="rationale">
+    <h2>设计要点</h2>
+    <ul>
+      <li>零渐变：背景是纯色 #2F6FE0，不使用任何色彩过渡，与 v2.1 冻结 Token 的 <code>accent</code> 完全一致。</li>
+      <li>不使用玻璃拟态、3D 立体折角或投影，图形只有"实心白 + 32% 不透明同色阴面"两层。</li>
+      <li>品牌蓝底比纯黑更贴合"清透天空"的品牌原始关键词，同时保留 Threads 式"深色/高对比纯色底"的辨识策略。</li>
+      <li>40×40（Spotlight 最小可用尺寸）仍可辨认出"弧线路径 + 飞行物"结构。</li>
+    </ul>
+  </div>
+
+  <h2>矢量源文件</h2>
+  <p class="sub" style="margin-bottom:8px;">独立文件 <code>icon/app-icon-blue.svg</code>（1024×1024，无圆角，主稿）与 <code>icon/app-icon-black-alt.svg</code>（备选，标记不进入构建）。对应 PNG 见 <code>../png/AppIcon-1024-Blue.png</code>。</p>
+</body>
+</html>

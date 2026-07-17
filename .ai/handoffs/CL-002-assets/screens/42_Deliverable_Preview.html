@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>42 交付预览</title>
+<style>
+  :root{
+    --radius-pill:999px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0; background:#F1EDE4;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;}
+  .board{display:flex; gap:24px; padding:24px; align-items:flex-start;}
+  .col{text-align:center;}
+  .col .label{margin:10px 0 0; font-size:12px; color:#7A756D; font-weight:600; max-width:393px;}
+
+  .screen{width:393px; height:852px; position:relative; background:#0A0A0A; overflow:hidden; color:#fff;}
+  .topbar{position:absolute; top:0; left:0; right:0; padding:52px 16px 12px; display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,.5); z-index:2;}
+  .topbar .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; color:#DADADA;}
+  .icbtn{width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center;}
+  .icbtn svg{width:16px; height:16px;}
+
+  .media{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;}
+  .media.img{background:#2A2A2A;}
+  .media.vid{background:#141414;}
+
+  .play{width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center;}
+  .play svg{width:24px; height:24px; margin-left:3px;}
+
+  .bottom{position:absolute; left:0; right:0; bottom:0; padding:16px 18px 26px; background:rgba(0,0,0,.55); z-index:2;}
+  .bottom .note{font-size:14px; line-height:20px; margin-bottom:6px;}
+  .bottom .meta{font-size:11.5px; color:#C7C7C7;}
+  .bottom .flag{margin-top:10px; font-size:12px; color:#EDEDED; text-decoration:underline; opacity:.85;}
+
+  .center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;}
+  .spinner{width:28px; height:28px; border-radius:50%; border:3px solid rgba(255,255,255,.25); border-top-color:#fff; animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .fail-icon{width:32px; height:32px; color:#9A9A9A;}
+  .fail-text{font-size:14px; color:#DADADA;}
+  .retry{margin-top:4px; font-size:13px; font-weight:600; color:#0A0A0A; background:#fff; padding:9px 20px; border-radius:var(--radius-pill);}
+</style>
+</head>
+<body>
+  <div class="board">
+
+    <div class="col">
+      <div class="screen">
+        <div class="topbar">
+          <div class="icbtn"><svg viewBox="0 0 22 22" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><line x1="5.5" y1="5.5" x2="16.5" y2="16.5"/><line x1="16.5" y1="5.5" x2="5.5" y2="16.5"/></svg></div>
+          <span class="code">HW260717-ABCDE</span>
+          <div class="icbtn"><svg viewBox="0 0 22 22" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.2v10.3"/><path d="M7.3 6.9L11 3.2l3.7 3.7"/><path d="M5 11v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-6"/></svg></div>
+        </div>
+        <div class="center"><div class="spinner"></div><div class="fail-text" style="color:#8C8C8C;">加载中…</div></div>
+      </div>
+      <div class="label">42a 加载中</div>
+    </div>
+
+    <div class="col">
+      <div class="screen">
+        <div class="topbar">
+          <div class="icbtn"><svg viewBox="0 0 22 22" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><line x1="5.5" y1="5.5" x2="16.5" y2="16.5"/><line x1="16.5" y1="5.5" x2="5.5" y2="16.5"/></svg></div>
+          <span class="code">HW260717-ABCDE</span>
+          <div class="icbtn"><svg viewBox="0 0 22 22" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.2v10.3"/><path d="M7.3 6.9L11 3.2l3.7 3.7"/><path d="M5 11v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-6"/></svg></div>
+        </div>
+        <div class="media img"></div>
+        <div class="bottom">
+          <div class="note">在外滩夜景前录好啦，祝她生日快乐！</div>
+          <div class="meta">来自「城市漫游者」· 07-17 18:20</div>
+          <div class="flag">内容有问题？</div>
+        </div>
+      </div>
+      <div class="label">42b 图片交付</div>
+    </div>
+
+    <div class="col">
+      <div class="screen">
+        <div class="topbar">
+          <div class="icbtn"><svg viewBox="0 0 22 22" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><line x1="5.5" y1="5.5" x2="16.5" y2="16.5"/><line x1="16.5" y1="5.5" x2="5.5" y2="16.5"/></svg></div>
+          <span class="code">HW260717-ABCDE</span>
+          <div class="icbtn"><svg viewBox="0 0 22 22" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.2v10.3"/><path d="M7.3 6.9L11 3.2l3.7 3.7"/><path d="M5 11v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-6"/></svg></div>
+        </div>
+        <div class="media vid"><div class="play"><svg viewBox="0 0 22 22" fill="#fff"><polygon points="8,6 16.5,11 8,16"/></svg></div></div>
+        <div class="bottom">
+          <div class="note">在外滩夜景前录好啦，祝她生日快乐！</div>
+          <div class="meta">来自「城市漫游者」· 07-17 18:20 · 00:22</div>
+          <div class="flag">内容有问题？</div>
+        </div>
+      </div>
+      <div class="label">42c 视频交付（点按播放，无自动播放）</div>
+    </div>
+
+    <div class="col">
+      <div class="screen">
+        <div class="topbar">
+          <div class="icbtn"><svg viewBox="0 0 22 22" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><line x1="5.5" y1="5.5" x2="16.5" y2="16.5"/><line x1="16.5" y1="5.5" x2="5.5" y2="16.5"/></svg></div>
+          <span class="code">HW260717-ABCDE</span>
+          <div class="icbtn"><svg viewBox="0 0 22 22" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.2v10.3"/><path d="M7.3 6.9L11 3.2l3.7 3.7"/><path d="M5 11v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-6"/></svg></div>
+        </div>
+        <div class="center">
+          <svg class="fail-icon" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3.5" y1="3.5" x2="18.5" y2="18.5"/><path d="M5.7 8.7a10 10 0 0 1 11.7 1.6"/><path d="M8.2 12a5.6 5.6 0 0 1 6.3 1"/><circle cx="11" cy="16.3" r="1" fill="currentColor" stroke="none"/></svg>
+          <div class="fail-text">加载失败，请检查网络后重试</div>
+          <div class="retry">重试</div>
+        </div>
+      </div>
+      <div class="label">42d 加载失败</div>
+    </div>
+
+  </div>
+</body>
+</html>

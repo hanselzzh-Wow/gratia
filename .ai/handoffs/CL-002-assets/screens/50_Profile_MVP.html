@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>50 我的（无账户 MVP）</title>
+<style>
+  :root{
+    --ink-900:#0A0A0A; --ink-700:#42403C; --ink-500:#7A756D; --ink-300:#B8B2A8;
+    --hairline:#EDE7DD; --hairline-soft:#F5F1EA; --canvas:#FFFFFF; --canvas-warm:#FBF7F0; --accent:#2F6FE0;
+    --radius-md:14px; --radius-lg:22px; --radius-pill:999px;
+    --shadow-card:0 6px 20px rgba(30,22,10,.06), 0 1px 2px rgba(30,22,10,.05);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0;}
+  body{width:393px; height:852px; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; overflow:hidden;}
+  .screen{width:393px; height:852px; position:relative; background:var(--canvas-warm); display:flex; flex-direction:column;}
+  .statusbar{height:47px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:var(--ink-900);}
+  .content{flex:1; overflow:hidden; padding:0 20px;}
+  .ic{width:19px; height:19px; flex:0 0 auto;}
+
+  h1{font-size:26px; font-weight:600; margin:2px 0 16px; color:var(--ink-900);}
+
+  .brand-card{background:var(--canvas); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:18px; display:flex; gap:14px; align-items:center; margin-bottom:20px;}
+  .brand-mark{width:44px; height:44px; border-radius:13px; background:var(--accent); flex:0 0 auto; display:flex; align-items:center; justify-content:center;}
+  .brand-text .t{font-size:14px; font-weight:600; color:var(--ink-900); margin-bottom:3px;}
+  .brand-text .s{font-size:12px; color:var(--ink-500); line-height:16px;}
+
+  .section-title{font-size:12px; font-weight:700; color:var(--ink-500); margin:0 0 6px; text-transform:uppercase; letter-spacing:.4px;}
+  .list{background:var(--canvas); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); margin-bottom:20px; overflow:hidden;}
+  .row{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--hairline); font-size:14.5px; color:var(--ink-900);}
+  .row:last-child{border-bottom:none;}
+  .row .l{display:flex; align-items:center; gap:12px;}
+  .row .ic{color:var(--ink-700);}
+  .row .r{color:var(--ink-300); font-size:13px; display:flex; align-items:center; gap:4px;}
+  .row .chev{width:14px; height:14px; color:var(--ink-300);}
+
+  .version{text-align:center; font-size:11.5px; color:var(--ink-300); padding:0 0 20px;}
+
+  .tabbar{flex:0 0 auto; display:flex; padding:8px 4px 26px; background:#fff; border-top:1px solid var(--hairline);}
+  .tabbar .item{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; font-size:10.5px; color:var(--ink-300); font-weight:500;}
+  .tabbar .item svg{width:24px; height:24px;}
+  .tabbar .item.active{color:var(--ink-900); font-weight:600;}
+</style>
+</head>
+<body>
+  <div class="screen">
+    <div class="statusbar">9:41</div>
+    <div class="content">
+      <h1>我的</h1>
+
+      <div class="brand-card">
+        <div class="brand-mark"><svg width="20" height="20" viewBox="0 0 1024 1024"><path d="M 268 690 Q 430 640 560 470" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-dasharray="4 70" opacity="0.85"/><circle cx="268" cy="690" r="44" fill="#FFFFFF"/><g transform="translate(560 470) rotate(-38)"><path d="M -150 60 L 190 0 L -150 -60 L -80 0 Z" fill="#FFFFFF"/></g></svg></div>
+        <div class="brand-text">
+          <div class="t">哈喽卧得</div>
+          <div class="s">帮你把心意送到远方，由恰好在场的真实的人完成。暂未开放账户登录。</div>
+        </div>
+      </div>
+
+      <div class="section-title">我的记录</div>
+      <div class="list">
+        <div class="row">
+          <div class="l"><svg class="ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.2v10.3"/><path d="M7.3 6.9L11 3.2l3.7 3.7"/><path d="M5 11v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-6"/></svg>我的发布</div>
+          <div class="r">用编号查询 <svg class="chev" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 5.5l6 5.5-6 5.5"/></svg></div>
+        </div>
+        <div class="row">
+          <div class="l"><svg class="ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="12" height="10" rx="2.5"/><path d="M15 9.3l4-2.5v8.4l-4-2.5"/></svg>我的响应</div>
+          <div class="r">用编号查询 <svg class="chev" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 5.5l6 5.5-6 5.5"/></svg></div>
+        </div>
+      </div>
+
+      <div class="section-title">支持</div>
+      <div class="list">
+        <div class="row"><div class="l"><svg class="ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9.5L5.5 19V15.5H4a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z"/></svg>帮助与客服</div><svg class="chev" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 5.5l6 5.5-6 5.5"/></svg></div>
+        <div class="row"><div class="l"><svg class="ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.3l6.5 2.6v4.6c0 4.6-2.8 6.9-6.5 8.2-3.7-1.3-6.5-3.6-6.5-8.2V5.9L11 3.3Z"/><path d="M8 11l2 2 4-4"/></svg>安全中心</div><svg class="chev" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 5.5l6 5.5-6 5.5"/></svg></div>
+        <div class="row"><div class="l"><svg class="ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h6l4 4v11.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M12.5 3v4h4"/><line x1="8" y1="12" x2="14.5" y2="12"/><line x1="8" y1="15" x2="14.5" y2="15"/></svg>隐私政策</div><svg class="chev" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 5.5l6 5.5-6 5.5"/></svg></div>
+        <div class="row"><div class="l"><svg class="ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h6l4 4v11.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M12.5 3v4h4"/><line x1="8" y1="12" x2="14.5" y2="12"/><line x1="8" y1="15" x2="14.5" y2="15"/></svg>用户协议</div><svg class="chev" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 5.5l6 5.5-6 5.5"/></svg></div>
+        <div class="row"><div class="l"><svg class="ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="11" y1="10" x2="11" y2="15"/><circle cx="11" cy="7.2" r="1" fill="currentColor" stroke="none"/></svg>关于哈喽卧得</div><svg class="chev" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 5.5l6 5.5-6 5.5"/></svg></div>
+      </div>
+
+      <div class="version">版本 1.0.0（MVP）</div>
+    </div>
+
+    <div class="tabbar">
+      <div class="item">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l7-6 7 6"/><path d="M6 10v8a1 1 0 0 0 1 1h3v-5h2v5h3a1 1 0 0 0 1-1v-8"/></svg>
+        首页
+      </div>
+      <div class="item">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20s6-5.7 6-10.2A6 6 0 0 0 5 9.8C5 14.3 11 20 11 20Z"/><circle cx="11" cy="9.6" r="2.1"/></svg>
+        附近
+      </div>
+      <div class="item">
+        <svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9.5" fill="currentColor"/><line x1="11" y1="6.8" x2="11" y2="15.2" stroke="#FBF7F0" stroke-width="1.7" stroke-linecap="round"/><line x1="6.8" y1="11" x2="15.2" y2="11" stroke="#FBF7F0" stroke-width="1.7" stroke-linecap="round"/></svg>
+        发布
+      </div>
+      <div class="item">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="12" r="7.3"/><path d="M11 8.2V12l2.6 1.8"/><path d="M4.6 8.3a7.3 7.3 0 0 1 2-4.1"/></svg>
+        进度
+      </div>
+      <div class="item active">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="7.8" r="3.3"/><path d="M4.3 19c1-3.7 4-5.8 6.7-5.8s5.7 2.1 6.7 5.8"/></svg>
+        我的
+      </div>
+    </div>
+  </div>
+</body>
+</html>
