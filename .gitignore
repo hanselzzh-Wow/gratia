@@ -48,3 +48,4 @@ next-env.d.ts
 !/.dev.vars.example
 /.cloudflare.secrets
 /.wrangler/direct-deploy/
+/worktrees/
