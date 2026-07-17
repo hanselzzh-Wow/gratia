@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import {
   normalizeApiBase,
+  resetGithubPagesOutput,
   verifyGithubPagesExport,
 } from "../scripts/build-github-pages.mjs";
 
@@ -52,5 +53,18 @@ test("checks the GitHub Pages handoff before publication", async () => {
         "https://haluowode.example.workers.dev",
       ),
     /chatgpt\.site/,
+  );
+});
+
+test("removes stale files before creating a new GitHub Pages export", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "haluowode-pages-stale-"));
+  const staleFile = join(directory, "index 3.html");
+  await writeFile(staleFile, "stale build");
+
+  resetGithubPagesOutput(directory);
+
+  await assert.rejects(
+    readFile(staleFile, "utf8"),
+    (error) => error.code === "ENOENT",
   );
 });

@@ -2,6 +2,14 @@
 
 一个“替远方的人去现场完成小心愿”的全栈 MVP。公开页面支持真实心愿发布、同城响应者报名和发布者进度查询；运营台支持人工审核、种子供应者管理、手工派单、交付上传、订单完结与内部数据导出。
 
+## 线上环境
+
+- 用户端：[https://hanselzzh-wow.github.io/](https://hanselzzh-wow.github.io/)
+- 运营台：[https://hanselzzh-wow.github.io/ops/](https://hanselzzh-wow.github.io/ops/)
+- 生产 API：[https://haluowode-mvp.hanselzzh.workers.dev](https://haluowode-mvp.hanselzzh.workers.dev)
+
+GitHub Pages 提供稳定前端，Cloudflare Worker 提供 API，D1 保存业务数据，R2 保存交付文件。运营台 PIN 保存在本机被 Git 忽略的 `.cloudflare.secrets` 中，不要写入网页、截图或公开仓库。
+
 ## 环境要求
 
 - Node.js `>=22.13.0`
@@ -38,4 +46,4 @@ npm run dev
 
 `.openai/hosting.json` 声明 Sites 项目与 D1、R2 绑定。数据结构变化后，需要将 `drizzle/` 下的新迁移随同部署产物一起发布。公开生产部署前，先完成试运营手册中的测试单和隐私检查。
 
-如果 `chatgpt.site` 域名被平台安全层拦截，可按[独立 Cloudflare 部署说明](docs/cloudflare-direct-deployment.md)发布到项目所有者自己的 `workers.dev` 地址；这一流程不会覆盖稳定的 GitHub Pages 演示站。
+当前生产环境已按[独立 Cloudflare 部署说明](docs/cloudflare-direct-deployment.md)发布到项目所有者自己的 `workers.dev` 地址，并由稳定的 GitHub Pages 前端调用；不再依赖可能被平台安全层拦截的 `chatgpt.site` 地址。

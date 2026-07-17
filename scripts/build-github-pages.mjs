@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import process from "node:process";
@@ -63,6 +63,10 @@ export function verifyGithubPagesExport(directory, apiBase) {
   }
 }
 
+export function resetGithubPagesOutput(directory = outputDirectory) {
+  rmSync(directory, { recursive: true, force: true });
+}
+
 function runBuild(apiBase) {
   const result = spawnSync(next, ["build"], {
     cwd: root,
@@ -85,6 +89,7 @@ function main() {
         process.env.HALUOWODE_API_BASE_URL ??
         process.env.NEXT_PUBLIC_API_BASE_URL,
     );
+    resetGithubPagesOutput();
     runBuild(apiBase);
     verifyGithubPagesExport(outputDirectory, apiBase);
     writeFileSync(resolve(outputDirectory, ".nojekyll"), "", "utf8");
