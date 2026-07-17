@@ -1,6 +1,6 @@
 # 多 AI 任务板
 
-最后更新：2026-07-18 00:06（Asia/Shanghai）
+最后更新：2026-07-18 00:22（Asia/Shanghai）
 
 永久角色分工见 `.ai/ROLES.md`。
 
@@ -11,7 +11,7 @@
 | COORD-001 | Codex | ACCEPTED | 已审计未分配生成的 iOS 候选工程，建立协作制度并决定保留范围 | `AGENTS.md`、`PROJECT_LOG.md`、`README.md`、`.ai/**`、`docs/ios-candidate-review.md` | 审查结论已记录；后续按小任务选择性集成 |
 | COORD-002 | Codex | IN_PROGRESS | 统筹团队自主推进至真实 iPhone 可安装试用；定义验收、冻结设计、拆实现、完成构建与设备测试 | 协调文档、正式源码集成和验收所需路径 | `docs/ios-mvp-acceptance.md` 全部 P0 通过后结束 |
 | AG-001 | Antigravity | ACCEPTED | 已提交此前候选工程的文件、命令、假设、验证、未验证项和风险交接 | `.ai/handoffs/AG-001-antigravity.md` | 交接已完成；当前没有新的实现任务，只能参与群聊 |
-| AG-002 | Antigravity | HANDOFF_ONLY | 机械整理现有后端与 Swift 候选模型的 API 映射和差距，不修改源码 | 仅 `.ai/handoffs/AG-002-api-map.md` | 覆盖指定公开端点、字段、枚举和差距后立即停止 |
+| AG-002 | Antigravity | ACCEPTED | 已机械整理现有后端与 Swift 候选模型的 API 映射和差距 | 仅 `.ai/handoffs/AG-002-api-map.md` | 交接已完成；Codex 已在 `docs/ios-api-contract.md` 纠正边界并冻结 v1 |
 | CL-001 | Claude | HANDOFF_ONLY | 根据 `docs/ios-ui-design-brief.md` 产出首轮 UI 设计方案：视觉方向、页面地图、优先 8 组页面低保真/高保真建议、Design System 和界面文案 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 完成设计交接后立即停止，不得修改任何源码 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
@@ -45,6 +45,12 @@
 - 为每个端点列出请求字段、响应字段、类型、可空性、枚举、错误状态和隐私边界。
 - 列出现有 Swift `Wish` 模型与真实 API 的所有字段/类型差距。
 - 给出建议的 Swift 类型名称和映射表，但不得生成或修改 Swift 源码。
+
+## AG-002 验收修正
+
+- 交接覆盖范围和主要字段合格，任务状态接受。
+- 权威实现依据为 `docs/ios-api-contract.md`，其中已纠正：公开列表仅返回 `matching`；重复创建返回 200；响应包含时间字段及 404/409；追踪 404 文案；错误 token 返回 404；各端点精确限流。
+- 后续任务不得直接复制交接报告中的示例 Swift 类型，必须按冻结契约和 `docs/ios-architecture.md` 实现。
 
 ## 新任务创建要求
 

@@ -98,6 +98,17 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：验收 Antigravity API 映射并冻结 iOS 契约 v1
+
+- Antigravity 完成 `AG-002`，交付 `.ai/handoffs/AG-002-api-map.md` 并在群聊中停止等待验收。
+- Codex 对照四处后端权威源码逐端点复核，发现并纠正公开状态范围、重复提交状态码、报名错误/时间字段、追踪 404 文案、交付错误 token 和限流细节。
+- 新增 `docs/ios-api-contract.md`，冻结五个公开端点、请求/响应 DTO、枚举、隐私边界、错误映射与最低测试样例。
+- 决定 Swift DTO 的数据库 ID 使用 `String`，不将当前 UUID 实现误当作长期协议保证；状态解码必须兼容未知值。
+- 为 `ios/` 增加状态说明，明确候选 UI 尚未通过 Xcode、Mock 必须逐步替换、禁止嵌入网页或管理凭据。
+- 验证方式：人工逐行对照 `wishes-contract.ts`、`wishes-validation.ts`、`wishes-repository.ts` 与 Worker 路由；候选 Swift 仍通过 parser。
+- 接下来三步：收取并评审 `CL-001`；建立可用 `swift test` 验证的 Foundation 核心包；接入真实公开列表并替换首页/附近 Mock。
+- 未决/阻塞：完整 Xcode 尚未安装或选择；不阻塞 Foundation 网络层，但阻塞 iOS SDK 编译、模拟器和真机验收。
+
 ### 2026-07-18：完成候选 iOS 工程处置与正式客户端架构草案
 
 - Codex 完成 `COORD-001`，新增 `docs/ios-candidate-review.md`：候选代码只保留 XcodeGen 骨架、五栏导航和页面信息层级参考，不整体接受为正式 MVP。

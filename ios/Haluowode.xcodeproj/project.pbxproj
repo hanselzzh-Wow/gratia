@@ -1,0 +1,335 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		20B3F5482F1D4D8776B4E424 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D8C38BCFAD380951D6D5BB7 /* HomeView.swift */; };
+		28BD8396213BF32C2A5C6DEA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8336A40B8AC7F8E866C78B1A /* ContentView.swift */; };
+		45156BB63F587FC5E663A120 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F81EECC54084008EC49A7 /* ProfileView.swift */; };
+		4BEFD84B8B8830F77FACA935 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF823FE4F1CE75DEEFF668E /* DesignSystem.swift */; };
+		68E58538F7A521DBC3F71347 /* NearbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5078E2519B699EA645128E45 /* NearbyView.swift */; };
+		7639F8F30CD7823D07690352 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DA3BFEE80FC06CF97769DF0F /* Assets.xcassets */; };
+		88CB25B4F63F64EC0CCEA960 /* HaluowodeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2BDE1F988AF9D63EFC6C5EA /* HaluowodeApp.swift */; };
+		B3D4BBF5256D99F3829FCEE6 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F94CC4301EC09CF07378A7 /* Models.swift */; };
+		BBC73A56F7E4404EFFFE0718 /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0304A32E0107CF6B8A492D7D /* ProgressView.swift */; };
+		C45D7F8CC71C5A2D6A7A41FC /* PublishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36817BBF7BFAE2B25DC4921 /* PublishView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0304A32E0107CF6B8A492D7D /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
+		0D8C38BCFAD380951D6D5BB7 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		2A2F81EECC54084008EC49A7 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		2BE37E2ADCE38B19D4870DF4 /* Haluowode.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Haluowode.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		497023A94ACCC191BBE412C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5078E2519B699EA645128E45 /* NearbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyView.swift; sourceTree = "<group>"; };
+		8336A40B8AC7F8E866C78B1A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B36817BBF7BFAE2B25DC4921 /* PublishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishView.swift; sourceTree = "<group>"; };
+		BDF823FE4F1CE75DEEFF668E /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		D2BDE1F988AF9D63EFC6C5EA /* HaluowodeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HaluowodeApp.swift; sourceTree = "<group>"; };
+		D6F94CC4301EC09CF07378A7 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		DA3BFEE80FC06CF97769DF0F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		009CEDD849CCF0697F3BBDF6 /* Haluowode */ = {
+			isa = PBXGroup;
+			children = (
+				DA3BFEE80FC06CF97769DF0F /* Assets.xcassets */,
+				8336A40B8AC7F8E866C78B1A /* ContentView.swift */,
+				BDF823FE4F1CE75DEEFF668E /* DesignSystem.swift */,
+				D2BDE1F988AF9D63EFC6C5EA /* HaluowodeApp.swift */,
+				0D8C38BCFAD380951D6D5BB7 /* HomeView.swift */,
+				497023A94ACCC191BBE412C9 /* Info.plist */,
+				D6F94CC4301EC09CF07378A7 /* Models.swift */,
+				5078E2519B699EA645128E45 /* NearbyView.swift */,
+				2A2F81EECC54084008EC49A7 /* ProfileView.swift */,
+				0304A32E0107CF6B8A492D7D /* ProgressView.swift */,
+				B36817BBF7BFAE2B25DC4921 /* PublishView.swift */,
+			);
+			path = Haluowode;
+			sourceTree = "<group>";
+		};
+		CD93D6AFF833DAC0EA39F508 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2BE37E2ADCE38B19D4870DF4 /* Haluowode.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CE311895BE3714D837E2BE31 = {
+			isa = PBXGroup;
+			children = (
+				009CEDD849CCF0697F3BBDF6 /* Haluowode */,
+				CD93D6AFF833DAC0EA39F508 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E6B59F3EA405F097CB8019F0 /* Haluowode */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FD68FA2E2C5E6DE3D4DA52F9 /* Build configuration list for PBXNativeTarget "Haluowode" */;
+			buildPhases = (
+				6711704CE95F87523BF43DF3 /* Sources */,
+				CA3DF3C55661A373D7D9320D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Haluowode;
+			packageProductDependencies = (
+			);
+			productName = Haluowode;
+			productReference = 2BE37E2ADCE38B19D4870DF4 /* Haluowode.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CDC400920B48425D84FB7E68 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = C9BB63DA7CCDA71BF1A17FC1 /* Build configuration list for PBXProject "Haluowode" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = CE311895BE3714D837E2BE31;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = CD93D6AFF833DAC0EA39F508 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E6B59F3EA405F097CB8019F0 /* Haluowode */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CA3DF3C55661A373D7D9320D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7639F8F30CD7823D07690352 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6711704CE95F87523BF43DF3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				28BD8396213BF32C2A5C6DEA /* ContentView.swift in Sources */,
+				4BEFD84B8B8830F77FACA935 /* DesignSystem.swift in Sources */,
+				88CB25B4F63F64EC0CCEA960 /* HaluowodeApp.swift in Sources */,
+				20B3F5482F1D4D8776B4E424 /* HomeView.swift in Sources */,
+				B3D4BBF5256D99F3829FCEE6 /* Models.swift in Sources */,
+				68E58538F7A521DBC3F71347 /* NearbyView.swift in Sources */,
+				45156BB63F587FC5E663A120 /* ProfileView.swift in Sources */,
+				BBC73A56F7E4404EFFFE0718 /* ProgressView.swift in Sources */,
+				C45D7F8CC71C5A2D6A7A41FC /* PublishView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		3BCFA962D4F37CEF26E5B617 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Haluowode/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hanselzzh.haluowode;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		6E932A19E238D86CC0665DB2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		75B8CEF0A4E2FCDE39902E90 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		EAC5EF9A02538CEAF8509A00 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Haluowode/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hanselzzh.haluowode;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C9BB63DA7CCDA71BF1A17FC1 /* Build configuration list for PBXProject "Haluowode" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6E932A19E238D86CC0665DB2 /* Debug */,
+				75B8CEF0A4E2FCDE39902E90 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FD68FA2E2C5E6DE3D4DA52F9 /* Build configuration list for PBXNativeTarget "Haluowode" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3BCFA962D4F37CEF26E5B617 /* Debug */,
+				EAC5EF9A02538CEAF8509A00 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CDC400920B48425D84FB7E68 /* Project object */;
+}
