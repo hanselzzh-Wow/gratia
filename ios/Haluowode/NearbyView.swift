@@ -6,7 +6,7 @@ struct NearbyView: View {
     @State private var searchKeywords = ""
     @State private var selectedDeliveryFilter = "全部"
     @State private var showFilterSheet = false
-    @State private var localCity = "全部"
+    @State private var localCity = "全国"
 
     let deliveryTypes = ["全部", "口播视频", "景色配音", "手写卡片"]
 
@@ -84,7 +84,7 @@ struct NearbyView: View {
                 switch viewModel.state {
                 case .idle, .loading:
                     Spacer()
-                    ProgressView("正在加载心愿...")
+                    SwiftUI.ProgressView("正在加载心愿...")
                     Spacer()
                 case .failed(let error):
                     Spacer()
@@ -231,7 +231,7 @@ struct FilterSheetView: View {
     @Binding var isPresented: Bool
     var onConfirm: (String) -> Void
 
-    let cities = ["全部", "杭州", "上海", "北京", "深圳", "广州"]
+    let cities = ["全国", "杭州", "上海", "北京", "深圳", "广州"]
 
     var body: some View {
         NavigationStack {
@@ -272,7 +272,7 @@ struct FilterSheetView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("重置") {
-                        selectedCity = "全部"
+                        selectedCity = "全国"
                     }
                     .foregroundColor(DesignSystem.primaryBlue)
                 }
@@ -296,7 +296,7 @@ struct WishDetailView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
                     // Header Card
                     VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
@@ -417,6 +417,14 @@ struct WishDetailView: View {
     }
 }
 
+// Unified sheet submission state
+enum ResponseSubmissionState {
+    case idle
+    case submitting
+    case succeeded
+    case failed(String)
+}
+
 // Apply Response Sheet
 struct ApplyResponseSheet: View {
     let wish: PublicWishDTO
@@ -428,18 +436,35 @@ struct ApplyResponseSheet: View {
     @State private var note = ""
     @State private var agreeContact = false
 
-    @State private var isSubmitting = false
-    @State private var submitError: String? = nil
+    @State private var submissionState: ResponseSubmissionState = .idle
+    @State private var activeTask: Task<Void, Never>? = nil
+
+    private let apiClient: WishAPIProtocol
+
+    // Dependencies injected through initializer, defaulting to production client
+    init(wish: PublicWishDTO, isPresented: Binding<Bool>, showSuccess: Binding<Bool>, apiClient: WishAPIProtocol = WishAPIClient()) {
+        self.wish = wish
+        self._isPresented = isPresented
+        self._showSuccess = showSuccess
+        self.apiClient = apiClient
+    }
 
     var isFormValid: Bool {
-        !name.trimmingCharacters(in: .whitespaces).isEmpty &&
-        !contact.trimmingCharacters(in: .whitespaces).isEmpty &&
-        agreeContact && !isSubmitting
+        let isNotSubmitting: Bool
+        if case .submitting = submissionState {
+            isNotSubmitting = false
+        } else {
+            isNotSubmitting = true
+        }
+        return !name.trimmingCharacters(in: .whitespaces).isEmpty &&
+               !contact.trimmingCharacters(in: .whitespaces).isEmpty &&
+               agreeContact &&
+               isNotSubmitting
     }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
                     // Summary info
                     HStack {
@@ -455,7 +480,7 @@ struct ApplyResponseSheet: View {
                     .background(DesignSystem.primaryBlue.opacity(0.05))
                     .cornerRadius(DesignSystem.radiusSmall)
 
-                    if let err = submitError {
+                    if case .failed(let err) = submissionState {
                         Text(err)
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(.red)
@@ -512,7 +537,7 @@ struct ApplyResponseSheet: View {
 
                     Button(action: submitResponse) {
                         if isSubmitting {
-                            ProgressView()
+                            SwiftUI.ProgressView()
                                 .tint(.white)
                         } else {
                             Text("提交响应")
@@ -528,44 +553,59 @@ struct ApplyResponseSheet: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("取消") {
+                        cancelActiveTask()
                         isPresented = false
                     }
                     .foregroundColor(DesignSystem.primaryBlue)
                     .disabled(isSubmitting)
                 }
             }
+            .onDisappear {
+                cancelActiveTask()
+            }
         }
+    }
+
+    private var isSubmitting: Bool {
+        if case .submitting = submissionState { true } else { false }
+    }
+
+    private func cancelActiveTask() {
+        activeTask?.cancel()
+        activeTask = nil
     }
 
     private func submitResponse() {
         guard isFormValid else { return }
-        isSubmitting = true
-        submitError = nil
+        submissionState = .submitting
 
-        Task {
+        cancelActiveTask()
+
+        activeTask = Task {
             do {
-                let client = WishAPIClient()
                 let req = CreateWishResponseRequest(
                     responderName: name,
                     responderContact: contact,
                     note: note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : note,
                     contactConsent: agreeContact
                 )
-                _ = try await client.createWishResponse(wishId: wish.id, request: req)
-                if !Task.isCancelled {
-                    isSubmitting = false
-                    isPresented = false
-                    showSuccess = true
-                }
+                _ = try await apiClient.createWishResponse(wishId: wish.id, request: req)
+
+                guard !Task.isCancelled else { return }
+
+                submissionState = .succeeded
+                isPresented = false
+                showSuccess = true
             } catch {
-                if !Task.isCancelled {
-                    isSubmitting = false
-                    if let apiErr = error as? HaluowodeAPIError {
-                        submitError = apiErr.errorDescription
-                    } else {
-                        submitError = "提交失败，请重试。"
-                    }
+                guard !Task.isCancelled else { return }
+
+                let errText: String
+                if let apiErr = error as? HaluowodeAPIError {
+                    errText = apiErr.errorDescription ?? "提交失败，请重试。"
+                } else {
+                    errText = "提交失败，请重试。"
                 }
+                submissionState = .failed(errText)
             }
         }
     }

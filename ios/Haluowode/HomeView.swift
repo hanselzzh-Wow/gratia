@@ -10,7 +10,7 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(spacing: DesignSystem.spacing20) {
 
                     // 1. Hero Card (品牌主视觉)
@@ -125,14 +125,14 @@ struct HomeView: View {
 
                         switch viewModel.state {
                         case .idle, .loading:
-                            HStack {
-                                Spacer()
-                                ProgressView("正在加载心愿...")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(DesignSystem.textSecondary)
-                                Spacer()
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: DesignSystem.spacing12) {
+                                    ForEach(0..<3, id: \.self) { _ in
+                                        SkeletonCardView()
+                                    }
+                                }
+                                .padding(.horizontal, DesignSystem.spacing20)
                             }
-                            .frame(height: 100)
                         case .failed(let error):
                             VStack(spacing: 8) {
                                 Text(error)
@@ -356,9 +356,45 @@ struct HomeView: View {
                 .presentationDetents([.medium])
             }
             .warmBackground()
+            .refreshable {
+                await viewModel.fetchWishes()
+            }
             .task {
                 await viewModel.fetchWishes()
             }
         }
+    }
+}
+
+// Real Skeleton Loader Card Component
+struct SkeletonCardView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.gray.opacity(0.15))
+                    .frame(width: 100, height: 16)
+                Spacer()
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.gray.opacity(0.15))
+                    .frame(width: 40, height: 16)
+            }
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color.gray.opacity(0.1))
+                .frame(height: 36)
+            HStack {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.gray.opacity(0.15))
+                    .frame(width: 60, height: 14)
+                Spacer()
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.gray.opacity(0.1))
+                    .frame(width: 120, height: 14)
+            }
+        }
+        .padding(DesignSystem.spacing16)
+        .frame(width: 280)
+        .background(DesignSystem.cardBg)
+        .cornerRadius(DesignSystem.radiusMedium)
     }
 }

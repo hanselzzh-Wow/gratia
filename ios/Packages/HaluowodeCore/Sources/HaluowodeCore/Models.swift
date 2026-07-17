@@ -26,7 +26,7 @@ public struct WishStatus: RawRepresentable, Codable, Hashable, Sendable {
         case .completed: return "已完成"
         case .rejected: return "未通过"
         case .cancelled: return "已取消"
-        default: return "未知状态 (\(rawValue))"
+        default: return "未知状态"
         }
     }
 }
@@ -47,7 +47,7 @@ public struct DeliveryType: RawRepresentable, Codable, Hashable, Sendable {
         case .spokenVideo: return "口播视频"
         case .sceneryVoiceover: return "景色配音"
         case .handwrittenCard: return "手写卡片"
-        default: return "其它形式 (\(rawValue))"
+        default: return "其它形式"
         }
     }
 }
@@ -70,7 +70,7 @@ public struct DeliveryKind: RawRepresentable, Codable, Hashable, Sendable {
         case .sceneryVoiceover: return "景色配音"
         case .handwrittenCard: return "手写卡片"
         case .link: return "外部链接"
-        default: return "未知类型 (\(rawValue))"
+        default: return "未知类型"
         }
     }
 }
@@ -225,8 +225,8 @@ public struct CreateWishRequest: Codable, Sendable {
     public let deadlineText: String
     public let rewardFen: Int
     public let contactConsent: Bool
-    
-    public init(requesterName: String, contact: String, city: String, landmark: String, occasion: String, message: String, deliveryType: DeliveryType, deadlineText: String, rewardFen: Int, contactConsent: Bool = true) {
+
+    public init(requesterName: String, contact: String, city: String, landmark: String, occasion: String, message: String, deliveryType: DeliveryType, deadlineText: String, rewardFen: Int, contactConsent: Bool) {
         self.requesterName = requesterName
         self.contact = contact
         self.city = city
@@ -256,7 +256,7 @@ public struct CreateWishResponseRequest: Codable, Sendable {
     public let note: String?
     public let contactConsent: Bool
 
-    public init(responderName: String, responderContact: String, note: String?, contactConsent: Bool = true) {
+    public init(responderName: String, responderContact: String, note: String?, contactConsent: Bool) {
         self.responderName = responderName
         self.responderContact = responderContact
         self.note = note

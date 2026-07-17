@@ -26,16 +26,16 @@ public final class WishAPIClient: WishAPIProtocol {
         if !queryItems.isEmpty {
             urlComponents.queryItems = queryItems
         }
-        
+
         let url = urlComponents.url!
         var headers = ["accept": "application/json"]
         if body != nil {
             headers["content-type"] = "application/json"
         }
-        
+
         let request = HTTPRequest(method: method, url: url, headers: headers, body: body)
         let response = try await transport.send(request: request)
-        
+
         return try parseResponse(response)
     }
 
@@ -49,7 +49,7 @@ public final class WishAPIClient: WishAPIProtocol {
         } else {
             let payload = try? JSONDecoder().decode(APIErrorPayload.self, from: response.data)
             let message = payload?.error ?? "服务器出错"
-            
+
             switch response.statusCode {
             case 400:
                 throw HaluowodeAPIError.badRequest(message: message, fields: payload?.fields)
@@ -78,14 +78,14 @@ public final class WishAPIClient: WishAPIProtocol {
 
     public func listWishes(city: String?) async throws -> [PublicWishDTO] {
         var queryItems: [URLQueryItem] = []
-        if let city = city, !city.isEmpty && city != "全国" {
+        if let city = city, !city.isEmpty && city != "全国" && city != "全部" {
             queryItems.append(URLQueryItem(name: "city", value: city))
         }
-        
+
         struct WishesEnvelope: Codable {
             let wishes: [PublicWishDTO]
         }
-        
+
         let envelope: WishesEnvelope = try await executeRequest(
             method: "GET",
             path: "/api/wishes",
