@@ -20,6 +20,7 @@
 ## 多 AI 协作规则
 
 - Codex 是当前项目 PM、任务协调人和主分支集成者；Antigravity、Claude 或其他 AI 不得自行领取下一项工作。
+- 永久角色分工见 `.ai/ROLES.md`：Claude 负责设计类工作，Antigravity 负责范围小且目标明确的实现工作，Codex 负责拆解、架构、验收与集成。
 - 开始任何写操作前，先读取 `.ai/WRITE_FREEZE.md` 和 `.ai/TASKS.md`。没有明确分配给自己的 `IN_PROGRESS` 或 `HANDOFF_ONLY` 任务时，只能阅读，不能改文件。
 - 每个任务必须写明负责人、允许修改的路径、禁止修改的路径、验收标准和停止条件；超出范围必须停下并申请新任务。
 - 非协调人不得直接修改 `PROJECT_LOG.md`、`README.md`、`AGENTS.md`、生产后端、数据库迁移、部署配置或主分支。

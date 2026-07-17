@@ -7,6 +7,6 @@
 3. `.ai/WRITE_FREEZE.md`
 4. `.ai/TASKS.md`
 
-Claude 当前唯一任务是 `CL-001`：只读审查现有 `ios/` 候选工程，并把报告写入 `.ai/handoffs/CL-001-claude-review.md`。
+Claude 是本项目的产品体验与 UI 设计负责人。当前唯一任务是 `CL-001`：根据 `docs/ios-ui-design-brief.md` 完成首轮 UI 设计交接。
 
-除该报告文件外，不得修改任何源码、项目配置、日志或 Git 状态。报告完成后立即停止，等待 Codex/PM 分配新任务。不得自行修复发现的问题，不得自动开始下一步。
+文字设计说明写入 `.ai/handoffs/CL-001-claude-design.md`；如能生成平面设计图或独立素材，只能写入 `.ai/handoffs/CL-001-assets/`。不得修改任何源码、项目配置、官方日志或 Git 状态。设计交接完成后立即停止，等待用户和 Codex/PM 评审，不得自动开始实现。
