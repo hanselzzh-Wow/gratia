@@ -13,12 +13,13 @@
 | 模块 | 当前状态 | 说明 |
 | --- | --- | --- |
 | 产品方向 | 已纠正 | 最终消费者产品是原生 iOS App，不是网页 |
-| SwiftUI 客户端 | 尚未开始 | 当前目录内没有 `.xcodeproj`、Swift 文件或 iOS 工程 |
+| SwiftUI 客户端 | 未验收候选工程 | Antigravity 未经任务分配生成了 `ios/` 候选骨架；仅通过语法/格式检查，尚未用 Xcode 编译或接入真实 API |
 | 云端后端 | 已上线 | Cloudflare Worker + D1 + R2，健康检查和完整业务闭环均已通过 |
 | 生产 API | 可用 | `https://haluowode-mvp.hanselzzh.workers.dev` |
 | 网页前端 | 历史原型 | `https://hanselzzh-wow.github.io/` 仅作为交互参考和接口验证，不是最终产品 |
 | 运营端 | MVP 网页可用，长期形态待定 | 不得默认网页运营台是最终方案；需要和产品负责人确认是否做独立 SwiftUI 内部 App |
 | iOS UI 规划 | 设计任务书已完成 | `docs/ios-ui-design-brief.md` 已定义 5 栏导航、页面区域、组件状态和交付格式 |
+| 多 AI 协作 | 写入冻结中 | Codex 负责 PM 与集成；Antigravity 只做交接，Claude 只做只读审查，任务见 `.ai/TASKS.md` |
 | 自动化验证 | 已建立 | 后端构建、业务闭环、隐私隔离、部署配置和 GitHub Pages 交接测试已通过 |
 
 最近一次完整生产闭环测试单号：`HW260717-FDB62`。
@@ -55,9 +56,9 @@ Cloudflare Worker API
 
 ## 接下来三步
 
-1. UI 设计师按 `docs/ios-ui-design-brief.md` 先交付 8 组高优先级设计图和基础 Design System。
-2. 产品负责人与开发共同评审信息层级、字段完整性和原生可实现性，记录修改意见。
-3. 设计方向确认后检查 Xcode 环境，在 `ios/` 下创建 SwiftUI 工程并实现第一条纵向闭环。
+1. 收取 Antigravity 的 `AG-001` 交接报告和 Claude 的 `CL-001` 只读审查报告。
+2. Codex 对照 UI 任务书和后端契约决定 `ios/` 候选代码的保留、重构或拒绝范围。
+3. 安装完整 Xcode 后执行真实 iOS 编译和模拟器验收；通过前不开始 API 联调或新增页面。
 
 ## 短期目标（下一个可演示版本）
 
@@ -96,6 +97,31 @@ Cloudflare Worker API
 这些问题不阻塞 Xcode 环境检查、工程骨架、API Client 和低保真页面地图。
 
 ## 工作记录（只追加）
+
+### 2026-07-17：建立多 AI 写入冻结与任务协调
+
+- 发现 Antigravity 未经任务分配，在约 3 分钟内生成约 2,222 行 SwiftUI 代码、XcodeGen 配置和 `.xcodeproj`，并直接改写项目日志。
+- 保留所有候选文件，未删除或回滚；将其状态纠正为“未验收候选工程”。
+- 审计结果：Swift 语法解析通过，基础配置格式有效；代码全部使用 Mock 数据，没有 API Client；本机只有 Command Line Tools，没有完整 Xcode，因此没有完成 iOS 编译或模拟器验证。
+- 新增 `.ai/WRITE_FREEZE.md`、`.ai/TASKS.md`、交接模板，以及供 Claude/Antigravity 自动读取的根目录指令。
+- 当前分工：Antigravity 只提交工作交接，Claude 只做只读代码审查，Codex 负责验收、任务拆分、主分支集成和官方日志。
+- 下一步：收取两份交接报告后，由 Codex 决定候选工程哪些部分可以进入正式 SwiftUI 实现。
+
+### 2026-07-17：Antigravity 生成 iOS 原生候选骨架（未验收）
+
+- Antigravity 报告其在本地环境使用手动下载并解压的 XcodeGen 2.46.0 工具；正式交接尚待 `AG-001` 报告确认。
+- 创建了 `ios/` 文件夹，并编写了 xcodegen 的配置文件 `project.yml`。
+- 实现了核心 SwiftUI 页面结构和代码：
+  - `HaluowodeApp.swift`：应用入口。
+  - `DesignSystem.swift`：定义天空蓝主色、晨光金强调色及字体规范。
+  - `Models.swift`：统一定义 `Wish` 数据模型及 Mock 数据。
+  - `ContentView.swift`：底部5栏 TabBar 基础导航。
+  - `HomeView.swift`：首页（含品牌主图卡片、我要发布/我能帮忙双入口、推荐心愿和如何完成指南）。
+  - `NearbyView.swift`：附近（含搜索地标、筛选胶囊、心愿详情页以及我能帮忙响应的流程弹窗）。
+  - `PublishView.swift`：发布心愿三步引导表单及生成单号后的成功界面。
+  - `ProgressView.swift`：进度追踪（含单号及联系方式查询表单、详情时间线以及全屏交付媒体预览）。
+  - `ProfileView.swift`：我的账户（包含隐私条款、帮助与安全中心）。
+- 已生成 `Haluowode.xcodeproj`，但本机没有完整 Xcode，尚未完成构建、模拟器或真机验证。
 
 ### 2026-07-17：完成 iOS UI 设计任务书
 
