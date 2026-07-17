@@ -1,14 +1,16 @@
-# 哈喽卧得 MVP
+# 哈喽卧得
 
-一个“替远方的人去现场完成小心愿”的全栈 MVP。公开页面支持真实心愿发布、同城响应者报名和发布者进度查询；运营台支持人工审核、种子供应者管理、手工派单、交付上传、订单完结与内部数据导出。
+一个“替远方的人去现场完成小心愿”的产品。最终消费者客户端将使用 SwiftUI 开发为原生 iOS App，并以 TestFlight 和 App Store 上架为目标；当前仓库已有的 React 页面是历史原型和接口验证工具，不是最终消费者产品。
+
+项目当前状态、短期与长期目标、未决问题和逐步工作记录统一维护在 [PROJECT_LOG.md](PROJECT_LOG.md)。任何新加入的 AI 或开发者都应先阅读该文件。
 
 ## 线上环境
 
-- 用户端：[https://hanselzzh-wow.github.io/](https://hanselzzh-wow.github.io/)
-- 运营台：[https://hanselzzh-wow.github.io/ops/](https://hanselzzh-wow.github.io/ops/)
+- 历史网页原型：[https://hanselzzh-wow.github.io/](https://hanselzzh-wow.github.io/)
+- 当前 MVP 运营台：[https://hanselzzh-wow.github.io/ops/](https://hanselzzh-wow.github.io/ops/)
 - 生产 API：[https://haluowode-mvp.hanselzzh.workers.dev](https://haluowode-mvp.hanselzzh.workers.dev)
 
-GitHub Pages 提供稳定前端，Cloudflare Worker 提供 API，D1 保存业务数据，R2 保存交付文件。运营台 PIN 保存在本机被 Git 忽略的 `.cloudflare.secrets` 中，不要写入网页、截图或公开仓库。
+GitHub Pages 当前只保留历史原型和 MVP 运营工具；未来 SwiftUI App 将直接调用 Cloudflare Worker API。D1 保存业务数据，R2 保存交付文件。运营台 PIN 保存在本机被 Git 忽略的 `.cloudflare.secrets` 中，不要写入网页、截图或公开仓库。
 
 ## 环境要求
 
