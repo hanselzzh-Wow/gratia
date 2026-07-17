@@ -98,6 +98,16 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：完成候选 iOS 工程处置与正式客户端架构草案
+
+- Codex 完成 `COORD-001`，新增 `docs/ios-candidate-review.md`：候选代码只保留 XcodeGen 骨架、五栏导航和页面信息层级参考，不整体接受为正式 MVP。
+- 明确重写范围：单一 Mock `Wish` 模型、全局可变数据、延时模拟发布/响应/追踪、网络层、业务状态和交付展示。
+- 新增 `docs/ios-architecture.md`，确定 SwiftUI View → `@MainActor` ViewModel → `WishAPIProtocol` → `URLSession` Transport → Cloudflare Worker 的依赖方向。
+- 固定隐私边界：公开 DTO 不得包含联系方式或内部字段；App 不保存运营 PIN、Cloudflare Token、D1/R2 凭据，也不记录私有请求正文。
+- 验证：文档通过 `git diff --check`；候选代码审计确认没有 `URLSession`，运行时全部依赖 Mock，且存在一个强制解包和多个超大 View 文件。
+- 接下来三步：验收 `AG-002` API 映射；验收 `CL-001` 设计交接并冻结首批页面；创建真实 API 基础层与公开心愿列表纵向切片任务。
+- 当前阻塞：完整 Xcode 尚未安装/选中，暂不阻塞契约、架构和源码准备；模拟器与真机验收前必须解决。
+
 ### 2026-07-18：获得自主推进至手机 MVP 的授权
 
 - 用户授权 Codex 在不等待逐步确认的情况下，通过团队群聊持续派单、评审和接力，直到做出可在真实 iPhone 上试用的 MVP。

@@ -1,6 +1,6 @@
 # 多 AI 任务板
 
-最后更新：2026-07-18 00:00（Asia/Shanghai）
+最后更新：2026-07-18 00:06（Asia/Shanghai）
 
 永久角色分工见 `.ai/ROLES.md`。
 
@@ -8,7 +8,7 @@
 
 | ID | 负责人 | 状态 | 任务 | 允许写入 | 停止条件 |
 | --- | --- | --- | --- | --- | --- |
-| COORD-001 | Codex | REVIEW | 审计未分配生成的 iOS 候选工程，建立协作制度并决定保留范围 | `AGENTS.md`、`PROJECT_LOG.md`、`README.md`、`.ai/**` | 收到 Antigravity 交接并完成候选代码保留/拒绝结论后结束 |
+| COORD-001 | Codex | ACCEPTED | 已审计未分配生成的 iOS 候选工程，建立协作制度并决定保留范围 | `AGENTS.md`、`PROJECT_LOG.md`、`README.md`、`.ai/**`、`docs/ios-candidate-review.md` | 审查结论已记录；后续按小任务选择性集成 |
 | COORD-002 | Codex | IN_PROGRESS | 统筹团队自主推进至真实 iPhone 可安装试用；定义验收、冻结设计、拆实现、完成构建与设备测试 | 协调文档、正式源码集成和验收所需路径 | `docs/ios-mvp-acceptance.md` 全部 P0 通过后结束 |
 | AG-001 | Antigravity | ACCEPTED | 已提交此前候选工程的文件、命令、假设、验证、未验证项和风险交接 | `.ai/handoffs/AG-001-antigravity.md` | 交接已完成；当前没有新的实现任务，只能参与群聊 |
 | AG-002 | Antigravity | HANDOFF_ONLY | 机械整理现有后端与 Swift 候选模型的 API 映射和差距，不修改源码 | 仅 `.ai/handoffs/AG-002-api-map.md` | 覆盖指定公开端点、字段、枚举和差距后立即停止 |
@@ -22,7 +22,13 @@
 - 已验证：Swift 语法解析通过；`Info.plist`、资源 JSON 和 `project.pbxproj` 基础格式有效。
 - 未验证：没有完整 Xcode，未执行 iOS 编译、模拟器、真机、单元测试或 UI 测试。
 - 已知差距：目前使用 `Wish.mockWishes`，没有 `URLSession`、API Client 或 Cloudflare 接口联调。
-- 结论：保留为未验收候选，不得视为可运行 MVP，也不得继续在其上堆功能。
+- 结论：`docs/ios-candidate-review.md` 已完成文件级处置；只保留工程/五栏/信息层级参考，数据、网络、状态和业务流程必须按正式架构重写，不得直接在 Mock 上堆功能。
+
+## Codex 架构冻结前提
+
+- 候选客户端架构已写入 `docs/ios-architecture.md`，最终字段以 `AG-002` 映射为准。
+- 最终 Design System、组件状态和页面视觉以 `CL-001` 交接评审为准。
+- 两份交接通过后，Codex 将发布 `DECISION` 冻结第一批实现规格，并创建唯一负责人、精确文件范围和可执行验收命令的实现任务。
 
 ## CL-001 设计验收要求
 
