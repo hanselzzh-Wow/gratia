@@ -1,6 +1,6 @@
 # 哈喽卧得项目总日志
 
-最后更新：2026-07-17（Asia/Shanghai）
+最后更新：2026-07-18（Asia/Shanghai）
 
 这份文件是项目事实来源和 AI 交接入口。新加入的 AI 应先读本文件，再读 `README.md` 和相关代码。每完成 2–5 个有意义的小步骤后更新一次。
 
@@ -19,7 +19,7 @@
 | 网页前端 | 历史原型 | `https://hanselzzh-wow.github.io/` 仅作为交互参考和接口验证，不是最终产品 |
 | 运营端 | MVP 网页可用，长期形态待定 | 不得默认网页运营台是最终方案；需要和产品负责人确认是否做独立 SwiftUI 内部 App |
 | iOS UI 规划 | 设计任务书已完成 | `docs/ios-ui-design-brief.md` 已定义 5 栏导航、页面区域、组件状态和交付格式 |
-| 多 AI 协作 | 角色分工和共享群聊已建立，写入冻结中 | Codex 负责 PM/架构/集成，Claude 负责设计，Antigravity 负责目标明确的实现；共享沟通见 `.ai/TEAM_CHAT.md` |
+| 多 AI 协作 | 自主推进已授权，写入冻结按任务逐步解除 | Codex 可在手机可试用 MVP 范围内自主决策；Claude 负责设计，Antigravity 负责明确实现/机械任务 |
 | 自动化验证 | 已建立 | 后端构建、业务闭环、隐私隔离、部署配置和 GitHub Pages 交接测试已通过 |
 
 最近一次完整生产闭环测试单号：`HW260717-FDB62`。
@@ -56,9 +56,9 @@ Cloudflare Worker API
 
 ## 接下来三步
 
-1. 等待 Claude 的 `CL-001` 首轮 UI 设计交接；Antigravity 的 `AG-001` 工作交接已经收到并验收。
-2. 用户与 Codex 评审并冻结设计版本；Codex 同时决定现有 `ios/` 候选代码的保留、重构或拒绝范围。
-3. 将已确认设计拆成小型 Antigravity 实现任务，在独立 worktree 执行并由 Codex 逐项验收。
+1. Claude 完成 `CL-001` 首轮 UI 设计；Antigravity 完成 `AG-002` API 字段映射。
+2. Codex 按 `docs/ios-mvp-acceptance.md` 自主冻结设计和客户端架构，决定候选代码保留/重构范围。
+3. 将真实 API Client、核心闭环和测试拆成小任务，实现后进入 Xcode 构建、模拟器和真机验收。
 
 ## 短期目标（下一个可演示版本）
 
@@ -97,6 +97,14 @@ Cloudflare Worker API
 这些问题不阻塞 Xcode 环境检查、工程骨架、API Client 和低保真页面地图。
 
 ## 工作记录（只追加）
+
+### 2026-07-18：获得自主推进至手机 MVP 的授权
+
+- 用户授权 Codex 在不等待逐步确认的情况下，通过团队群聊持续派单、评审和接力，直到做出可在真实 iPhone 上试用的 MVP。
+- 新增 `docs/ios-mvp-acceptance.md`，将真实列表、发布、响应、进度、交付、工程质量、模拟器和真机验收定义为 P0。
+- Claude 继续 `CL-001` 设计交接；Antigravity 新领取 `AG-002`，只做公开 API 字段、枚举、错误和 Swift 候选模型差距映射。
+- Codex 新增 `COORD-002`，负责设计冻结、候选代码审查、实现拆分、集成、Xcode 构建和设备验收。
+- 仅 Apple 账号、签名、付费或系统权限等确实无法代办事项需要用户临时介入。
 
 ### 2026-07-17：建立三 AI 共享群聊
 
