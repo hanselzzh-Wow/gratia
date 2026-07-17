@@ -4,6 +4,8 @@
 
 项目当前状态、短期与长期目标、未决问题和逐步工作记录统一维护在 [PROJECT_LOG.md](PROJECT_LOG.md)。任何新加入的 AI 或开发者都应先阅读该文件。
 
+原生客户端的页面结构、视觉方向和 UI 设计师交付要求见 [iOS UI 设计任务书](docs/ios-ui-design-brief.md)。
+
 ## 线上环境
 
 - 历史网页原型：[https://hanselzzh-wow.github.io/](https://hanselzzh-wow.github.io/)
