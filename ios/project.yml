@@ -1,6 +1,9 @@
 name: Haluowode
 options:
   bundleIdPrefix: com.hanselzzh
+packages:
+  HaluowodeCore:
+    path: Packages/HaluowodeCore
 targets:
   Haluowode:
     type: application
@@ -8,6 +11,8 @@ targets:
     deploymentTarget: "16.0"
     sources:
       - path: Haluowode
+    dependencies:
+      - package: HaluowodeCore
     settings:
       base:
         INFOPLIST_FILE: Haluowode/Info.plist

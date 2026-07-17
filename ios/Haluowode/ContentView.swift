@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab = 0
+    @StateObject private var viewModel = WishListViewModel()
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -36,6 +37,7 @@ struct ContentView: View {
                 .tag(4)
         }
         .tint(DesignSystem.primaryBlue)
+        .environmentObject(viewModel)
     }
 }
 
