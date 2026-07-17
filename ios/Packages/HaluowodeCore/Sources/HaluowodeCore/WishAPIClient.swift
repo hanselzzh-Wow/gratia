@@ -63,7 +63,7 @@ public final class WishAPIClient: WishAPIProtocol {
                 throw HaluowodeAPIError.conflict(message: message)
             case 429:
                 var retrySeconds = 0
-                if let retryAfterHeader = response.headers["retry-after"] ?? response.headers["retry-after"],
+                if let retryAfterHeader = response.headers["retry-after"],
                    let seconds = Int(retryAfterHeader.trimmingCharacters(in: .whitespacesAndNewlines)) {
                     retrySeconds = seconds
                 }

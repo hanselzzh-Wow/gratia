@@ -1,21 +1,20 @@
 import Foundation
 
-public enum WishStatus: String, Codable, Sendable {
-    case pendingReview = "pending_review"
-    case matching = "matching"
-    case assigned = "assigned"
-    case inProgress = "in_progress"
-    case delivered = "delivered"
-    case completed = "completed"
-    case rejected = "rejected"
-    case cancelled = "cancelled"
-    case unknown
+public struct WishStatus: RawRepresentable, Codable, Hashable, Sendable {
+    public let rawValue: String
 
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let val = try container.decode(String.self)
-        self = WishStatus(rawValue: val) ?? .unknown
+    public init(rawValue: String) {
+        self.rawValue = rawValue
     }
+
+    public static let pendingReview = WishStatus(rawValue: "pending_review")
+    public static let matching = WishStatus(rawValue: "matching")
+    public static let assigned = WishStatus(rawValue: "assigned")
+    public static let inProgress = WishStatus(rawValue: "in_progress")
+    public static let delivered = WishStatus(rawValue: "delivered")
+    public static let completed = WishStatus(rawValue: "completed")
+    public static let rejected = WishStatus(rawValue: "rejected")
+    public static let cancelled = WishStatus(rawValue: "cancelled")
 
     public var label: String {
         switch self {
@@ -27,63 +26,83 @@ public enum WishStatus: String, Codable, Sendable {
         case .completed: return "已完成"
         case .rejected: return "未通过"
         case .cancelled: return "已取消"
-        case .unknown: return "未知状态"
+        default: return "未知状态 (\(rawValue))"
         }
     }
 }
 
-public enum DeliveryType: String, Codable, Sendable {
-    case spokenVideo = "spoken_video"
-    case sceneryVoiceover = "scenery_voiceover"
-    case handwrittenCard = "handwritten_card"
-    case unknown
+public struct DeliveryType: RawRepresentable, Codable, Hashable, Sendable {
+    public let rawValue: String
 
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let val = try container.decode(String.self)
-        self = DeliveryType(rawValue: val) ?? .unknown
+    public init(rawValue: String) {
+        self.rawValue = rawValue
     }
+
+    public static let spokenVideo = DeliveryType(rawValue: "spoken_video")
+    public static let sceneryVoiceover = DeliveryType(rawValue: "scenery_voiceover")
+    public static let handwrittenCard = DeliveryType(rawValue: "handwritten_card")
 
     public var label: String {
         switch self {
         case .spokenVideo: return "口播视频"
         case .sceneryVoiceover: return "景色配音"
         case .handwrittenCard: return "手写卡片"
-        case .unknown: return "其它形式"
+        default: return "其它形式 (\(rawValue))"
         }
     }
 }
 
-public enum AssignmentStatus: String, Codable, Sendable {
-    case offered = "offered"
-    case accepted = "accepted"
-    case arrived = "arrived"
-    case delivered = "delivered"
-    case declined = "declined"
-    case cancelled = "cancelled"
-    case unknown
+public struct DeliveryKind: RawRepresentable, Codable, Hashable, Sendable {
+    public let rawValue: String
 
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let val = try container.decode(String.self)
-        self = AssignmentStatus(rawValue: val) ?? .unknown
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    public static let spokenVideo = DeliveryKind(rawValue: "spoken_video")
+    public static let sceneryVoiceover = DeliveryKind(rawValue: "scenery_voiceover")
+    public static let handwrittenCard = DeliveryKind(rawValue: "handwritten_card")
+    public static let link = DeliveryKind(rawValue: "link")
+
+    public var label: String {
+        switch self {
+        case .spokenVideo: return "口播视频"
+        case .sceneryVoiceover: return "景色配音"
+        case .handwrittenCard: return "手写卡片"
+        case .link: return "外部链接"
+        default: return "未知类型 (\(rawValue))"
+        }
     }
 }
 
-public enum WishResponseStatus: String, Codable, Sendable {
-    case pending = "pending"
-    case selected = "selected"
-    case declined = "declined"
-    case unknown
+public struct AssignmentStatus: RawRepresentable, Codable, Hashable, Sendable {
+    public let rawValue: String
 
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let val = try container.decode(String.self)
-        self = WishResponseStatus(rawValue: val) ?? .unknown
+    public init(rawValue: String) {
+        self.rawValue = rawValue
     }
+
+    public static let offered = AssignmentStatus(rawValue: "offered")
+    public static let accepted = AssignmentStatus(rawValue: "accepted")
+    public static let arrived = AssignmentStatus(rawValue: "arrived")
+    public static let delivered = AssignmentStatus(rawValue: "delivered")
+    public static let declined = AssignmentStatus(rawValue: "declined")
+    public static let cancelled = AssignmentStatus(rawValue: "cancelled")
 }
 
-public struct PublicWishDTO: Codable, Identifiable, Sendable {
+public struct WishResponseStatus: RawRepresentable, Codable, Hashable, Sendable {
+    public let rawValue: String
+
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    public static let pending = WishResponseStatus(rawValue: "pending")
+    public static let selected = WishResponseStatus(rawValue: "selected")
+    public static let declined = WishResponseStatus(rawValue: "declined")
+}
+
+public struct PublicWishDTO: Codable, Identifiable, Sendable, Hashable {
     public let id: String
     public let publicCode: String
     public let city: String
@@ -95,6 +114,10 @@ public struct PublicWishDTO: Codable, Identifiable, Sendable {
     public let rewardFen: Int
     public let status: WishStatus
     public let createdAt: Int64
+
+    public var rewardYuan: Double {
+        Double(rewardFen) / 100.0
+    }
 
     public init(id: String, publicCode: String, city: String, landmark: String, occasion: String, message: String, deliveryType: DeliveryType, deadlineText: String, rewardFen: Int, status: WishStatus, createdAt: Int64) {
         self.id = id
@@ -111,7 +134,7 @@ public struct PublicWishDTO: Codable, Identifiable, Sendable {
     }
 }
 
-public struct WishAssignmentDTO: Codable, Sendable {
+public struct WishAssignmentDTO: Codable, Sendable, Hashable {
     public let providerName: String
     public let status: AssignmentStatus
 
@@ -121,14 +144,14 @@ public struct WishAssignmentDTO: Codable, Sendable {
     }
 }
 
-public struct WishDeliverableDTO: Codable, Identifiable, Sendable {
+public struct WishDeliverableDTO: Codable, Identifiable, Sendable, Hashable {
     public let id: String
-    public let kind: String
+    public let kind: DeliveryKind
     public let url: URL
     public let note: String?
     public let createdAt: Int64
 
-    public init(id: String, kind: String, url: URL, note: String?, createdAt: Int64) {
+    public init(id: String, kind: DeliveryKind, url: URL, note: String?, createdAt: Int64) {
         self.id = id
         self.kind = kind
         self.url = url
@@ -137,7 +160,7 @@ public struct WishDeliverableDTO: Codable, Identifiable, Sendable {
     }
 }
 
-public struct WishEventDTO: Codable, Sendable {
+public struct WishEventDTO: Codable, Sendable, Hashable {
     public let eventType: String
     public let fromStatus: WishStatus?
     public let toStatus: WishStatus?
@@ -151,7 +174,7 @@ public struct WishEventDTO: Codable, Sendable {
     }
 }
 
-public struct TrackedWishDTO: Codable, Identifiable, Sendable {
+public struct TrackedWishDTO: Codable, Identifiable, Sendable, Hashable {
     public let id: String
     public let publicCode: String
     public let city: String
@@ -167,6 +190,10 @@ public struct TrackedWishDTO: Codable, Identifiable, Sendable {
     public let assignment: WishAssignmentDTO?
     public let deliverable: WishDeliverableDTO?
     public let events: [WishEventDTO]
+
+    public var rewardYuan: Double {
+        Double(rewardFen) / 100.0
+    }
 
     public init(id: String, publicCode: String, city: String, landmark: String, occasion: String, message: String, deliveryType: DeliveryType, deadlineText: String, rewardFen: Int, status: WishStatus, createdAt: Int64, updatedAt: Int64, assignment: WishAssignmentDTO?, deliverable: WishDeliverableDTO?, events: [WishEventDTO]) {
         self.id = id
