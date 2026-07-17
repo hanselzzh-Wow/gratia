@@ -1,0 +1,287 @@
+<!-- @dsCard group="Design System" -->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>哈喽卧得 · 核心组件 v2</title>
+<style>
+  :root{
+    --ink-900:#0A0A0A; --ink-700:#3A3A3A; --ink-500:#767676; --ink-300:#B5B5B5;
+    --hairline:#E6E6E6; --hairline-soft:#F0F0F0;
+    --canvas:#FFFFFF; --canvas-warm:#FEFCF9;
+    --accent:#2F6FE0; --accent-soft:#EAF1FC;
+    --gold:#B9791F; --gold-soft:#FBF3E7;
+    --success:#2E7D4F; --success-soft:#EAF5EE;
+    --danger:#B23B2E; --danger-soft:#FBEDEA;
+    --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-pill:999px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; padding:40px; background:var(--canvas-warm); font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; color:var(--ink-900);}
+  h1{font-size:22px; font-weight:700; margin:0 0 4px;}
+  .sub{color:var(--ink-500); font-size:14px; margin:0 0 32px;}
+  section{margin-bottom:44px;}
+  h2{font-size:15px; font-weight:700; margin:0 0 4px; padding-bottom:8px; border-bottom:1px solid var(--hairline);}
+  .hint{color:var(--ink-500); font-size:12px; margin:0 0 16px;}
+  .row{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;}
+
+  /* Chips */
+  .chip{display:inline-flex; align-items:center; gap:4px; padding:7px 14px; border-radius:var(--radius-pill); font-size:13px; font-weight:500; border:1px solid var(--hairline); background:var(--canvas); color:var(--ink-700);}
+  .chip.active{background:var(--ink-900); border-color:var(--ink-900); color:#fff;}
+  .chip.link{border-color:var(--accent); color:var(--accent);}
+  .chip.status-pending{background:var(--gold-soft); border-color:var(--gold-soft); color:var(--gold);}
+  .chip.status-done{background:var(--success-soft); border-color:var(--success-soft); color:var(--success);}
+
+  /* Wish card - hairline row, not a shadowed box */
+  .wish-card{width:300px; background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-lg); padding:16px;}
+  .wish-card .top{display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--ink-500); margin-bottom:10px;}
+  .wish-card .price{color:var(--gold); font-weight:700;}
+  .wish-card .tags{display:flex; gap:6px; margin-bottom:10px;}
+  .wish-card .body{font-size:15px; line-height:22px; color:var(--ink-900); margin-bottom:12px;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+  .wish-card .bottom{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--ink-500);}
+  .wish-card .link{color:var(--accent); font-weight:600;}
+
+  /* Trust note - no tint fill, just hairline + icon */
+  .trust-card{width:340px; background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-lg); padding:16px; display:flex; gap:12px;}
+  .trust-card .icon{width:32px; height:32px; border-radius:50%; background:var(--hairline-soft); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+  .trust-card .text{font-size:13px; line-height:19px; color:var(--ink-700);}
+
+  /* Inputs */
+  .field{width:320px; margin-bottom:16px;}
+  .field label{display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--ink-700);}
+  .field input, .field textarea{width:100%; font-size:16px; padding:13px 14px; border-radius:var(--radius-sm); border:1px solid var(--hairline); background:var(--canvas); color:var(--ink-900); font-family:inherit;}
+  .field input:focus, .field textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 1px var(--accent);}
+  .field.error input{border-color:var(--danger);}
+  .field .err-msg{font-size:12px; color:var(--danger); margin-top:6px;}
+  .field .help{font-size:12px; color:var(--ink-500); margin-top:6px;}
+
+  /* Tab bar - hairline top border, not shadow */
+  .tabbar{width:393px; background:#fff; border-top:1px solid var(--hairline); display:flex; padding:10px 4px 14px;}
+  .tabbar .item{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; color:var(--ink-300);}
+  .tabbar .item.active{color:var(--ink-900); font-weight:600;}
+  .tabbar .dot{width:24px; height:24px; border-radius:7px; background:currentColor; opacity:.18;}
+  .tabbar .item.active .dot{opacity:1; background:var(--ink-900);}
+  .tabbar .item.publish .dot{opacity:1; background:var(--ink-900); width:30px; height:30px; margin-top:-10px;}
+
+  /* States */
+  .state-card{width:320px; height:160px; background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-lg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-align:center; padding:16px;}
+  .skeleton{width:320px; background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-lg); padding:16px;}
+  .sk-line{height:12px; background:var(--hairline-soft); border-radius:6px; margin-bottom:10px; overflow:hidden; position:relative;}
+  .sk-line::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent);transform:translateX(-100%);animation:sk 1.4s infinite;}
+  @keyframes sk{100%{transform:translateX(100%);}}
+
+  /* Toast - solid ink, no color variants except restrained success/danger */
+  .toast{display:inline-flex; align-items:center; gap:8px; background:var(--ink-900); color:#fff; font-size:13px; padding:12px 18px; border-radius:var(--radius-pill);}
+  .toast.success{background:var(--success);}
+  .toast.error{background:var(--danger);}
+
+  /* timeline */
+  .timeline{width:320px;}
+  .tl-item{display:flex; gap:12px; padding-bottom:20px; position:relative;}
+  .tl-item:last-child{padding-bottom:0;}
+  .tl-item::before{content:'';position:absolute; left:5px; top:14px; bottom:-6px; width:1px; background:var(--hairline);}
+  .tl-item:last-child::before{display:none;}
+  .tl-dot{width:11px; height:11px; border-radius:50%; background:var(--hairline); margin-top:3px; flex:0 0 auto;}
+  .tl-item.done .tl-dot{background:var(--ink-900);}
+  .tl-item.current .tl-dot{background:var(--accent); box-shadow:0 0 0 4px var(--accent-soft);}
+  .tl-title{font-size:14px; font-weight:600; color:var(--ink-900);}
+  .tl-item:not(.done):not(.current) .tl-title{color:var(--ink-300);}
+  .tl-time{font-size:12px; color:var(--ink-500); margin-top:2px;}
+
+  /* Button states */
+  .btn{font-size:15px; font-weight:600; padding:13px 24px; border-radius:var(--radius-pill); border:none; display:inline-flex; align-items:center; gap:8px;}
+  .btn-primary{background:var(--ink-900); color:#fff;}
+  .btn-primary.pressed{background:#2B2B2B;}
+  .btn-primary.disabled{background:var(--hairline-soft); color:var(--ink-300);}
+  .spinner{width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* Bottom sheet */
+  .sheet-frame{width:320px; height:220px; border:1px solid var(--hairline); border-radius:var(--radius-lg); position:relative; overflow:hidden; background:var(--canvas-warm);}
+  .sheet{position:absolute; left:0; right:0; bottom:0; background:#fff; border-top:1px solid var(--hairline); border-radius:var(--radius-lg) var(--radius-lg) 0 0; padding:14px 18px 18px;}
+  .sheet .handle{width:36px; height:4px; border-radius:2px; background:var(--hairline); margin:0 auto 12px;}
+  .sheet h3{font-size:15px; margin:0 0 6px;}
+  .sheet p{font-size:12px; color:var(--ink-500); margin:0 0 12px;}
+
+  /* Photo/video failure */
+  .media-fail{width:200px; height:140px; border-radius:var(--radius-md); border:1px solid var(--hairline); background:var(--hairline-soft); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; font-size:12px; color:var(--ink-500);}
+
+  /* Contact masking */
+  .mask-row{display:flex; align-items:center; gap:8px; font-size:14px; color:var(--ink-900); font-variant-numeric:tabular-nums;}
+
+  /* Dynamic type compare */
+  .dt-row{display:flex; gap:32px; align-items:flex-start;}
+  .dt-col{width:220px;}
+  .dt-col .label{font-size:11px; color:var(--ink-500); margin-bottom:8px;}
+</style>
+</head>
+<body>
+  <h1>核心组件 v2</h1>
+  <p class="sub">对应任务书组件清单，配合 Design System 基础 v2 的零渐变、hairline 分隔线语言。</p>
+
+  <section>
+    <h2>Chip</h2>
+    <div class="row">
+      <span class="chip active">全部</span>
+      <span class="chip">上海</span>
+      <span class="chip">手写卡片</span>
+      <span class="chip link">口播视频</span>
+      <span class="chip status-pending">审核中</span>
+      <span class="chip status-done">已完成</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>心愿卡 Wish Card</h2>
+    <div class="row">
+      <div class="wish-card">
+        <div class="top"><span>上海 · 外滩</span><span class="price">¥18 感谢金</span></div>
+        <div class="tags"><span class="chip">生日祝福</span><span class="chip">口播视频</span></div>
+        <div class="body">想请恰好在外滩的朋友，帮我对着夜景说一句"生日快乐"，给远方的她一个惊喜。</div>
+        <div class="bottom"><span>期望本周内完成</span><span class="link">查看详情 ›</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>信任提示 Trust Note</h2>
+    <div class="row">
+      <div class="trust-card">
+        <div class="icon">🔒</div>
+        <div class="text"><b>联系方式不公开。</b>仅用于人工审核、匹配与履约核实，不会展示给其他用户。</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>表单输入 Input</h2>
+    <div class="row">
+      <div>
+        <div class="field">
+          <label>发布者称呼</label>
+          <input placeholder="怎么称呼你" />
+        </div>
+        <div class="field error">
+          <label>微信或手机号</label>
+          <input value="1381234" />
+          <div class="err-msg">请输入完整的 11 位手机号或微信号</div>
+        </div>
+        <div class="field">
+          <label>补充说明</label>
+          <textarea rows="3" placeholder="例如：周六下午在外滩附近，可以拍 30 秒视频。"></textarea>
+          <div class="help">仅运营可见，用于人工确认匹配</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>按钮状态 Button States</h2>
+    <div class="row">
+      <button class="btn btn-primary">默认</button>
+      <button class="btn btn-primary pressed">按下</button>
+      <button class="btn btn-primary disabled">禁用</button>
+      <button class="btn btn-primary"><span class="spinner"></span>提交中</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Bottom Sheet 展开</h2>
+    <div class="sheet-frame">
+      <div class="sheet">
+        <div class="handle"></div>
+        <h3>提交响应</h3>
+        <p>外滩 · 陈毅广场 · ¥18</p>
+        <button class="btn btn-primary" style="width:100%; justify-content:center;">提交响应</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>状态：骨架 / 空 / 错误</h2>
+    <div class="row">
+      <div class="skeleton">
+        <div class="sk-line" style="width:60%"></div>
+        <div class="sk-line" style="width:90%"></div>
+        <div class="sk-line" style="width:75%"></div>
+      </div>
+      <div class="state-card">
+        <div style="font-size:24px;">🕊️</div>
+        <div style="font-weight:600; font-size:14px;">附近暂时还没有心愿</div>
+        <div style="font-size:12px; color:var(--ink-500);">换个城市看看，或发布第一个心愿</div>
+      </div>
+      <div class="state-card">
+        <div style="font-size:24px;">📡</div>
+        <div style="font-weight:600; font-size:14px;">网络好像断开了</div>
+        <div style="font-size:12px; color:var(--ink-500);">检查网络后点击重试</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>照片 / 视频加载失败</h2>
+    <div class="row">
+      <div class="media-fail">
+        <div style="font-size:20px;">🖼️</div>
+        <div>加载失败，点击重试</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>敏感信息隐私提示（联系方式打码）</h2>
+    <div class="row">
+      <div class="mask-row">🔒 138****1234</div>
+      <div class="mask-row">🔒 微信号：wx_****ab</div>
+    </div>
+    <p class="hint" style="margin-top:8px;">未匹配成功前联系方式一律打码或不显示；仅运营后台可见完整信息。</p>
+  </section>
+
+  <section>
+    <h2>纵向时间线 Timeline</h2>
+    <div class="timeline">
+      <div class="tl-item done"><div class="tl-dot"></div><div><div class="tl-title">已提交</div><div class="tl-time">07-17 09:20</div></div></div>
+      <div class="tl-item done"><div class="tl-dot"></div><div><div class="tl-title">审核通过</div><div class="tl-time">07-17 10:05</div></div></div>
+      <div class="tl-item current"><div class="tl-dot"></div><div><div class="tl-title">匹配中</div><div class="tl-time">正在寻找恰好在场的人</div></div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div><div class="tl-title">已接单</div></div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div><div class="tl-title">已交付</div></div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div><div class="tl-title">已完成</div></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Toast</h2>
+    <div class="row">
+      <span class="toast success">✓ 编号已复制</span>
+      <span class="toast error">✕ 提交失败，请重试</span>
+      <span class="toast">已保存到相册</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dynamic Type 放大示例</h2>
+    <div class="dt-row">
+      <div class="dt-col">
+        <div class="label">系统默认（17pt）</div>
+        <div style="font-size:17px; line-height:24px;">把想说的话，交给恰好在场的人</div>
+      </div>
+      <div class="dt-col">
+        <div class="label">放大到 AX3（约 23pt）</div>
+        <div style="font-size:23px; line-height:30px; font-weight:600;">把想说的话，交给恰好在场的人</div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:10px;">放大后卡片改为单列纵向堆叠，按钮不截断文字，标题允许换行到两行。</p>
+  </section>
+
+  <section>
+    <h2>Tab Bar（5 栏）</h2>
+    <div class="tabbar">
+      <div class="item active"><div class="dot"></div>首页</div>
+      <div class="item"><div class="dot"></div>附近</div>
+      <div class="item publish"><div class="dot"></div>发布</div>
+      <div class="item"><div class="dot"></div>进度</div>
+      <div class="item"><div class="dot"></div>我的</div>
+    </div>
+  </section>
+</body>
+</html>

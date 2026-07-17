@@ -98,6 +98,16 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：冻结 iOS 视觉 v2.1 并派发 P0 设计补齐
+
+- Claude 完成 `CL-001` 首轮 8 组交接；Codex 查看关键导出图、核验画板尺寸、SVG 结构、五栏和隐私内容后接受。
+- 新增 `docs/ios-design-freeze-v1.md`：冻结暖白 + 近黑 + hairline + 品牌蓝交互强调的 v2.1 视觉和 Design Tokens。
+- PM 裁决：品牌蓝底 App Icon 为主稿；Tracking 命名为权威、Progress 重复稿只标记废弃不删除；首次引导不进 MVP；“我的”只做无账号信息页。
+- `CL-001` 并不代表 MVP 全设计完成；新增 `CL-002` 补齐响应表单/成功、已交付/完成、交付预览、Profile、帮助安全和蓝色 App Icon。
+- 验证：10 张 1x 为 393×852、9 张 3x 为 1179×2556、App Icon 为 1024×1024，SVG XML 有效；关键页面人工视觉检查通过。
+- 接下来三步：Claude 完成 `CL-002`；Antigravity 完成 `AG-003`；Codex 评审合入真实列表后拆发布/追踪/响应实现。
+- 当前阻塞仍为完整 Xcode，设计与 Foundation 实现不受影响。
+
 ### 2026-07-18：扩大 Antigravity 能力边界并派发首条真实纵向切片
 
 - 用户明确 Antigravity 也是可做复杂判断的智能体，不应长期限制为机械执行；团队角色已调整为“受边界约束的实现智能体”。

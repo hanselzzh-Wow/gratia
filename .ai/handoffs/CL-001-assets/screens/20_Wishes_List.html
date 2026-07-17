@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>20 附近心愿列表</title>
+<style>
+  :root{
+    --ink-900:#0A0A0A; --ink-700:#3A3A3A; --ink-500:#767676; --ink-300:#B5B5B5;
+    --hairline:#E6E6E6; --canvas:#FFFFFF; --canvas-warm:#FEFCF9;
+    --accent:#2F6FE0; --gold:#B9791F;
+    --radius-md:12px; --radius-lg:16px; --radius-pill:999px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0;}
+  body{width:393px; height:852px; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; overflow:hidden;}
+  .screen{width:393px; height:852px; position:relative; background:var(--canvas-warm); display:flex; flex-direction:column;}
+  .statusbar{height:47px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:var(--ink-900);}
+  .content{flex:1; overflow:hidden; padding:0 20px;}
+
+  h1{font-size:26px; font-weight:700; margin:2px 0 2px; color:var(--ink-900);}
+  .city{font-size:13px; color:var(--ink-500); margin:0 0 14px;}
+
+  .search{display:flex; align-items:center; gap:8px; background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-md); padding:11px 14px; margin-bottom:12px; font-size:14px; color:var(--ink-300);}
+
+  .filters{display:flex; gap:8px; overflow:hidden; margin-bottom:14px;}
+  .chip{flex:0 0 auto; padding:7px 14px; border-radius:var(--radius-pill); font-size:12.5px; font-weight:600; border:1px solid var(--hairline); background:var(--canvas); color:var(--ink-700);}
+  .chip.active{background:var(--ink-900); border-color:var(--ink-900); color:#fff;}
+
+  .meta-row{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--ink-500); margin-bottom:10px;}
+
+  .list{display:flex; flex-direction:column; gap:12px;}
+  .card{background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-lg); padding:16px;}
+  .card .top{display:flex; justify-content:space-between; font-size:13px; color:var(--ink-500); margin-bottom:8px;}
+  .card .price{color:var(--gold); font-weight:700;}
+  .card .tags{display:flex; gap:6px; margin-bottom:10px;}
+  .tag{font-size:11px; padding:3px 9px; border-radius:var(--radius-pill); border:1px solid var(--hairline); color:var(--ink-700); font-weight:600;}
+  .card .body{font-size:14.5px; line-height:20px; color:var(--ink-900); margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+  .card .bottom{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--ink-500);}
+  .card .bottom .link{color:var(--accent); font-weight:700;}
+
+  .tabbar{flex:0 0 auto; display:flex; padding:8px 4px 26px; background:#fff; border-top:1px solid var(--hairline);}
+  .tabbar .item{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10.5px; color:var(--ink-300); font-weight:500;}
+  .tabbar .item .ic{width:24px; height:24px; border-radius:7px; background:currentColor; opacity:.18;}
+  .tabbar .item.active{color:var(--ink-900); font-weight:700;}
+  .tabbar .item.active .ic{opacity:1; background:var(--ink-900);}
+  .tabbar .item.publish .ic{opacity:1; background:var(--ink-900); width:30px; height:30px; margin-top:-9px;}
+</style>
+</head>
+<body>
+  <div class="screen">
+    <div class="statusbar">9:41</div>
+    <div class="content">
+      <h1>附近的心愿</h1>
+      <div class="city">当前城市：上海</div>
+
+      <div class="search">🔍 搜索地标或关键词</div>
+
+      <div class="filters">
+        <span class="chip active">全部</span>
+        <span class="chip">城市</span>
+        <span class="chip">交付方式</span>
+        <span class="chip">期望时间</span>
+        <span class="chip">感谢金</span>
+      </div>
+
+      <div class="meta-row"><span>共 12 个待响应心愿</span><span>按最新发布 ▾</span></div>
+
+      <div class="list">
+        <div class="card">
+          <div class="top"><span>外滩 · 陈毅广场</span><span class="price">¥18</span></div>
+          <div class="tags"><span class="tag">生日祝福</span><span class="tag">口播视频</span></div>
+          <div class="body">想请恰好在外滩的朋友，帮我对着夜景说一句"生日快乐"，给远方的她一个惊喜。</div>
+          <div class="bottom"><span>期望本周内完成</span><span class="link">查看详情 ›</span></div>
+        </div>
+        <div class="card">
+          <div class="top"><span>东方明珠</span><span class="price">¥12</span></div>
+          <div class="tags"><span class="tag">加油鼓励</span><span class="tag">景色配音</span></div>
+          <div class="body">帮我在塔下录一段"你可以的"，明天她要参加一场重要考试，想给她加油。</div>
+          <div class="bottom"><span>期望 24 小时内</span><span class="link">查看详情 ›</span></div>
+        </div>
+        <div class="card">
+          <div class="top"><span>豫园</span><span class="price">¥28</span></div>
+          <div class="tags"><span class="tag">毕业祝福</span><span class="tag">手写卡片</span></div>
+          <div class="body">想请路过的朋友帮忙写一张手写卡片，祝我表妹毕业快乐，字迹工整就好。</div>
+          <div class="bottom"><span>期望本周内完成</span><span class="link">查看详情 ›</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabbar">
+      <div class="item"><div class="ic"></div>首页</div>
+      <div class="item active"><div class="ic"></div>附近</div>
+      <div class="item publish"><div class="ic"></div>发布</div>
+      <div class="item"><div class="ic"></div>进度</div>
+      <div class="item"><div class="ic"></div>我的</div>
+    </div>
+  </div>
+</body>
+</html>

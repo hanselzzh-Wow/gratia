@@ -13,7 +13,8 @@
 | AG-001 | Antigravity | ACCEPTED | 已提交此前候选工程的文件、命令、假设、验证、未验证项和风险交接 | `.ai/handoffs/AG-001-antigravity.md` | 交接已完成；当前没有新的实现任务，只能参与群聊 |
 | AG-002 | Antigravity | ACCEPTED | 已机械整理现有后端与 Swift 候选模型的 API 映射和差距 | 仅 `.ai/handoffs/AG-002-api-map.md` | 交接已完成；Codex 已在 `docs/ios-api-contract.md` 纠正边界并冻结 v1 |
 | AG-003 | Antigravity | IN_PROGRESS | 独立设计并实现真实公开心愿列表纵向切片：可测试 Core API 包、真实 GET、共享列表状态、首页/附近加载空错重试和城市筛选 | 仅 `worktrees/ag-003-core-api/ios/Packages/HaluowodeCore/**`、该 worktree 的 `ios/project.yml`、`ios/Haluowode/HaluowodeApp.swift`、`ContentView.swift`、`Models.swift`、`HomeView.swift`、`NearbyView.swift` 及新增列表 ViewModel；主区仅交接/群聊 | 所有验收命令通过、提交 worktree commit、写交接并发 STATUS 后立即停止 |
-| CL-001 | Claude | HANDOFF_ONLY | 根据 `docs/ios-ui-design-brief.md` 产出首轮 UI 设计方案：视觉方向、页面地图、优先 8 组页面低保真/高保真建议、Design System 和界面文案 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 完成设计交接后立即停止，不得修改任何源码 |
+| CL-001 | Claude | ACCEPTED | 已产出首轮 UI 设计：优先 8 组页面、Design System、文案和状态覆盖 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 已评审并冻结到 `docs/ios-design-freeze-v1.md` |
+| CL-002 | Claude | IN_PROGRESS | 按 v2.1 冻结基线补齐响应、交付、Profile、安全页和品牌蓝 App Icon 的 P0 设计 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 全部缺口交付、发 STATUS 后立即停止，不修改源码 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 当前 iOS 候选工程的验收状态
@@ -87,6 +88,23 @@ git diff --check
 ```
 
 第三条应无运行时命中；第四条若只命中文档性安全文字，交接中说明。完成后在分支提交一个或多个清晰 commit；不得合并、推送或修改 main。
+
+## CL-002 P0 设计补齐
+
+唯一基线：`docs/ios-design-freeze-v1.md`。不得另起视觉方向。
+
+交付：
+
+1. `21_Filter_Sheet`：放在附近列表上下文中，包含重置、城市、交付方式、期望时间、感谢金和结果按钮。
+2. `23_Response_Sheet`：正常、输入聚焦、字段错误、提交中四态；字段必须与 `CreateWishResponseRequest` 对齐。
+3. `24_Response_Success`：明确“已收到响应，不代表接单”，含心愿摘要、继续看看和返回首页。
+4. `41_Tracking_Delivered` / `41_Tracking_Completed`：交付卡、留言、查看交付和完成时间线；不显示响应者联系方式。
+5. `42_Deliverable_Preview`：加载、图片、视频、失败/重试；能力 URL 不显示、不复制。
+6. `50_Profile_MVP`：无登录假象，只含产品说明、帮助、安全、隐私和版本入口。
+7. `51_Help_Safety`：人工撮合边界、人身安全、内容/隐私、异常处理和联系客服占位。
+8. 品牌蓝 `#2F6FE0` 底 + 白色线形标志的 1024×1024 PNG、SVG 和带尺寸/安全区说明的标注页；纯黑版标记为备选。
+
+所有屏幕交付 393×852 HTML、1x/3x PNG；写一份完整交接、资产索引、SwiftUI 状态/文案说明和无障碍注意点。本轮不做首次引导、登录态、支付或运营端。
 
 ## 新任务创建要求
 

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>00 启动页</title>
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0;}
+  body{width:393px; height:852px; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; overflow:hidden;}
+  .screen{width:393px; height:852px; position:relative; background:#FEFCF9;}
+  .statusbar{position:absolute; top:0; left:0; right:0; height:47px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:#0A0A0A;}
+  .path{position:absolute; left:-40px; bottom:230px; width:300px; height:200px; opacity:.5;}
+  .brand{position:absolute; top:46%; left:0; right:0; transform:translateY(-50%); display:flex; flex-direction:column; align-items:center; gap:16px;}
+  .mark{width:72px; height:72px; border-radius:18px; background:#0A0A0A; display:flex; align-items:center; justify-content:center;}
+  .wordmark{font-size:22px; font-weight:700; color:#0A0A0A; letter-spacing:.5px;}
+  .tagline{font-size:14px; color:#767676;}
+  .loading{position:absolute; bottom:64px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:10px;}
+  .dots{display:flex; gap:6px;}
+  .dot{width:6px; height:6px; border-radius:50%; background:#0A0A0A; opacity:.35;}
+  .home-indicator{position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:134px; height:5px; border-radius:3px; background:#0A0A0A; opacity:.25;}
+</style>
+</head>
+<body>
+  <div class="screen">
+    <div class="statusbar">9:41</div>
+    <svg class="path" viewBox="0 0 300 200">
+      <path d="M -10 160 Q 90 120 150 90 T 320 20" fill="none" stroke="#0A0A0A" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 22" opacity=".18"/>
+    </svg>
+    <div class="brand">
+      <div class="mark"><svg width="34" height="34" viewBox="0 0 1024 1024"><path d="M 268 690 Q 430 640 560 470" fill="none" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round" stroke-dasharray="2 60" opacity="0.8"/><circle cx="268" cy="690" r="30" fill="#FFFFFF"/><g transform="translate(560 470) rotate(-38)"><path d="M -150 60 L 190 0 L -150 -60 L -80 0 Z" fill="#FFFFFF"/></g></svg></div>
+      <div class="wordmark">哈喽卧得</div>
+      <div class="tagline">让想说的话，抵达远方。</div>
+    </div>
+    <div class="loading"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

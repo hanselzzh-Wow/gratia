@@ -1,0 +1,139 @@
+<!-- @dsCard group="Design System" -->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>哈喽卧得 · Design System 基础 v2</title>
+<style>
+  :root{
+    --ink-900:#0A0A0A; --ink-700:#3A3A3A; --ink-500:#767676; --ink-300:#B5B5B5;
+    --hairline:#E6E6E6; --hairline-soft:#F0F0F0;
+    --canvas:#FFFFFF; --canvas-warm:#FEFCF9;
+    --accent:#2F6FE0; --accent-soft:#EAF1FC;
+    --gold:#B9791F; --gold-soft:#FBF3E7;
+    --success:#2E7D4F; --success-soft:#EAF5EE;
+    --danger:#B23B2E; --danger-soft:#FBEDEA;
+    --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-pill:999px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:40px; background:var(--canvas-warm);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;
+    color:var(--ink-900);
+  }
+  h1{font-size:22px; font-weight:700; margin:0 0 4px;}
+  .sub{color:var(--ink-500); font-size:14px; margin:0 0 32px; max-width:640px; line-height:1.6;}
+  section{margin-bottom:44px;}
+  h2{font-size:15px; font-weight:700; margin:0 0 4px; padding-bottom:8px; border-bottom:1px solid var(--hairline);}
+  .hint{color:var(--ink-500); font-size:12px; margin:0 0 16px; max-width:640px; line-height:1.6;}
+  .swatch-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px;}
+  .swatch{border-radius:var(--radius-md); overflow:hidden; border:1px solid var(--hairline); background:var(--canvas);}
+  .swatch .fill{height:64px;}
+  .swatch .meta{padding:8px 10px;}
+  .swatch .name{font-size:12px; font-weight:600;}
+  .swatch .hex{font-size:11px; color:var(--ink-500); font-variant-numeric:tabular-nums;}
+  .type-row{display:flex; align-items:baseline; gap:16px; padding:10px 0; border-bottom:1px solid var(--hairline-soft);}
+  .type-row:last-child{border-bottom:none;}
+  .type-label{width:170px; flex:0 0 auto; font-size:12px; color:var(--ink-500); font-variant-numeric:tabular-nums;}
+  .space-row{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
+  .space-bar{height:12px; background:var(--ink-900); border-radius:2px;}
+  .space-label{width:64px; font-size:12px; color:var(--ink-500); font-variant-numeric:tabular-nums;}
+  .radius-grid, .shadow-grid{display:flex; gap:16px; flex-wrap:wrap;}
+  .radius-box{width:96px; height:96px; background:var(--canvas); border:1px solid var(--hairline); display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px; font-size:11px; color:var(--ink-500); text-align:center;}
+  .btn-row{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
+  .btn{font-size:15px; font-weight:600; padding:13px 24px; border-radius:var(--radius-pill); border:none; cursor:default;}
+  .btn-primary{background:var(--ink-900); color:#fff;}
+  .btn-secondary{background:transparent; color:var(--ink-900); border:1px solid var(--ink-900);}
+  .btn-text{background:transparent; color:var(--accent); padding:13px 8px;}
+  .btn-danger-text{background:transparent; color:var(--danger); padding:13px 8px;}
+  .btn-disabled{background:var(--hairline-soft); color:var(--ink-300);}
+  .elev-box{width:200px; height:80px; border-radius:var(--radius-lg); border:1px solid var(--hairline); background:var(--canvas); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--ink-500); text-align:center; padding:12px;}
+  .note{background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-md); padding:14px 16px; font-size:13px; line-height:1.7; color:var(--ink-700); max-width:680px;}
+</style>
+</head>
+<body>
+  <h1>哈喽卧得 · Design System 基础 v2</h1>
+  <p class="sub">方向：克制、简约、大厂产品感，参照 Threads 的单色优先语言。零渐变，色彩仅用于一个目的（品牌蓝 = 交互/强调），层级靠留白与 1px 分隔线表达，不靠阴影堆叠。</p>
+
+  <section>
+    <div class="note"><b>与首版方向稿的差异：</b>放弃"天空蓝→晨光金"渐变与暖色卡片背景，改为黑白灰为主、蓝色仅作强调色的单色系统；卡片阴影全部替换为 1px 分隔线；App Icon 改为纯色深底 + 白色图形，不再使用渐变天空。此调整为设计决策，供评审确认或推翻。</div>
+  </section>
+
+  <section>
+    <h2>颜色 Color</h2>
+    <p class="hint">主文本/主按钮用近黑；品牌蓝只做交互强调（链接、选中态、进度），不作大面积背景。晨光金仅用于金额数字这类极少数强调场景的文字颜色，不做色块背景。全部禁止渐变。</p>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="fill" style="background:var(--ink-900)"></div><div class="meta"><div class="name">Ink / 900 主文本·主按钮</div><div class="hex">#0A0A0A</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--ink-700)"></div><div class="meta"><div class="name">Ink / 700 次要文本</div><div class="hex">#3A3A3A</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--ink-500)"></div><div class="meta"><div class="name">Ink / 500 辅助文本</div><div class="hex">#767676</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--ink-300)"></div><div class="meta"><div class="name">Ink / 300 占位/禁用</div><div class="hex">#B5B5B5</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--hairline)"></div><div class="meta"><div class="name">Hairline 分隔线</div><div class="hex">#E6E6E6</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--hairline-soft)"></div><div class="meta"><div class="name">Hairline Soft</div><div class="hex">#F0F0F0</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--canvas); border-bottom:1px solid var(--hairline)"></div><div class="meta"><div class="name">Canvas 纯白</div><div class="hex">#FFFFFF</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--canvas-warm); border-bottom:1px solid var(--hairline)"></div><div class="meta"><div class="name">Canvas Warm 页面底色</div><div class="hex">#FEFCF9</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--accent)"></div><div class="meta"><div class="name">Accent 品牌蓝（唯一强调色）</div><div class="hex">#2F6FE0</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--accent-soft)"></div><div class="meta"><div class="name">Accent Soft 选中态浅底</div><div class="hex">#EAF1FC</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--gold)"></div><div class="meta"><div class="name">Gold 金额文字强调</div><div class="hex">#B9791F</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--success)"></div><div class="meta"><div class="name">Success 已完成</div><div class="hex">#2E7D4F</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--danger)"></div><div class="meta"><div class="name">Danger 克制警示</div><div class="hex">#B23B2E</div></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>字体 Typography</h2>
+    <p class="hint">系统字体 + 苹方，支持 Dynamic Type。权重整体收敛，避免到处加粗；标题用 600，正文用 400。</p>
+    <div class="type-row"><div class="type-label">Large Title 28/34 · 600</div><div style="font-size:28px;font-weight:600;line-height:34px;">附近的心愿</div></div>
+    <div class="type-row"><div class="type-label">Title2 22/28 · 600</div><div style="font-size:22px;font-weight:600;line-height:28px;">把心意送到远方</div></div>
+    <div class="type-row"><div class="type-label">Title3 18/24 · 600</div><div style="font-size:18px;font-weight:600;line-height:24px;">附近正在等待的心愿</div></div>
+    <div class="type-row"><div class="type-label">Headline 17/22 · 600</div><div style="font-size:17px;font-weight:600;line-height:22px;">发布一个心愿</div></div>
+    <div class="type-row"><div class="type-label">Body 17/24 · 400</div><div style="font-size:17px;font-weight:400;line-height:24px;">让恰好在场的人，帮你把心意带到远方的城市。</div></div>
+    <div class="type-row"><div class="type-label">Subhead 15/20 · 400</div><div style="font-size:15px;font-weight:400;line-height:20px;color:var(--ink-500);">联系方式不公开，仅用于审核与匹配</div></div>
+    <div class="type-row"><div class="type-label">Footnote 13/18 · 400</div><div style="font-size:13px;font-weight:400;line-height:18px;color:var(--ink-500);">上海 · 外滩 · 期望本周内完成</div></div>
+    <div class="type-row"><div class="type-label">Caption 12/16 · 400</div><div style="font-size:12px;font-weight:400;line-height:16px;color:var(--ink-500);">HW260717-ABCDE</div></div>
+  </section>
+
+  <section>
+    <h2>间距 Spacing（4/8 网格）</h2>
+    <div class="space-row"><div class="space-label">4</div><div class="space-bar" style="width:4px"></div></div>
+    <div class="space-row"><div class="space-label">8</div><div class="space-bar" style="width:8px"></div></div>
+    <div class="space-row"><div class="space-label">12</div><div class="space-bar" style="width:12px"></div></div>
+    <div class="space-row"><div class="space-label">16</div><div class="space-bar" style="width:16px"></div></div>
+    <div class="space-row"><div class="space-label">20</div><div class="space-bar" style="width:20px"></div></div>
+    <div class="space-row"><div class="space-label">24</div><div class="space-bar" style="width:24px"></div></div>
+    <div class="space-row"><div class="space-label">32</div><div class="space-bar" style="width:32px"></div></div>
+    <div class="space-row"><div class="space-label">40</div><div class="space-bar" style="width:40px"></div></div>
+    <p class="hint" style="margin-top:8px;">内容水平边距 20pt，密集列表 16pt。可点击区域 ≥ 44×44pt。</p>
+  </section>
+
+  <section>
+    <h2>圆角 Radius</h2>
+    <div class="radius-grid">
+      <div class="radius-box" style="border-radius:var(--radius-sm)">sm 8 · 输入框</div>
+      <div class="radius-box" style="border-radius:var(--radius-md)">md 12 · 小卡片</div>
+      <div class="radius-box" style="border-radius:var(--radius-lg)">lg 16 · 卡片/弹层顶部</div>
+      <div class="radius-box" style="border-radius:var(--radius-pill)">pill · 按钮/标签/头像</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>层级 Elevation（零阴影，用分隔线代替）</h2>
+    <p class="hint">系统整体是"平的"：默认状态无阴影，仅用 1px hairline 边框或分隔线表达层级，与 Meta/Threads 的克制层级语言一致。固定底部区域（Tab Bar、表单底栏）用顶部 1px 分隔线，不用投影。</p>
+    <div class="shadow-grid">
+      <div class="elev-box">默认卡片：1px 边框，无阴影</div>
+      <div class="elev-box" style="border-radius:0; border:none; border-top:2px solid var(--ink-900);">固定底栏：顶部 1px 分隔线</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>按钮 Buttons</h2>
+    <div class="btn-row">
+      <button class="btn btn-primary">发布一个心愿</button>
+      <button class="btn btn-secondary">我刚好在这里</button>
+      <button class="btn btn-text">查看全部</button>
+      <button class="btn btn-danger-text">删除这条心愿</button>
+      <button class="btn btn-disabled" disabled>继续</button>
+    </div>
+    <p class="hint" style="margin-top:12px;">主按钮为黑色实心胶囊，不用品牌蓝——蓝色留给链接和选中态，避免主按钮和强调色互相稀释（参照大厂系统"强调色只做一件事"的原则）。</p>
+  </section>
+</body>
+</html>

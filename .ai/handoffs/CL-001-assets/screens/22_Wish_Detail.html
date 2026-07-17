@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>22 心愿详情</title>
+<style>
+  :root{
+    --ink-900:#0A0A0A; --ink-700:#3A3A3A; --ink-500:#767676;
+    --hairline:#E6E6E6; --hairline-soft:#F0F0F0;
+    --canvas:#FFFFFF; --canvas-warm:#FEFCF9;
+    --gold:#B9791F; --gold-soft:#FBF3E7;
+    --radius-md:12px; --radius-lg:16px; --radius-pill:999px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0;}
+  body{width:393px; height:852px; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; overflow:hidden;}
+  .screen{width:393px; height:852px; position:relative; background:var(--canvas-warm); display:flex; flex-direction:column;}
+  .statusbar{height:47px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:var(--ink-900);}
+  .navbar{flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:2px 20px 10px; font-size:14px; font-weight:600; color:var(--ink-900);}
+  .navbar .side{width:44px; font-size:18px; color:var(--ink-700);}
+  .navbar .side.right{text-align:right;}
+
+  .content{flex:1; overflow:hidden; padding:0 20px;}
+  .visual{height:170px; border-radius:var(--radius-lg); background:var(--hairline-soft); border:1px solid var(--hairline); margin-bottom:14px; position:relative; overflow:hidden;}
+  .visual svg{position:absolute; inset:0; width:100%; height:100%;}
+
+  .row1{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .status-tag{font-size:12px; font-weight:700; background:var(--gold-soft); color:var(--gold); padding:5px 12px; border-radius:var(--radius-pill);}
+  .price{font-size:20px; font-weight:800; color:var(--gold);}
+
+  h1{font-size:20px; font-weight:700; margin:0 0 10px; color:var(--ink-900);}
+
+  .body-card{background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-lg); padding:16px; font-size:15px; line-height:23px; color:var(--ink-900); margin-bottom:14px;}
+
+  .meta{display:flex; gap:10px; margin-bottom:16px;}
+  .meta .item{flex:1; border:1px solid var(--hairline); border-radius:var(--radius-md); padding:10px 12px;}
+  .meta .label{font-size:11px; color:var(--ink-500); margin-bottom:3px;}
+  .meta .value{font-size:13px; font-weight:700; color:var(--ink-900);}
+
+  h2{font-size:14px; font-weight:700; margin:0 0 10px; color:var(--ink-900);}
+  .steps{display:flex; gap:10px; margin-bottom:16px;}
+  .step{flex:1; text-align:center; font-size:11.5px; color:var(--ink-700);}
+  .step .n{width:24px; height:24px; border-radius:50%; border:1px solid var(--ink-900); color:var(--ink-900); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;}
+
+  .privacy{display:flex; gap:8px; border:1px solid var(--hairline); border-radius:var(--radius-md); padding:12px 14px; font-size:12px; line-height:17px; color:var(--ink-700); margin-bottom:16px; background:var(--canvas);}
+
+  .footer{flex:0 0 auto; padding:14px 20px 22px; background:#fff; border-top:1px solid var(--hairline);}
+  .cta{width:100%; background:var(--ink-900); color:#fff; font-size:16px; font-weight:700; padding:15px; border-radius:var(--radius-pill); text-align:center; margin-bottom:8px;}
+  .disclaimer{font-size:11px; color:var(--ink-500); text-align:center;}
+</style>
+</head>
+<body>
+  <div class="screen">
+    <div class="statusbar">9:41</div>
+    <div class="navbar">
+      <span class="side">‹</span>
+      <span>上海 · 外滩</span>
+      <span class="side right">⇧</span>
+    </div>
+    <div class="content">
+      <div class="visual">
+        <svg viewBox="0 0 393 170"><path d="M -10 130 Q 120 80 200 90 T 420 30" fill="none" stroke="#0A0A0A" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 18" opacity=".22"/></svg>
+      </div>
+
+      <div class="row1"><span class="status-tag">待匹配</span><span class="price">¥18</span></div>
+      <h1>对着外滩夜景，说一句生日快乐</h1>
+
+      <div class="body-card">想请恰好在外滩的朋友，帮我对着黄浦江夜景录一段 20 秒左右的祝福，说一句"生日快乐"，给远方的她一个惊喜。不需要露脸，声音清楚就好。</div>
+
+      <div class="meta">
+        <div class="item"><div class="label">交付方式</div><div class="value">口播视频</div></div>
+        <div class="item"><div class="label">期望时间</div><div class="value">本周内</div></div>
+      </div>
+
+      <h2>这次帮助如何完成</h2>
+      <div class="steps">
+        <div class="step"><div class="n">1</div>提交响应</div>
+        <div class="step"><div class="n">2</div>人工确认</div>
+        <div class="step"><div class="n">3</div>现场拍摄交付</div>
+      </div>
+
+      <div class="privacy">🔒 发布者的联系方式和真实姓名不会展示给你；确认匹配后由运营人员居中联系。</div>
+    </div>
+
+    <div class="footer">
+      <div class="cta">我刚好在这里，可以帮忙</div>
+      <div class="disclaimer">提交响应后由运营人员确认，不会自动接单</div>
+    </div>
+  </div>
+</body>
+</html>

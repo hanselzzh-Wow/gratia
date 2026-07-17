@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>41 进度详情</title>
+<style>
+  :root{
+    --ink-900:#0A0A0A; --ink-700:#3A3A3A; --ink-500:#767676; --ink-300:#B5B5B5;
+    --hairline:#E6E6E6; --canvas:#FFFFFF; --canvas-warm:#FEFCF9; --accent:#2F6FE0; --accent-soft:#EAF1FC;
+    --gold:#B9791F; --danger:#B23B2E; --danger-soft:#FBEDEA;
+    --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-pill:999px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0; background:#F4F4F4;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;}
+  .board{display:flex; gap:24px; padding:24px; align-items:flex-start;}
+  .col{text-align:center;}
+  .col .label{margin:10px 0 0; font-size:12px; color:#767676; font-weight:600;}
+
+  .screen{width:393px; height:852px; position:relative; background:var(--canvas-warm); display:flex; flex-direction:column; overflow:hidden;}
+  .statusbar{height:47px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:var(--ink-900);}
+  .navbar{flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:2px 20px 10px; font-size:14px; font-weight:600; color:var(--ink-900);}
+  .navbar .side{width:44px; font-size:18px; color:var(--ink-700);}
+  .navbar .side.right{text-align:right; font-size:13px; color:var(--accent); font-weight:600;}
+
+  .content{flex:1; overflow:hidden; padding:0 20px;}
+
+  .status-card{border-radius:var(--radius-lg); padding:18px; margin-bottom:16px; border:1px solid var(--hairline); background:var(--canvas);}
+  .status-card .tag{display:inline-block; font-size:12px; font-weight:700; padding:5px 12px; border-radius:var(--radius-pill); margin-bottom:10px;}
+  .tag.matching{background:var(--accent-soft); color:var(--accent);}
+  .tag.rejected{background:var(--danger-soft); color:var(--danger);}
+  .tag.cancelled{background:var(--hairline-soft, #F0F0F0); color:var(--ink-500);}
+  .status-card h1{font-size:18px; font-weight:700; margin:0 0 6px; color:var(--ink-900);}
+  .status-card .sub{font-size:12.5px; color:var(--ink-500); margin:0;}
+  .status-card .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; color:var(--ink-500); margin-top:10px; padding-top:10px; border-top:1px solid var(--hairline);}
+
+  .summary{border:1px solid var(--hairline); border-radius:var(--radius-lg); padding:14px 16px; margin-bottom:16px;}
+  .summary .row{display:flex; justify-content:space-between; font-size:12.5px; color:var(--ink-700); padding:5px 0;}
+  .summary .row b{color:var(--ink-900); font-weight:600;}
+
+  h2{font-size:14px; font-weight:700; margin:0 0 12px; color:var(--ink-900);}
+  .timeline{margin-bottom:16px;}
+  .tl-item{display:flex; gap:12px; padding-bottom:18px; position:relative;}
+  .tl-item:last-child{padding-bottom:0;}
+  .tl-item::before{content:'';position:absolute; left:5px; top:14px; bottom:-4px; width:1px; background:var(--hairline);}
+  .tl-item:last-child::before{display:none;}
+  .tl-dot{width:11px; height:11px; border-radius:50%; background:var(--hairline); margin-top:3px; flex:0 0 auto;}
+  .tl-item.done .tl-dot{background:var(--ink-900);}
+  .tl-item.current .tl-dot{background:var(--accent); box-shadow:0 0 0 4px var(--accent-soft);}
+  .tl-item.stopped .tl-dot{background:var(--danger);}
+  .tl-title{font-size:13.5px; font-weight:600; color:var(--ink-900);}
+  .tl-item:not(.done):not(.current):not(.stopped) .tl-title{color:var(--ink-300);}
+  .tl-time{font-size:11.5px; color:var(--ink-500); margin-top:2px;}
+
+  .deliver-card{display:flex; gap:12px; align-items:center; border:1px solid var(--hairline); border-radius:var(--radius-lg); padding:12px; margin-bottom:16px;}
+  .deliver-card .thumb{width:52px; height:52px; border-radius:var(--radius-sm); background:var(--hairline-soft, #F0F0F0); flex:0 0 auto;}
+  .deliver-card .t{font-size:13px; font-weight:600; color:var(--ink-900);}
+  .deliver-card .s{font-size:11.5px; color:var(--ink-500);}
+  .deliver-card .link{margin-left:auto; font-size:12.5px; color:var(--accent); font-weight:600;}
+
+  .reason-box{border:1px solid var(--hairline); border-radius:var(--radius-lg); padding:14px; font-size:12.5px; line-height:19px; color:var(--ink-700); margin-bottom:16px;}
+
+  .help{flex:0 0 auto; padding:12px 20px 22px; text-align:center; font-size:12.5px; color:var(--accent); font-weight:600; border-top:1px solid var(--hairline); background:#fff;}
+</style>
+</head>
+<body>
+  <div class="board">
+
+    <div class="col">
+      <div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="navbar"><span class="side">‹</span><span>进度详情</span><span class="side right">帮助</span></div>
+        <div class="content">
+          <div class="status-card">
+            <span class="tag matching">匹配中</span>
+            <h1>上海 · 外滩</h1>
+            <p class="sub">正在寻找恰好在场的人，通常需要 1–2 天</p>
+            <div class="code">HW260717-ABCDE</div>
+          </div>
+
+          <div class="summary">
+            <div class="row"><span>心愿内容</span><b>对着外滩夜景说生日快乐</b></div>
+            <div class="row"><span>交付方式</span><b>口播视频</b></div>
+            <div class="row"><span>期望时间</span><b>本周内</b></div>
+            <div class="row"><span>感谢金</span><b>¥18</b></div>
+          </div>
+
+          <h2>进度时间线</h2>
+          <div class="timeline">
+            <div class="tl-item done"><div class="tl-dot"></div><div><div class="tl-title">已提交</div><div class="tl-time">07-17 09:20</div></div></div>
+            <div class="tl-item done"><div class="tl-dot"></div><div><div class="tl-title">审核通过</div><div class="tl-time">07-17 10:05</div></div></div>
+            <div class="tl-item current"><div class="tl-dot"></div><div><div class="tl-title">匹配中</div><div class="tl-time">正在寻找恰好在场的人</div></div></div>
+            <div class="tl-item"><div class="tl-dot"></div><div><div class="tl-title">已接单</div></div></div>
+            <div class="tl-item"><div class="tl-dot"></div><div><div class="tl-title">已交付</div></div></div>
+            <div class="tl-item"><div class="tl-dot"></div><div><div class="tl-title">已完成</div></div></div>
+          </div>
+        </div>
+        <div class="help">遇到问题？联系客服 ›</div>
+      </div>
+      <div class="label">41a 正常 · 匹配中（未匹配前不显示响应者称呼）</div>
+    </div>
+
+    <div class="col">
+      <div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="navbar"><span class="side">‹</span><span>进度详情</span><span class="side right">帮助</span></div>
+        <div class="content">
+          <div class="status-card">
+            <span class="tag matching">已接单</span>
+            <h1>上海 · 外滩</h1>
+            <p class="sub">已由响应者「城市漫游者」接单，等待现场完成</p>
+            <div class="code">HW260717-ABCDE</div>
+          </div>
+
+          <div class="summary">
+            <div class="row"><span>心愿内容</span><b>对着外滩夜景说生日快乐</b></div>
+            <div class="row"><span>交付方式</span><b>口播视频</b></div>
+            <div class="row"><span>期望时间</span><b>本周内</b></div>
+            <div class="row"><span>感谢金</span><b>¥18</b></div>
+          </div>
+
+          <div class="deliver-card">
+            <div class="thumb"></div>
+            <div><div class="t">交付内容待上传</div><div class="s">响应者完成后将显示照片/视频</div></div>
+            <span class="link">查看交付 ›</span>
+          </div>
+
+          <h2>进度时间线</h2>
+          <div class="timeline">
+            <div class="tl-item done"><div class="tl-dot"></div><div><div class="tl-title">已提交</div><div class="tl-time">07-17 09:20</div></div></div>
+            <div class="tl-item done"><div class="tl-dot"></div><div><div class="tl-title">审核通过</div><div class="tl-time">07-17 10:05</div></div></div>
+            <div class="tl-item done"><div class="tl-dot"></div><div><div class="tl-title">匹配中</div><div class="tl-time">07-17 14:30</div></div></div>
+            <div class="tl-item current"><div class="tl-dot"></div><div><div class="tl-title">已接单</div><div class="tl-time">响应者：城市漫游者</div></div></div>
+            <div class="tl-item"><div class="tl-dot"></div><div><div class="tl-title">已交付</div></div></div>
+            <div class="tl-item"><div class="tl-dot"></div><div><div class="tl-title">已完成</div></div></div>
+          </div>
+        </div>
+        <div class="help">遇到问题？联系客服 ›</div>
+      </div>
+      <div class="label">41b 匹配成功 · 已接单（首次显示响应者称呼，仍不展示联系方式）</div>
+    </div>
+
+    <div class="col">
+      <div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="navbar"><span class="side">‹</span><span>进度详情</span><span class="side right">帮助</span></div>
+        <div class="content">
+          <div class="status-card">
+            <span class="tag rejected">未通过</span>
+            <h1>上海 · 外滩</h1>
+            <p class="sub">审核未通过，感谢金未扣除</p>
+            <div class="code">HW260717-ABCDE</div>
+          </div>
+
+          <div class="reason-box"><b>未通过原因：</b>心愿描述涉及无法核实的具体人员信息，请修改后重新发布。如有疑问可联系客服说明。</div>
+
+          <div class="summary">
+            <div class="row"><span>心愿内容</span><b>对着外滩夜景说生日快乐</b></div>
+            <div class="row"><span>提交时间</span><b>07-17 09:20</b></div>
+            <div class="row"><span>审核时间</span><b>07-17 10:40</b></div>
+          </div>
+        </div>
+        <div class="help">重新发布一个心愿 ›</div>
+      </div>
+      <div class="label">41c 异常 · 未通过（克制提示色，不用大面积红底）</div>
+    </div>
+
+    <div class="col">
+      <div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="navbar"><span class="side">‹</span><span>进度详情</span><span class="side right">帮助</span></div>
+        <div class="content">
+          <div class="status-card">
+            <span class="tag cancelled">已取消</span>
+            <h1>上海 · 外滩</h1>
+            <p class="sub">这个心愿已被发布者取消</p>
+            <div class="code">HW260717-ABCDE</div>
+          </div>
+
+          <div class="summary">
+            <div class="row"><span>心愿内容</span><b>对着外滩夜景说生日快乐</b></div>
+            <div class="row"><span>提交时间</span><b>07-17 09:20</b></div>
+            <div class="row"><span>取消时间</span><b>07-17 15:00</b></div>
+          </div>
+        </div>
+        <div class="help">重新发布一个心愿 ›</div>
+      </div>
+      <div class="label">41d 异常 · 已取消</div>
+    </div>
+
+  </div>
+</body>
+</html>
