@@ -40,3 +40,11 @@
 3. Codex 在新的无冲突任务中完成 Progress／Delivery／Tab Bar 的 v3 收口，跑全量 Core 与 Simulator 测试。
 4. 产品负责人连接 iPhone、选择 Personal Team；Codex 安装 Debug 候选并以非真实隐私测试信息跑发布 → 审核／派单 → 查询 → 交付。
 5. 在 `PROJECT_LOG.md` 记录真机型号、iOS、构建号、测试单号、安装方式、结果与已知非阻断问题，才能把状态改为“可在真实 iPhone 试用”。
+
+## 执行手册（不重复维护）
+
+- Apple Personal Team、设备信任、安装与失败分流：`docs/ios-physical-device-test-checklist.md`。
+- 测试单的人工审核、派单、交付与隐私红线：`docs/pilot-runbook.md`。
+- P0-D 的接口、隐私与测试细则：`docs/ios-publish-track-integration-spec.md` 与 `docs/ios-api-contract.md`。
+
+完成审计只判断“证据是否齐全”；执行时必须同时遵守上述手册，尤其不得把测试联系方式、交付能力 URL 或 Token 写入日志、截图或群聊。
