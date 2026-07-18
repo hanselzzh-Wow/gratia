@@ -45,7 +45,7 @@ struct ContentView: View {
                 }
                 .tag(2)
 
-            ProgressView()
+            ProgressView(apiClient: apiClient)
                 .tabItem {
                     Label("进度", systemImage: "clock.arrow.circlepath")
                 }

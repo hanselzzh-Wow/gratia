@@ -556,4 +556,109 @@ struct HaluowodeCoreTests {
         #expect(activeState == city2Wishes)
         #expect(activeState != city1Wishes)
     }
+
+    // 16. 追踪成功并解码完整 assignment、deliverable 能力 URL 及其事件时间线
+    @Test func testTrackWishSuccessFullDecoding() async throws {
+        let wishJson = """
+        {
+            "wish": {
+                "id": "wish-uuid-123",
+                "publicCode": "HW260718-A001B",
+                "city": "杭州",
+                "landmark": "西湖断桥",
+                "occasion": "生日祝福",
+                "message": "祝小白生日快乐",
+                "deliveryType": "spoken_video",
+                "deadlineText": "2026-07-20",
+                "rewardFen": 15000,
+                "status": "delivered",
+                "createdAt": 1718000000000,
+                "updatedAt": 1718000100000,
+                "assignment": {
+                    "providerName": "小张",
+                    "status": "accepted"
+                },
+                "deliverable": {
+                    "id": "deliv-999",
+                    "kind": "spoken_video",
+                    "url": "https://haluowode.com/api/deliverables/deliv-999?token=SECRET_123",
+                    "note": "录制好了，请查收",
+                    "createdAt": 1718000080000
+                },
+                "events": [
+                    {
+                        "eventType": "心愿提交",
+                        "fromStatus": null,
+                        "toStatus": "pending_review",
+                        "createdAt": 1718000000000
+                    },
+                    {
+                        "eventType": "匹配成功",
+                        "fromStatus": "matching",
+                        "toStatus": "assigned",
+                        "createdAt": 1718000050000
+                    }
+                ]
+            }
+        }
+        """.data(using: .utf8)!
+
+        let transport = MockTransport { _ in
+            return HTTPResponse(statusCode: 200, headers: [:], data: wishJson)
+        }
+
+        let client = WishAPIClient(baseURL: baseURL, transport: transport)
+        let request = TrackWishRequest(publicCode: "HW260718-A001B", contact: "13800000000")
+
+        let wish = try await client.trackWish(request: request)
+        #expect(wish.id == "wish-uuid-123")
+        #expect(wish.publicCode == "HW260718-A001B")
+        #expect(wish.rewardYuan == 150.0)
+        #expect(wish.status == .delivered)
+        #expect(wish.assignment?.providerName == "小张")
+        #expect(wish.assignment?.status == .accepted)
+        #expect(wish.deliverable?.id == "deliv-999")
+        #expect(wish.deliverable?.kind == .spokenVideo)
+        #expect(wish.deliverable?.url.absoluteString == "https://haluowode.com/api/deliverables/deliv-999?token=SECRET_123")
+        #expect(wish.deliverable?.note == "录制好了，请查收")
+        #expect(wish.events.count == 2)
+        #expect(wish.events[0].eventType == "心愿提交")
+        #expect(wish.events[0].fromStatus == nil)
+        #expect(wish.events[0].toStatus == .pendingReview)
+    }
+
+    // 17. 未知 WishStatus 仍可解码并 fallback 兼容
+    @Test func testUnknownWishStatusFallback() async throws {
+        let wishJson = """
+        {
+            "wish": {
+                "id": "wish-uuid-123",
+                "publicCode": "HW260718-A001B",
+                "city": "杭州",
+                "landmark": "西湖断桥",
+                "occasion": "生日祝福",
+                "message": "祝小白生日快乐",
+                "deliveryType": "spoken_video",
+                "deadlineText": "2026-07-20",
+                "rewardFen": 15000,
+                "status": "some_future_status_unrecognized",
+                "createdAt": 1718000000000,
+                "updatedAt": 1718000100000,
+                "assignment": null,
+                "deliverable": null,
+                "events": []
+            }
+        }
+        """.data(using: .utf8)!
+
+        let transport = MockTransport { _ in
+            return HTTPResponse(statusCode: 200, headers: [:], data: wishJson)
+        }
+
+        let client = WishAPIClient(baseURL: baseURL, transport: transport)
+        let request = TrackWishRequest(publicCode: "HW260718-A001B", contact: "13800000000")
+
+        let wish = try await client.trackWish(request: request)
+        #expect(wish.status.label == "未知状态")
+    }
 }
