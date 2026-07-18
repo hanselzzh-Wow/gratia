@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：真机安装前置条件已核对
+
+- Codex 只读检查当前 Xcode 工程：Bundle ID 为 `com.hanselzzh.haluowode`，最低 iOS 版本为 16.0；当前构建设置未显示已配置的 Development Team。Xcode 可见的目的地没有已连接、可安装的真实 iPhone。
+- 因此 P0-D 合入和视觉收口后，产品负责人需要进行的最小操作是：用数据线连接计划试用的 iPhone、在 Xcode 的 Signing & Capabilities 选择自己的免费 Personal Team、信任该 Mac／开发者，然后由 Codex 以该真机 destination 构建安装并进行受控闭环。不需要 Apple Developer Program 付费账号才能完成这一步；TestFlight／App Store 阶段才需要进一步的账户与材料。
+- 接下来三步：继续等待并验收 AG-006；完成 Progress/Tab Bar 收口；在用户连接 iPhone 并选择 Personal Team 后执行真实设备安装和受控端到端试用。
+
 ### 2026-07-18：主线回归通过；P0-D 外部交付仍待修订与提交
 
 - Codex 对当前本地 main 做了只读回归：Swift parser 通过；Foundation Core 15/15 通过。首页、附近、发布、响应和我的的已验收主线代码仍可构建；未做生产 API 写入、部署、签名或真机操作。
