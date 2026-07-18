@@ -1,13 +1,26 @@
 import SwiftUI
 import HaluowodeCore
 
+struct WishAPIClientKey: EnvironmentKey {
+    static let defaultValue: WishAPIProtocol = WishAPIClient()
+}
+
+extension EnvironmentValues {
+    var wishAPIClient: WishAPIProtocol {
+        get { self[WishAPIClientKey.self] }
+        set { self[WishAPIClientKey.self] = newValue }
+    }
+}
+
 struct ContentView: View {
     @State private var selectedTab = 0
     @StateObject private var viewModel: WishListViewModel
     @StateObject private var publishViewModel: PublishWishViewModel
+    private let apiClient: WishAPIProtocol
 
     init() {
         let client = WishAPIClient()
+        self.apiClient = client
         _viewModel = StateObject(wrappedValue: WishListViewModel(apiClient: client))
         _publishViewModel = StateObject(wrappedValue: PublishWishViewModel(apiClient: client))
     }
@@ -46,6 +59,7 @@ struct ContentView: View {
         }
         .tint(DesignSystem.primaryBlue)
         .environmentObject(viewModel)
+        .environment(\.wishAPIClient, apiClient)
     }
 }
 
