@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：最新 main 原生模拟器预览已启动并留档
+
+- Codex 对合入 P0-C 后的本地 main 重新 Debug build，在 iPhone 17 Pro（iOS 27）Simulator 安装并冷启动 `com.hanselzzh.haluowode`，截图为 `/private/tmp/haluowode-main-p0c-preview.png`。该截图已供产品负责人查看，代表当前真实可运行 SwiftUI 候选，不是网页或静态设计稿。
+- 当前预览能够展示首页、五栏导航和真实公开列表加载状态，P0-A/P0-B/P0-C 的业务代码已在主线。视觉仍是冻结 v3 前的候选蓝色/渐变/阴影，并非最终 UI；P0-D 真实查询/交付也仍在隔离实现中。因此它适合现在开始反馈信息架构和基础操作，不适合作为完整手机试用或商店素材。
+- 接下来三步：收取并验收 AG-006；完成 v3 视觉基线后给产品负责人看新一轮 Simulator 图；通过受控真实订单端到端验证后，在 Personal Team 下安装到真实 iPhone。
+
 ### 2026-07-18：正式派发 AG-006，进入 P0-D 真实查询进度与交付
 
 - P0-C 已合入并通过主线 Simulator 复验，故 Codex 从当前 main 正式建立 `codex/ag-006-real-track` 隔离工作区并将 `AG-006` 改为 `IN_PROGRESS`。Antigravity 的授权严格限定在任务卡列出的 Progress/Track ViewModel/交付预览/测试/交接路径，禁止改 Core Sources、其它页面、视觉、后端、签名、部署和生产数据。
