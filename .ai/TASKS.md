@@ -18,6 +18,7 @@
 | CL-001 | Claude | ACCEPTED | 已产出首轮 UI 设计：优先 8 组页面、Design System、文案和状态覆盖 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 已评审并冻结到 `docs/ios-design-freeze-v1.md` |
 | CL-002 | Claude | SUPERSEDED | 已补齐 v2.1 的响应、交付、Profile、安全页和蓝色 App Icon；信息结构保留，视觉因用户新反馈不进入实现 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 旧稿保留为状态与文案参考，不再继续迭代 |
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
+| CL-004 | Claude | IN_PROGRESS | v3 SwiftUI 实施审计：把冻结视觉转成当前原生候选工程的精确落地与截图验收清单 | 仅 `.ai/handoffs/CL-004-swiftui-audit.md`、`.ai/TEAM_CHAT.md` | 交付审计报告、STATUS 后立即停止；不改源码、不重画、不改变冻结决策 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 当前 iOS 候选工程的验收状态
@@ -298,6 +299,27 @@ git diff --check
 4. 重新做零 Emoji/零渐变检查，更新交接、发 STATUS 后立即停止。
 
 不得修改 SwiftUI、后端、任务/冻结/项目日志或任何 CL-003 之外的资产。
+
+## CL-004：v3 SwiftUI 实施审计（设计，不写代码）
+
+输入（只读）：`docs/ios-design-freeze-v3.md`、`.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、当前 `ios/Haluowode/**` 与 `ios/HaluowodeTests/**`。本轮的目标不是重画视觉稿，而是让已冻结的 v3 视觉可以被后续 SwiftUI 任务逐项正确实现与截图验收。
+
+允许修改（仅限）：
+
+- 新建 `.ai/handoffs/CL-004-swiftui-audit.md`
+- `.ai/TEAM_CHAT.md`（只可在文件末尾追加 ACK/STATUS/OBJECTION）
+
+禁止修改：所有 `ios/**`、`docs/ios-design-freeze-v3.md`、任何 `CL-003` 资产或交接、后端/数据库/部署、任务板、冻结、项目日志、Git 历史、签名、依赖。不得新增页面、重新设计 Icon、改变 token、加入 Emoji/渐变，或以设计审计名义写产品代码。
+
+必须交付一个面向实施者且可由产品负责人阅读的审计报告，至少包括：
+
+1. 对 Home、Nearby/详情与响应、发布、进度、我的五个区域建立“现状 → v3 目标 → SwiftUI 实施项 → 截图验收点”的矩阵；只评价已经存在或冻结的内容，不增设新功能。
+2. 输出唯一的 SwiftUI token 映射：颜色、字体/字重/行高、8pt 间距、圆角、描边、阴影、44pt 点击区、SF Symbols 使用原则，以及“无 Emoji、无渐变、默认零阴影”的可检查规则；所有数值必须回指 v3 冻结输入。
+3. 明确当前候选界面与冻结稿的最高优先级差异（包括既有浅蓝渐变/旧候选样式），按 P0/P1 排序；不得把尚未实现的真实流程误报为视觉缺陷或完成。
+4. 对加载、空、错误、提交中、成功、取消/重试、动态字体、VoiceOver 给出关键页面的验收清单；明确哪些由实现者截图，哪些需要真机后复核。
+5. 列出后续视觉代码任务建议的最小切片、依赖与停止条件，但不得自行创建或领取该代码任务。
+
+完成后在群聊发 STATUS，报告路径、未确定项与建议优先级，然后立即停止等待 Codex 验收。发现冻结设计与现有业务状态冲突时只发 OBJECTION，不自行更改设计。
 
 ## 新任务创建要求
 

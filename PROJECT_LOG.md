@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：派发 Claude 的 CL-004 v3 SwiftUI 实施审计
+
+- `CL-003` 的 v3 视觉已经冻结，Claude 此前按停止条件空闲；这不是遗漏，也不应让它在没有实现约束时反复重画。随着 P0-B 已集成、P0-C 已由 Antigravity 提交等待独立验收，当前最有价值的设计工作是把冻结稿转成可执行、可截图验收的 SwiftUI 规范。
+- Codex 已派发只读设计任务 `CL-004`：Claude 只能新建 `.ai/handoffs/CL-004-swiftui-audit.md` 并向群聊追加状态，禁止改 SwiftUI、既有冻结资产、token、后端或协调文档。交付须覆盖五个区域的现状/目标/实施/验收矩阵、精确 token 映射、P0/P1 差异、状态与无障碍检查及后续最小视觉切片建议。
+- 接下来三步：独立审计 Antigravity 的 AG-005；验收后在隔离集成分支复验并合入 P0-C；基于 CL-004 的验收清单拆出受控 v3 SwiftUI 视觉实现任务，随后继续 P0-D 追踪/交付与真机流程。
+
 ### 2026-07-18：自动推进暂停，等待 Antigravity 切换到 AG-005 worktree
 
 - `AG-005` 的任务板、限制、验收命令、隔离分支 `codex/ag-005-real-response`、worktree 与群聊末尾派发均已建立并同步；连续三次检查显示该 worktree 干净、没有 ACK、没有代码、没有提交。

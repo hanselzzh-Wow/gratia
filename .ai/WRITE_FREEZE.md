@@ -8,7 +8,7 @@
 
 - Codex 作为 PM/协调人可以进行只读审计，并修改协调文档、项目日志和验收结果；已验收的 AG-003 已由 Codex 集成到本地主分支，后续正式实现仍必须使用独立 worktree。
 - Antigravity 的 `AG-002`、`AG-003`、`AG-004` 已验收且 AG-004 已合入本地主分支。`AG-005` 仅允许它在 `.ai/TASKS.md` 精确列出的隔离 worktree、真实响应和测试范围内工作；主工作区的产品源码仍冻结。
-- Claude 的 `CL-001` 已验收。产品负责人已要求继续 `CL-003`：仅写 `.ai/TASKS.md` 指定的 v3 设计交接文件和设计素材目录，不得修改源码。
+- Claude 的 `CL-001`、`CL-003` 已验收。`CL-004` 仅允许 Claude 读取冻结设计与当前 SwiftUI 候选工程，并写 `.ai/TASKS.md` 指定的设计审计交接文件；不得修改源码、既有冻结资产或视觉决策。
 - 所有成员可以严格按照 `.ai/TEAM_CHAT.md` 的格式在文件末尾追加群聊消息；这是沟通例外，不解除任何源码写入冻结。
 - 其他 AI 只能阅读，不得写任何文件。
 - 除 `AG-005` 明确列出的隔离 worktree 文件或 Codex 的受控集成外，任何代理不得修改 `ios/`、后端、部署配置、主分支或 Git 历史。`codex/ios-api-base-integration`、`codex/ios-publish-integration` 已分别把 AG-003/AG-004 复验并合入本地主分支；未经 Codex 再次验收不得合入任何后续源码。
