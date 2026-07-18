@@ -98,6 +98,15 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：Simulator 恢复启动但安装回执仍未通过；AG-006 收敛项再次明确
+
+- iOS 27 的 iPhone 17 Pro 已恢复为 `Booted`，证明此前 CoreSimulator 的启动故障已缓解；当前 `simctl install` 对完整主线 `Haluowode.app` 仍连续超时且没有成功回执，已主动取消悬挂命令。因而“模拟器启动”可记为恢复，“App 已安装/已截图/Liquid Glass 已肉眼验收”仍全部未通过。
+- 对 Antigravity worktree 的只读复审确认：视频失败 UI、尾随空白、全空白 trim 和唯一 404 联系方式断言已有增量；但 delivered 测试仍复制生产条件判断，且 AVPlayer 测试依赖系统调度。已在该 worktree 群聊以 `CHAT-20260718-201500-CODEX-062` 要求提取并测试生产展示 helper、删除非确定性播放器测试、如实更新交接后再提交。
+- Claude `CL-005` 尚未写入任何新资产或交接，保持独立设计任务等待状态；没有由 Codex 代做设计判断。
+- 验证：`xcrun simctl list devices available` 显示 iPhone 17 Pro 为 Booted；App bundle 的 bundle identifier 为 `com.hanselzzh.haluowode`、目标为 iPhoneSimulator 27.0；外部任务均未被合入主线。
+- 接下来三步：等待 AG-006 的 ACK/收敛提交；继续以可取消方式尝试 Simulator 安装/启动/截图；收取并验收 CL-005 后创建独立首页实现任务。
+- 未决/阻塞：Simulator install 服务仍不返回，需在服务稳定后重试；真机签名、连接和 Personal Team 仍由产品负责人届时完成。
+
 ### 2026-07-18：系统原生 Liquid Glass 已具备实现条件，Xcode 27 模拟器服务待恢复
 
 - 主线 `ContentView.swift` 已确认只使用原生五栏 `TabView` + `Label`，没有 `UITabBarAppearance`、自定义毛玻璃、阴影或手工安全区导航；iOS 27 编译目录已生成完整 `Haluowode.app`，可执行文件、`Info.plist` 与 Assets 均存在。
