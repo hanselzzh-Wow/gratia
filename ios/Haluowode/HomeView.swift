@@ -1,15 +1,16 @@
 import SwiftUI
+import HaluowodeCore
 
 struct HomeView: View {
     @Binding var selectedTab: Int
-    @State private var currentCity = "全国"
+    @EnvironmentObject var viewModel: WishListViewModel
     @State private var showCityPicker = false
 
     let cities = ["全国", "杭州", "上海", "北京", "深圳", "广州"]
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(spacing: DesignSystem.spacing20) {
 
                     // 1. Hero Card (品牌主视觉)
@@ -122,50 +123,94 @@ struct HomeView: View {
                         }
                         .padding(.horizontal, DesignSystem.spacing20)
 
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: DesignSystem.spacing12) {
-                                ForEach(Wish.mockWishes) { wish in
-                                    VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
-                                        HStack {
-                                            Text("\(wish.city) · \(wish.landmark)")
-                                                .font(.system(size: 14, weight: .bold))
-                                                .foregroundColor(DesignSystem.textNavy)
-                                            Spacer()
-                                            Text("¥\(wish.reward)")
-                                                .font(.system(size: 15, weight: .bold))
-                                                .foregroundColor(DesignSystem.highlightGold)
-                                        }
-
-                                        Text(wish.content)
-                                            .font(.system(size: 13))
-                                            .foregroundColor(DesignSystem.textSecondary)
-                                            .lineLimit(2)
-                                            .frame(height: 36, alignment: .top)
-                                            .lineSpacing(2)
-
-                                        HStack {
-                                            Text(wish.deliveryType)
-                                                .font(.system(size: 10, weight: .medium))
-                                                .padding(.horizontal, 6)
-                                                .padding(.vertical, 3)
-                                                .background(DesignSystem.primaryBlue.opacity(0.1))
-                                                .foregroundColor(DesignSystem.primaryBlue)
-                                                .cornerRadius(4)
-                                            Spacer()
-                                            Text("期望时间: \(wish.date)")
-                                                .font(.system(size: 11))
-                                                .foregroundColor(DesignSystem.textSecondary)
-                                        }
-                                        .padding(.top, 4)
+                        switch viewModel.state {
+                        case .idle, .loading:
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: DesignSystem.spacing12) {
+                                    ForEach(0..<3, id: \.self) { _ in
+                                        SkeletonCardView()
                                     }
-                                    .padding(DesignSystem.spacing16)
-                                    .frame(width: 280)
-                                    .background(DesignSystem.cardBg)
-                                    .cornerRadius(DesignSystem.radiusMedium)
-                                    .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
+                                }
+                                .padding(.horizontal, DesignSystem.spacing20)
+                            }
+                        case .failed(let error):
+                            VStack(spacing: 8) {
+                                Text(error)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.red)
+                                Button(action: {
+                                    Task {
+                                        await viewModel.fetchWishes()
+                                    }
+                                }) {
+                                    Text("重试")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(DesignSystem.primaryBlue)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .stroke(DesignSystem.primaryBlue, lineWidth: 1)
+                                        )
                                 }
                             }
-                            .padding(.horizontal, DesignSystem.spacing20)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 120)
+                        case .empty:
+                            HStack {
+                                Spacer()
+                                Text("附近暂时没有心愿发布")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(DesignSystem.textSecondary)
+                                Spacer()
+                            }
+                            .frame(height: 100)
+                        case .loaded(let wishes):
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: DesignSystem.spacing12) {
+                                    ForEach(wishes.prefix(3)) { wish in
+                                        VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
+                                            HStack {
+                                                Text("\(wish.city) · \(wish.landmark)")
+                                                    .font(.system(size: 14, weight: .bold))
+                                                    .foregroundColor(DesignSystem.textNavy)
+                                                Spacer()
+                                                Text("¥\(Int(wish.rewardYuan))")
+                                                    .font(.system(size: 15, weight: .bold))
+                                                    .foregroundColor(DesignSystem.highlightGold)
+                                            }
+
+                                            Text(wish.message)
+                                                .font(.system(size: 13))
+                                                .foregroundColor(DesignSystem.textSecondary)
+                                                .lineLimit(2)
+                                                .frame(height: 36, alignment: .top)
+                                                .lineSpacing(2)
+
+                                            HStack {
+                                                Text(wish.deliveryType.label)
+                                                    .font(.system(size: 10, weight: .medium))
+                                                    .padding(.horizontal, 6)
+                                                    .padding(.vertical, 3)
+                                                    .background(DesignSystem.primaryBlue.opacity(0.1))
+                                                    .foregroundColor(DesignSystem.primaryBlue)
+                                                    .cornerRadius(4)
+                                                Spacer()
+                                                Text("期望时间: \(wish.deadlineText)")
+                                                    .font(.system(size: 11))
+                                                    .foregroundColor(DesignSystem.textSecondary)
+                                            }
+                                            .padding(.top, 4)
+                                        }
+                                        .padding(DesignSystem.spacing16)
+                                        .frame(width: 280)
+                                        .background(DesignSystem.cardBg)
+                                        .cornerRadius(DesignSystem.radiusMedium)
+                                        .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
+                                    }
+                                }
+                                .padding(.horizontal, DesignSystem.spacing20)
+                            }
                         }
                     }
 
@@ -255,7 +300,7 @@ struct HomeView: View {
                     }) {
                         HStack(spacing: 4) {
                             Image(systemName: "mappin.circle.fill")
-                            Text(currentCity)
+                            Text(viewModel.selectedCity)
                             Image(systemName: "chevron.down")
                                 .font(.system(size: 10))
                         }
@@ -281,14 +326,17 @@ struct HomeView: View {
                 NavigationStack {
                     List(cities, id: \.self) { city in
                         Button(action: {
-                            currentCity = city
+                            viewModel.selectedCity = city
                             showCityPicker = false
+                            Task {
+                                await viewModel.fetchWishes()
+                            }
                         }) {
                             HStack {
                                 Text(city)
                                     .foregroundColor(DesignSystem.textNavy)
                                 Spacer()
-                                if currentCity == city {
+                                if viewModel.selectedCity == city {
                                     Image(systemName: "checkmark")
                                         .foregroundColor(DesignSystem.primaryBlue)
                                 }
@@ -308,6 +356,45 @@ struct HomeView: View {
                 .presentationDetents([.medium])
             }
             .warmBackground()
+            .refreshable {
+                await viewModel.fetchWishes()
+            }
+            .task {
+                await viewModel.fetchWishes()
+            }
         }
+    }
+}
+
+// Real Skeleton Loader Card Component
+struct SkeletonCardView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.gray.opacity(0.15))
+                    .frame(width: 100, height: 16)
+                Spacer()
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.gray.opacity(0.15))
+                    .frame(width: 40, height: 16)
+            }
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color.gray.opacity(0.1))
+                .frame(height: 36)
+            HStack {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.gray.opacity(0.15))
+                    .frame(width: 60, height: 14)
+                Spacer()
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.gray.opacity(0.1))
+                    .frame(width: 120, height: 14)
+            }
+        }
+        .padding(DesignSystem.spacing16)
+        .frame(width: 280)
+        .background(DesignSystem.cardBg)
+        .cornerRadius(DesignSystem.radiusMedium)
     }
 }
