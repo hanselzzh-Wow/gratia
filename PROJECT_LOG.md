@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：生产公开列表只读联调复核
+
+- Codex 对生产兼容 Worker 执行只读 `GET /api/wishes` 健康检查，收到有效 JSON `{ "wishes": [] }`；当前公开队列为空，未产生任何发布、响应、追踪或运营写入。
+- 静态检查确认原生客户端默认 Base URL 为 `https://haluowode-mvp.hanselzzh.workers.dev`；未发现 `chatgpt.site`、历史 GitHub Pages、`/api/admin`、管理员 Key、Cloudflare 管理 Token、D1/R2 凭据或运营 PIN 进入 `ios/Haluowode`／`HaluowodeCore`。这只证明公开读链路与配置边界，不能替代 P0-D 或真机闭环。
+- 接下来三步：等待 Antigravity 额度恢复并收取 AG-006；独立验收并合入真实查询／交付；完成剩余视觉与 Personal Team 真机测试。
+
 ### 2026-07-18：真机安装前置条件已核对
 
 - Codex 只读检查当前 Xcode 工程：Bundle ID 为 `com.hanselzzh.haluowode`，最低 iOS 版本为 16.0；当前构建设置未显示已配置的 Development Team。Xcode 可见的目的地没有已连接、可安装的真实 iPhone。
