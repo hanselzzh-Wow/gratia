@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：AG-005 R3 外部会话仍未响应，P0-C 保持未接受
+
+- Codex 在 R3 派发后再次检查 `worktrees/ag-005-real-response`：分支仍停在 `6381e2c`，仅有 Codex 追加的 R3 群聊消息；没有 ACK、没有测试更新、没有交接修正、没有新提交。此前错误的 `5c35990` 仍在交接中，trim 行为仍无 production ViewModel 测试断言。
+- 这不是本地代码、Xcode、Simulator、Cloudflare、Apple 签名或用户授权导致的阻塞；P0-C 的唯一剩余条件是外部 Antigravity 会话读取其 worktree 群聊末尾并完成已限定的 R3。Codex 不代改，以免破坏用户要求的“由 Antigravity 完成交付并从质量门学习”的协作方式。
+- P0-D 已安全地以 `PLANNED` 任务卡准备完毕但未派发。恢复路径：Antigravity 完成 R3 → Codex 独立复验/合入 P0-C → 从最新 main 创建 AG-006 worktree → 进入真实追踪与交付。
+
 ### 2026-07-18：预先冻结 P0-D 的未派发真实追踪/交付任务
 
 - Codex 已只读核验现有 `ProgressView`：它仍读 `Wish.mockWishes`、使用 `DispatchQueue.main.asyncAfter` 并展示虚构交付，不能进入手机 MVP。现有 `HaluowodeCore` 已具备 `TrackWishRequest`、`TrackedWishDTO`、状态/事件/assignment/deliverable DTO 和 `trackWish` API，故不需要重做 Cloudflare 后端或 Core Sources。
