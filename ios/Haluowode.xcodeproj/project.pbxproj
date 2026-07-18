@@ -11,15 +11,28 @@
 		28BD8396213BF32C2A5C6DEA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8336A40B8AC7F8E866C78B1A /* ContentView.swift */; };
 		45156BB63F587FC5E663A120 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F81EECC54084008EC49A7 /* ProfileView.swift */; };
 		4BEFD84B8B8830F77FACA935 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF823FE4F1CE75DEEFF668E /* DesignSystem.swift */; };
+		5F6E922AB1EDD8CFEBCF547D /* HaluowodeCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5907EB2D191B3EDF59FA04F6 /* HaluowodeCore */; };
 		68E58538F7A521DBC3F71347 /* NearbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5078E2519B699EA645128E45 /* NearbyView.swift */; };
 		6AD063EFE4F0B93ADB4FD1DD /* HaluowodeCore in Frameworks */ = {isa = PBXBuildFile; productRef = 72E659E330CB04E0008BF5CB /* HaluowodeCore */; };
+		6DC5FC026C391956AF0B039D /* SwiftUI+Compat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887EACF5B1EB7240A73F287B /* SwiftUI+Compat.swift */; };
 		7639F8F30CD7823D07690352 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DA3BFEE80FC06CF97769DF0F /* Assets.xcassets */; };
 		88CB25B4F63F64EC0CCEA960 /* HaluowodeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2BDE1F988AF9D63EFC6C5EA /* HaluowodeApp.swift */; };
+		AFAC82574ADD0D5EB99BEE7D /* WishListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 752469DF790458D7FEB895A8 /* WishListViewModelTests.swift */; };
 		B3D4BBF5256D99F3829FCEE6 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F94CC4301EC09CF07378A7 /* Models.swift */; };
 		BBC73A56F7E4404EFFFE0718 /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0304A32E0107CF6B8A492D7D /* ProgressView.swift */; };
 		C45D7F8CC71C5A2D6A7A41FC /* PublishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36817BBF7BFAE2B25DC4921 /* PublishView.swift */; };
 		CAD3CBDF052E3278F37B64F9 /* WishListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39746411CA509AF28B647F06 /* WishListViewModel.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		13D72782081FECDB16F6D9D6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDC400920B48425D84FB7E68 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E6B59F3EA405F097CB8019F0;
+			remoteInfo = Haluowode;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		0304A32E0107CF6B8A492D7D /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
@@ -29,7 +42,10 @@
 		39746411CA509AF28B647F06 /* WishListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishListViewModel.swift; sourceTree = "<group>"; };
 		497023A94ACCC191BBE412C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		5078E2519B699EA645128E45 /* NearbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyView.swift; sourceTree = "<group>"; };
+		752469DF790458D7FEB895A8 /* WishListViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishListViewModelTests.swift; sourceTree = "<group>"; };
 		8336A40B8AC7F8E866C78B1A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		85E6FA3C2DA32FF3D6C537A7 /* HaluowodeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HaluowodeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		887EACF5B1EB7240A73F287B /* SwiftUI+Compat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SwiftUI+Compat.swift"; sourceTree = "<group>"; };
 		B36817BBF7BFAE2B25DC4921 /* PublishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishView.swift; sourceTree = "<group>"; };
 		B6F1F74F9C44F97F74E8D4A7 /* HaluowodeCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = HaluowodeCore; path = Packages/HaluowodeCore; sourceTree = SOURCE_ROOT; };
 		BDF823FE4F1CE75DEEFF668E /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
@@ -39,6 +55,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		41DEB94741635E50B9CC30AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F6E922AB1EDD8CFEBCF547D /* HaluowodeCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7B38E84D64C75E6BE12A2F14 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -64,9 +88,18 @@
 				2A2F81EECC54084008EC49A7 /* ProfileView.swift */,
 				0304A32E0107CF6B8A492D7D /* ProgressView.swift */,
 				B36817BBF7BFAE2B25DC4921 /* PublishView.swift */,
+				887EACF5B1EB7240A73F287B /* SwiftUI+Compat.swift */,
 				39746411CA509AF28B647F06 /* WishListViewModel.swift */,
 			);
 			path = Haluowode;
+			sourceTree = "<group>";
+		};
+		2F8873EF49AC78F9AE38D04D /* HaluowodeTests */ = {
+			isa = PBXGroup;
+			children = (
+				752469DF790458D7FEB895A8 /* WishListViewModelTests.swift */,
+			);
+			path = HaluowodeTests;
 			sourceTree = "<group>";
 		};
 		A30003DEBA35F4DB11BDA152 /* Packages */ = {
@@ -81,6 +114,7 @@
 			isa = PBXGroup;
 			children = (
 				2BE37E2ADCE38B19D4870DF4 /* Haluowode.app */,
+				85E6FA3C2DA32FF3D6C537A7 /* HaluowodeTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -89,6 +123,7 @@
 			isa = PBXGroup;
 			children = (
 				009CEDD849CCF0697F3BBDF6 /* Haluowode */,
+				2F8873EF49AC78F9AE38D04D /* HaluowodeTests */,
 				A30003DEBA35F4DB11BDA152 /* Packages */,
 				CD93D6AFF833DAC0EA39F508 /* Products */,
 			);
@@ -116,6 +151,26 @@
 			productName = Haluowode;
 			productReference = 2BE37E2ADCE38B19D4870DF4 /* Haluowode.app */;
 			productType = "com.apple.product-type.application";
+		};
+		EB4531D66A1B721AB6244212 /* HaluowodeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B405131A41370E0F1CE9F855 /* Build configuration list for PBXNativeTarget "HaluowodeTests" */;
+			buildPhases = (
+				BBF723AFB4FC9E1DE04A00E8 /* Sources */,
+				41DEB94741635E50B9CC30AC /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4129A0209B64410454D96A4D /* PBXTargetDependency */,
+			);
+			name = HaluowodeTests;
+			packageProductDependencies = (
+				5907EB2D191B3EDF59FA04F6 /* HaluowodeCore */,
+			);
+			productName = HaluowodeTests;
+			productReference = 85E6FA3C2DA32FF3D6C537A7 /* HaluowodeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -146,6 +201,7 @@
 			projectRoot = "";
 			targets = (
 				E6B59F3EA405F097CB8019F0 /* Haluowode */,
+				EB4531D66A1B721AB6244212 /* HaluowodeTests */,
 			);
 		};
 /* End PBXProject section */
@@ -175,13 +231,48 @@
 				45156BB63F587FC5E663A120 /* ProfileView.swift in Sources */,
 				BBC73A56F7E4404EFFFE0718 /* ProgressView.swift in Sources */,
 				C45D7F8CC71C5A2D6A7A41FC /* PublishView.swift in Sources */,
+				6DC5FC026C391956AF0B039D /* SwiftUI+Compat.swift in Sources */,
 				CAD3CBDF052E3278F37B64F9 /* WishListViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BBF723AFB4FC9E1DE04A00E8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AFAC82574ADD0D5EB99BEE7D /* WishListViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		4129A0209B64410454D96A4D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E6B59F3EA405F097CB8019F0 /* Haluowode */;
+			targetProxy = 13D72782081FECDB16F6D9D6 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		0A65B9FDAED2FD759F49285F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hanselzzh.HaluowodeTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Haluowode.app/Haluowode";
+			};
+			name = Debug;
+		};
 		3BCFA962D4F37CEF26E5B617 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -319,6 +410,24 @@
 			};
 			name = Release;
 		};
+		B63F88E5899F0C31440B4CC6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hanselzzh.HaluowodeTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Haluowode.app/Haluowode";
+			};
+			name = Release;
+		};
 		EAC5EF9A02538CEAF8509A00 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -342,6 +451,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		B405131A41370E0F1CE9F855 /* Build configuration list for PBXNativeTarget "HaluowodeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0A65B9FDAED2FD759F49285F /* Debug */,
+				B63F88E5899F0C31440B4CC6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		C9BB63DA7CCDA71BF1A17FC1 /* Build configuration list for PBXProject "Haluowode" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -370,6 +488,10 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5907EB2D191B3EDF59FA04F6 /* HaluowodeCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HaluowodeCore;
+		};
 		72E659E330CB04E0008BF5CB /* HaluowodeCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HaluowodeCore;

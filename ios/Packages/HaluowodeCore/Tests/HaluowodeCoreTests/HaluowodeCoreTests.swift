@@ -4,14 +4,39 @@ import Foundation
 
 // MARK: - Mock Transport
 final class MockTransport: HTTPTransport, Sendable {
-    private let handler: @Sendable (HTTPRequest) throws -> HTTPResponse
+    private let handler: @Sendable (HTTPRequest) async throws -> HTTPResponse
+    private let onStart: (@Sendable () -> Void)?
 
-    init(handler: @escaping @Sendable (HTTPRequest) throws -> HTTPResponse) {
+    init(onStart: (@Sendable () -> Void)? = nil, handler: @escaping @Sendable (HTTPRequest) async throws -> HTTPResponse) {
         self.handler = handler
+        self.onStart = onStart
     }
 
     func send(request: HTTPRequest) async throws -> HTTPResponse {
-        try handler(request)
+        onStart?()
+        return try await handler(request)
+    }
+}
+
+// MARK: - Task Started Expectation
+actor TaskStartedExpectation {
+    private var started = false
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    func signal() {
+        started = true
+        let currentWaiters = waiters
+        waiters.removeAll()
+        for waiter in currentWaiters {
+            waiter.resume()
+        }
+    }
+
+    func wait() async {
+        if started { return }
+        await withCheckedContinuation { continuation in
+            waiters.append(continuation)
+        }
     }
 }
 
@@ -227,6 +252,7 @@ struct HaluowodeCoreTests {
         let transport = MockTransport { request in
             #expect(request.method == "POST")
             #expect(request.url.path == "/api/wishes/some-wish-id/responses")
+            #expect(request.headers["content-type"] == "application/json")
 
             guard let body = request.body else {
                 Issue.record("Request body is nil")
@@ -235,7 +261,10 @@ struct HaluowodeCoreTests {
 
             let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any]
             #expect(json?["responderName"] as? String == "阿强")
-            #expect(json?["contactConsent"] as? Bool == true) // 显式传入
+            #expect(json?["responderContact"] as? String == "wx:aqiang")
+            #expect(json?["note"] as? String == "我能帮您带")
+            #expect(json?["contactConsent"] as? Bool == true)
+            #expect(json?["website"] == nil)
 
             return HTTPResponse(statusCode: 201, headers: [:], data: responseJson)
         }
@@ -245,11 +274,14 @@ struct HaluowodeCoreTests {
             responderName: "阿强",
             responderContact: "wx:aqiang",
             note: "我能帮您带",
-            contactConsent: true // 显式传入
+            contactConsent: true
         )
         let result = try await client.createWishResponse(wishId: "some-wish-id", request: request)
         #expect(result.created == true)
         #expect(result.response.id == "resp-123")
+        #expect(result.response.responderName == "阿强")
+        #expect(result.response.responderContact == "wx:aqiang")
+        #expect(result.response.note == "我能帮您带")
     }
 
     // 7. 报名 200 重复响应 (验证 created: false)
@@ -426,26 +458,44 @@ struct HaluowodeCoreTests {
 
     // 13. 真实取消 Task 测试 (验证网络请求取消机制)
     @Test func testRequestCancelled() async throws {
-        let transport = MockTransport { _ in
-            // 仿真长时间挂起
-            throw HaluowodeAPIError.requestCancelled
+        let startedExpectation = TaskStartedExpectation()
+
+        let transport = MockTransport(onStart: {
+            Task {
+                await startedExpectation.signal()
+            }
+        }) { _ in
+            for _ in 0..<100 {
+                if Task.isCancelled {
+                    throw HaluowodeAPIError.requestCancelled
+                }
+                try await Task.sleep(nanoseconds: 5_000_000) // 5ms sleep
+            }
+            throw HaluowodeAPIError.serverError(message: "Should have been cancelled")
         }
 
         let client = WishAPIClient(baseURL: baseURL, transport: transport)
 
-        let task = Task {
+        let task: Task<[PublicWishDTO], Error> = Task {
             try await client.listWishes(city: nil)
         }
+
+        // Wait deterministically for the transport to start!
+        await startedExpectation.wait()
 
         task.cancel()
 
         do {
             _ = try await task.value
             Issue.record("Task did not throw cancellation error")
-        } catch HaluowodeAPIError.requestCancelled {
-            // Success
         } catch {
-            // Also accepted if caught by standard Task cancellation
+            if let apiErr = error as? HaluowodeAPIError, case .requestCancelled = apiErr {
+                // Success
+            } else if error is CancellationError {
+                // Also success
+            } else {
+                Issue.record("Unexpected error: \(error)")
+            }
         }
     }
 
