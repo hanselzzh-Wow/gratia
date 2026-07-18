@@ -16,7 +16,7 @@
 | AG-004 | Antigravity | ACCEPTED | 真实发布心愿纵向切片已通过独立质量门，等待 Codex 隔离集成到本地主分支 | 仅下文列出的 `codex/ag-004-real-publish` worktree 路径 | 已验收；不得自动领取响应、追踪、交付或视觉重画 |
 | AG-005 | Codex | ACCEPTED | 真实提交响应已在隔离集成分支通过独立质量门；Codex 接管补齐 trim 编码断言与可读取结果包证据，准备合入 main | `codex/ios-response-integration` 的响应源码、测试、交接与协调文件 | 仅待合入 main 后完成；Antigravity 无权继续写入或自动领取后续任务 |
 | AG-006 | Antigravity | ACCEPTED | P0-D 真实查询进度与交付已通过 Core 17/17、iPhone Simulator 23/23、隐私/Mock 扫描并合入 main | 历史 worktree `worktrees/ag-006-real-track`；源码权限已收回 | 已验收合入；不得继续修改或自动领取任务 |
-| AG-007 | Codex | REVIEW | v3 进度与交付视觉已提交 `4db9037`，App 23/23、Core 17/17；待四态截图补证 | 仅 `worktrees/ag-007-v3-progress-delivery` 的任务卡精确路径 | 截图证据补齐前不得 ACCEPTED 或启动 AG-008 |
+| AG-007 | Codex | REVIEW | v3 进度与交付视觉已提交 `4db9037`，App 23/23、Core 17/17；待四态截图补证 | 仅 `worktrees/ag-007-v3-progress-delivery` 的任务卡精确路径 | 截图证据补齐前不得 ACCEPTED；不得触碰 CL-006 路径 |
 | AG-008 | Antigravity | SUPERSEDED | 旧首页内容社区 SwiftUI 计划已被产品负责人 2026-07-18 的新首页与五位 Dock 裁决替代 | 无；不得创建旧计划 worktree 或实现旧五栏 | 旧计划停止，不得自行领取替代任务 |
 | CX-001 | Codex | ACCEPTED | v3 首页基础视觉与原创 App Icon 已在隔离分支通过构建、Simulator 截图与结构化测试后合入 main | `codex/v3-home-foundations` 的首页、DesignSystem、App Icon、交接与群聊 | 已完成；其余页面视觉改造必须另建任务，且不得触碰 AG-006 的范围 |
 | CX-002 | Codex | ACCEPTED | v3 附近、详情与真实响应表单视觉已通过独立编译、Core 15/15、iPhone Simulator 15/15 与禁止项扫描，并已合入本地 main | `codex/v3-nearby-response` 的 Nearby、交接与群聊 | 已完成；后续 Publish/Profile/Tab Bar 必须另建任务，且不得触碰 AG-006 的范围 |
