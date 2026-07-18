@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：AG-005 外部交接超时，Codex 在隔离集成分支接管
+
+- R2/R3 已给 Antigravity 充分且逐项可执行的修订机会；连续复查仍无 ACK、无测试、无交接修正，P0-C 不应无限期停在外部会话。依据“先训练、再接管”的协作原则，Codex 已正式收回 AG-005 的外部写权限。
+- 接管范围严格限定为新 `codex/ios-response-integration` worktree：纳入已交付的真实响应实现、补齐 trim note 的 production ViewModel 测试、修正交接事实，并以可读取的 Simulator result bundle 独立验证。不会在主工作区直接改代码，不扩展 P0-D/视觉/后端，也不产生生产写入。
+- 接下来三步：创建隔离 integration worktree 并纳入 AG-005；完整测试/运行时/隐私审计；通过后合入 main 并正式派发已计划的 AG-006。
+
 ### 2026-07-18：AG-005 R3 外部会话仍未响应，P0-C 保持未接受
 
 - Codex 在 R3 派发后再次检查 `worktrees/ag-005-real-response`：分支仍停在 `6381e2c`，仅有 Codex 追加的 R3 群聊消息；没有 ACK、没有测试更新、没有交接修正、没有新提交。此前错误的 `5c35990` 仍在交接中，trim 行为仍无 production ViewModel 测试断言。
