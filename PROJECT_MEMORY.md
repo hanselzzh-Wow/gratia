@@ -20,11 +20,11 @@
 
 ## 当前事实（每次续接先验证）
 
-- **运行状态：产品负责人已要求暂停。** Codex、Claude、Antigravity 均不得继续当前实现、提交、验收、合入或派发新任务；只有产品负责人明确“恢复工作”后，才按“用户控制方式”读取并续接。
-- `main` 已有真实公开列表、发布、响应与 v3 基线（P0-A/B/C）；P0-D 真实查询进度/交付尚未合入。
-- `AG-006`：`worktrees/ag-006-real-track`，HEAD `4a30bd0`，仍有未提交修订。必须先：生产 `ProgressView` 的状态文案 helper 并直接测试、删除依赖 AVPlayer 系统行为的测试、如实更新交接/测试证据，再提交/STATUS。Codex 已在该 worktree `TEAM_CHAT` 留下 `CHAT-20260718-201500-CODEX-062`。
-- `CL-005`：`worktrees/claude-cl-005-home-community`，尚无新资产。应交 393×852 首页正常/空/故事详情的 HTML/SVG/1x/3x 和职责/隐私/无障碍交接；不得写 SwiftUI。
-- 主线 iOS 27 App bundle 已生成，但**未验收安装或截图**。CoreSimulator 的干净设备启动失败：`launchd_sim may have crashed or quit responding`；必须完整重启 Mac 后再从干净 Simulator 重试。
+- **运行状态：产品负责人已恢复自主推进。** Codex 继续验收、集成和依赖驱动派发；外部负责人仍只做唯一已派任务，交接后停止。
+- `main` merge commit `296ab12` 已具备真实公开列表、发布、响应、查询进度/交付与 v3 基线（P0-A/B/C/D）。AG-006 独立质量门：Core 17/17、iPhone 17 Pro iOS 27 Simulator 23/23，0 failure/skip/runtime warning。
+- `AG-007`：`worktrees/ag-007-v3-progress-delivery`，只做 Progress/Delivery v3 视觉收口，严禁修改真实状态机、其他页面、Tab Bar、后端或签名。
+- `CL-005` 恢复原任务：`worktrees/claude-cl-005-home-community`，继续交付首页正常/空/故事详情设计资产与职责/隐私/无障碍交接；不得写 SwiftUI。
+- CoreSimulator 已能执行 iOS 27 单元测试并产出可读取 xcresult；主线 App 的干净启动、系统 Dock 截图和真机安装仍未完成。
 
 ## 强制交接与接班卡同步
 
@@ -54,10 +54,10 @@
 
 ## 恢复顺序
 
-1. 用户重启 Mac 后：启动干净 iOS 27 Simulator → 安装/启动主线 App → 截图验证系统 Dock；不能把 bundle 生成当作运行通过。
-2. 收到 AG-006 新 commit 后：独立审查 diff/交接，跑 Core、Swift parser、iOS test target、隐私/Mock 扫描；合格才用隔离集成分支合入 main。
-3. 收到 CL-005 后：逐页验收职责、授权、零 Emoji/渐变、系统导航前提；接受后才创建独立首页实现任务。
-4. P0-D 与首页收口后：用户连接 iPhone，在 Xcode 选免费 Personal Team、信任 Mac/开发者；Codex 构建安装并跑受控真实闭环。TestFlight/App Store 另行准备。
+1. Antigravity 完成 AG-007 后：独立复验 Progress/Delivery 截图、23+ App 测试、Core、隐私和禁止项，合格才集成。
+2. Claude 完成 CL-005 后：逐页验收职责、授权、零 Emoji/渐变和系统导航前提；接受后再派首页实现任务。
+3. Codex 在干净 iOS 27 Simulator 安装/启动 main 并截图验证系统 Dock；不能把测试或 bundle 生成当作运行通过。
+4. 视觉与首页收口后：用户连接 iPhone，选择 Personal Team 并信任开发者；Codex 构建安装并跑受控真实闭环。
 
 ## 快速核验
 

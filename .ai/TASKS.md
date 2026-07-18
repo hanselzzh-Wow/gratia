@@ -1,6 +1,6 @@
 # 多 AI 任务板
 
-最后更新：2026-07-18 00:24（Asia/Shanghai）
+最后更新：2026-07-18 20:55（Asia/Shanghai）
 
 永久角色分工见 `.ai/ROLES.md`。
 
@@ -15,7 +15,8 @@
 | AG-003 | Antigravity | ACCEPTED | R5 已删除 R4 测试中残留的 `@unchecked Sendable`/锁包装；真实取消与竞态证据独立复验通过，等待 Codex 选择性集成 | 仅本任务 R3/R4/R5 明列的隔离 worktree路径与交接文件 | 已验收；不得自动继续或领取新任务 |
 | AG-004 | Antigravity | ACCEPTED | 真实发布心愿纵向切片已通过独立质量门，等待 Codex 隔离集成到本地主分支 | 仅下文列出的 `codex/ag-004-real-publish` worktree 路径 | 已验收；不得自动领取响应、追踪、交付或视觉重画 |
 | AG-005 | Codex | ACCEPTED | 真实提交响应已在隔离集成分支通过独立质量门；Codex 接管补齐 trim 编码断言与可读取结果包证据，准备合入 main | `codex/ios-response-integration` 的响应源码、测试、交接与协调文件 | 仅待合入 main 后完成；Antigravity 无权继续写入或自动领取后续任务 |
-| AG-006 | Antigravity | IN_PROGRESS | P0-D 真实查询进度与交付：以公开编号和联系方式查询，展示真实状态/时间线/派单人与后端能力链接交付 | 仅 `worktrees/ag-006-real-track` / `codex/ag-006-real-track`，精确路径与验收见下文 | 只完成本任务后交接并停止；不得自行领取视觉、真机或其他功能 |
+| AG-006 | Antigravity | ACCEPTED | P0-D 真实查询进度与交付已通过 Core 17/17、iPhone Simulator 23/23、隐私/Mock 扫描并合入 main | 历史 worktree `worktrees/ag-006-real-track`；源码权限已收回 | 已验收合入；不得继续修改或自动领取任务 |
+| AG-007 | Antigravity | IN_PROGRESS | v3 进度与交付视觉收口：保留 AG-006 真实状态机与隐私边界，只统一 Progress/Delivery UI | 仅 `worktrees/ag-007-v3-progress-delivery` 的任务卡精确路径 | 截图、测试、交接、STATUS 后停止；不得领取首页、Tab Bar 或真机任务 |
 | CX-001 | Codex | ACCEPTED | v3 首页基础视觉与原创 App Icon 已在隔离分支通过构建、Simulator 截图与结构化测试后合入 main | `codex/v3-home-foundations` 的首页、DesignSystem、App Icon、交接与群聊 | 已完成；其余页面视觉改造必须另建任务，且不得触碰 AG-006 的范围 |
 | CX-002 | Codex | ACCEPTED | v3 附近、详情与真实响应表单视觉已通过独立编译、Core 15/15、iPhone Simulator 15/15 与禁止项扫描，并已合入本地 main | `codex/v3-nearby-response` 的 Nearby、交接与群聊 | 已完成；后续 Publish/Profile/Tab Bar 必须另建任务，且不得触碰 AG-006 的范围 |
 | CX-003 | Codex | ACCEPTED | v3 发布与我的视觉已通过独立编译、Core 15/15、iPhone Simulator 15/15 与禁止项扫描，并已合入本地 main | `codex/v3-publish-profile` 的 Publish/Profile、交接与群聊 | 已完成；Tab Bar 必须等 AG-006 收口后另建任务，且不得触碰其范围 |
@@ -397,6 +398,40 @@ git diff --check
 ```
 
 交接须给出可读取的测试实际数量、result bundle 路径/摘要、每个状态、contact/token 隐私处理、完整改动路径、warning、未验证项与 commit SHA。完成后 STATUS 并立即停止；Codex 独立验收和合入前，不得领视觉、真机或其他功能任务。
+
+### AG-006 验收结论
+
+Codex 已独立复验并于本地 main merge commit `296ab12` 合入：Core 17/17；iPhone 17 Pro、iOS 27 Simulator 23/23，0 failure/skip/runtime warning；Swift parser、Mock/生产 Client 扫描、隐私扫描与 diff check 通过。任务状态为 `ACCEPTED`，原 worktree 源码权限收回。
+
+## AG-007：v3 进度与交付视觉收口（IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/ag-007-v3-progress-delivery`
+
+分支：`codex/ag-007-v3-progress-delivery`
+
+前置：本地 main `296ab12`；权威视觉输入 `docs/ios-design-freeze-v3.md` 与 `docs/ios-experience-blueprint.md`。唯一目标是把已验收的真实进度查询、时间线和交付预览对齐现有 v3 DesignSystem；不得改变 API、状态机、请求字段、取消、错误或隐私语义。
+
+允许修改：
+
+- `ios/Haluowode/ProgressView.swift`
+- `ios/Haluowode/DeliveryPreviewView.swift`
+- 新建 `ios/HaluowodeTests/ProgressPresentationTests.swift`（仅纯展示 helper/隐私文案测试）
+- `ios/project.yml` 与由它生成的 `ios/Haluowode.xcodeproj/**`（仅新测试文件接入确有需要时）
+- `.ai/handoffs/AG-007-v3-progress-delivery.md`
+- `.ai/TEAM_CHAT.md`（只追加 ACK/OBJECTION/STATUS）
+
+禁止修改：`TrackWishViewModel.swift`、`ContentView.swift`、Core Sources/Tests、其他 View/ViewModel、DesignSystem、App Icon、后端/数据库/部署、签名、依赖、生产 API、任务板/冻结/项目日志、主工作区或 Git 历史；不得增加 Emoji、渐变、账号、运营入口、支付、Mock 数据、自绘 Tab Bar 或新的产品能力。
+
+必须交付：
+
+1. 查询表单、校验/失败、loading、loaded 摘要、交付入口、事件时间线统一使用既有 v3 `canvas/canvasSunk/card/hairline/accent/danger/ink` token、8pt 节奏和冻结圆角；普通卡默认零阴影，不留硬编码 `.cornerRadius`、`.shadow`、`LinearGradient` 或 Emoji。
+2. 所有字面量字号迁移到 Dynamic Type 语义字体；普通图标使用 Regular SF Symbols；输入与按钮具备至少 44pt 点击区。焦点 2pt accent、字段错误 danger 描边+文字、loading 禁用与失败重试必须清晰且不能只靠颜色表达。
+3. 保留生产 `ProgressView.statusText(for:)`、真实 DTO/事件/assignment/deliverable、`onDisappear` 取消、404/429 文案、成功后 contact 清除与能力 URL/token 隐私。不得把 URL 放进 `Text`、accessibility label/value、日志、复制菜单或测试输出。
+4. 交付预览维持系统 `VideoPlayer`、`AsyncImage`、`Link` 行为；把 loading/success/failure/关闭按钮与留言层对齐 v3 和 Dynamic Type。失败固定“交付链接不可用或已失效”；真实远端媒体失败仍如实标为真机/受控 fixture 未验证。
+5. 提供 iPhone 17 Pro Simulator 的查询表单、404 错误、delivered/待确认、交付失败至少四张截图。不得为截图访问生产 API或伪造运行时数据；可使用 XCTest/Preview 的本地 fixture，必须说明证据边界。
+6. 运行 Core 全套、HaluowodeTests、Swift parser、零 Emoji/渐变/普通 shadow/硬编码 corner radius 扫描、隐私/Mock 扫描和 `git diff --check`。交接列实际测试数、结果包、截图路径、warning、未验证项与 commit SHA。
+
+停止条件：提交允许范围内交付、追加 STATUS 后立即停止，等待 Codex 独立验收；不得顺手修改首页、Tab Bar、真机流程或领取下一任务。
 
 ## CL-002 P0 设计补齐
 

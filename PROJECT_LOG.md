@@ -13,7 +13,7 @@
 | 模块 | 当前状态 | 说明 |
 | --- | --- | --- |
 | 产品方向 | 已纠正 | 最终消费者产品是原生 iOS App，不是网页 |
-| SwiftUI 客户端 | 主线已具备 P0-A/P0-B/P0-C 与 v3 基线 | 真实公开列表、发布、响应和五栏原生导航已在本地 main；P0-D 真实追踪/交付、首页内容社区收敛与真机端到端验收尚未完成 |
+| SwiftUI 客户端 | 主线已具备 P0-A/P0-B/P0-C/P0-D 与 v3 基线 | 真实公开列表、发布、响应、查询进度/交付和五栏原生导航已在本地 main；进度视觉、首页内容社区与真机端到端验收尚未完成 |
 | 云端后端 | 已上线 | Cloudflare Worker + D1 + R2，健康检查和完整业务闭环均已通过 |
 | 生产 API | 可用 | `https://haluowode-mvp.hanselzzh.workers.dev` |
 | 网页前端 | 历史原型 | `https://hanselzzh-wow.github.io/` 仅作为交互参考和接口验证，不是最终产品 |
@@ -56,9 +56,9 @@ Cloudflare Worker API
 
 ## 接下来三步
 
-1. 等 Antigravity 在原 worktree 提交 `AG-006` 修订，独立复验后受控合入 main。
-2. 等 Claude 完成 `CL-005` 首页内容社区检查点，冻结故事流与系统原生 Liquid Glass 导航的实现输入。
-3. 恢复 Xcode 27 CoreSimulator 后完成 iOS 27 截图验收；随后在真实 iPhone 以 Personal Team 安装并完成受控端到端试用。
+1. Antigravity 完成 `AG-007` 进度/交付 v3 视觉收口，Codex 独立截图与回归验收。
+2. Claude 完成 `CL-005` 首页内容社区检查点，Codex 验收后再派首页实现。
+3. Codex 完成 main 的干净 iOS 27 启动/System Dock 截图；随后在真实 iPhone 以 Personal Team 安装并完成受控端到端试用。
 
 ## 短期目标（下一个可演示版本）
 
@@ -97,6 +97,15 @@ Cloudflare Worker API
 这些问题不阻塞 Xcode 环境检查、工程骨架、API Client 和低保真页面地图。
 
 ## 工作记录（只追加）
+
+### 2026-07-18：恢复自主推进，验收合入 AG-006 并派发进度视觉收口
+
+- 产品负责人明确要求恢复并自动安排新工作，解除此前全团队暂停；唯一任务、隔离 worktree、交接后停止和独立验收规则继续有效。
+- Codex 审查 AG-006 的 `4a30bd0`、`a94e6f7` 与最终交接，独立执行 Core 17/17；iPhone 17 Pro、iOS 27 Simulator 23/23，0 failure/skip/runtime warning；parser、Mock/默认生产 Client、敏感持久化/凭据/打印扫描与 diff check 通过。
+- 通过 `codex/ios-track-integration` 隔离分支集成，保留 main 群聊历史并以 merge commit `296ab12` 合入本地 main；主工作区已有设计资产和用户未跟踪文件未暂存、未覆盖。
+- `AG-006` 状态改为 ACCEPTED，原源码权限收回。新派发 `AG-007` 给 Antigravity：仅收口 Progress/Delivery v3 视觉，保留真实 API、取消、错误与 contact/token 隐私语义。
+- `CL-005` 恢复原设计任务，与 AG-007 文件范围不重叠。下一步：收取两份独立交接；Codex 同时完成 main 干净启动与系统 Dock 截图；随后准备真机 Personal Team 安装。
+- 未决：真实远端媒体失败仍需受控 fixture/真机验证；App 链接阶段存在 iOS 16 target 对 Xcode 27 XCTest 最低 17 的两条 warning，未在本轮改签名或最低系统配置。
 
 ### 2026-07-18：产品负责人要求全团队暂停，现场已冻结并可短上下文续接
 
