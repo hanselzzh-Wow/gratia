@@ -317,7 +317,7 @@ actor PublishMockAPI: WishAPIProtocol {
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<CreateWishResult, any Error>) in
                 pendingRequest = PendingRequest(continuation: continuation)
-                
+
                 let waiter = startContinuation
                 startContinuation = nil
                 waiter?.resume()

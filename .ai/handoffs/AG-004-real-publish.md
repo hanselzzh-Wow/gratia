@@ -75,7 +75,7 @@
 - **已验证**：
   1. 重定向并清理了 dynamic linking duplicate symbols 警告，确保了 XCTest target 在类型转换时的稳定性。
   2. 交付的 ViewModel 表单合法性验证契约与 `docs/ios-api-contract.md` 规范完全对齐。
-  3. UI 中 Emoji、渐变已完全被禁止与排除。
+  3. 本任务修改的范围内没有新增 Emoji/渐变，但主分支旧首页仍有待后续 v3 视觉任务移除的渐变。并且已同步 cancellation 状态从 .submitting 回 .idle 的最终恢复行为。
 - **未验证**：iOS 主 App 在真机/模拟器上的真实渲染行为（由 Codex 集成后执行）。
 - **已知风险**：无。
 
