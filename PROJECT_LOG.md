@@ -98,6 +98,13 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：AG-004 行为复验通过，等待 Antigravity 完成极小 R2 格式/交接收尾
+
+- Codex 对 `c80c9ad` 独立复验：Core Swift Testing 实际 15/15 通过；iPhone 17 Pro iOS 27 Simulator 的 `HaluowodeTests` 结构化 xcresult 实际 9/9、0 failure/skip/runtime warning。真实发布请求、表单校验、201/重复 200、去重、失败保留草稿以及取消后回到可重试 `.idle` 的 production ViewModel 路径均有源码与测试证据。
+- 当前不能接受/合入的唯一问题不是行为：`PublishWishViewModelTests.swift:320` 有一处 trailing whitespace，使任务明定的 `git diff --check main...HEAD` 失败；交接还误称整个 UI 已无渐变，实际只是本任务未新增 Emoji/渐变，旧首页渐变仍待 v3 视觉任务移除。
+- Codex 已通过 AG-004 实际 worktree 群聊派发严格限于“删该空白、修正交接 cancellation/渐变表述、提交 STATUS”的 R2；没有让 Codex 代改，也没有要求功能扩展。外部 Antigravity 在两次短收尾检查中尚未执行该 R2。
+- 接下来三步：收取 R2 并重跑 diff/测试后决定接受；若会话恢复失败，按协作规则记录外部等待而不替代实现；AG-004 接受后创建响应与追踪/交付的独立任务。
+
 ### 2026-07-18：主分支原生 App 冷启动复验通过，v3 视觉尚未落地到代码
 
 - Codex 用 Xcode 27 在 iPhone 17 Pro iOS 27 Simulator 对当前本地主分支执行 Debug build，产出 `Haluowode.app`，成功安装并从 bundle ID `com.hanselzzh.haluowode` 显式冷启动（进程 PID 已返回）。本轮未接触真实 iPhone、签名、生产写入或部署。
