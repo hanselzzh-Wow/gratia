@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：v3 首页 Foundations 与原创 App Icon 已合入 main，新的原生预览可见
+
+- Codex 已将 `CX-001` 以 merge commit `46a5c05` 合入本地 main：全局 v3 token、首页暖白/细描边/暖蓝强调、默认零阴影、Dynamic Type、真实加载/空/错状态和冻结原创 App Icon 均已落地。此前的天空蓝渐变首页不再是当前 main；其它四个页面与底部 Tab Bar 仍待后续独立视觉任务改造。
+- 验证证据：Core 15/15；iPhone 17 Pro（iOS 27）Simulator 结果包 15/15、0 failure、0 skip、0 runtime warning；App Icon 的 iPhone、iPad 和 marketing 槽位齐全，补齐后 asset catalog 不再报告缺少 iPad 图标；真实截图为 `/private/tmp/haluowode-cx001-v3-home.png`。没有生产写入、签名、推送或部署。
+- 接下来三步：收取/验收 AG-006 真实查询与交付；把 v3 视觉按独立任务扩展到相关页面与 Tab Bar；在主线业务/视觉闭环后连接真实 iPhone，使用 Personal Team 安装并完成受控端到端试用。
+
 ### 2026-07-18：创建 Codex v3 首页/App Icon 隔离视觉切片，与 P0-D 并行
 
 - 为避免“等真实进度页完成才让产品负责人看到接近冻结方向的原生 UI”，Codex 创建 `CX-001`：只在独立 worktree 落地 v3 token、首页与冻结原创 Icon A。该任务禁止触碰 P0-D 的 Progress/Track/Delivery 路径，因此与 Antigravity 的 `AG-006` 可并行且不会产生代码冲突。

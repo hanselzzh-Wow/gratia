@@ -8,7 +8,7 @@
 
 - Codex 作为 PM/协调人可以进行只读审计，并修改协调文档、项目日志和验收结果；已验收的 AG-003 已由 Codex 集成到本地主分支，后续正式实现仍必须使用独立 worktree。
 - Antigravity 的 `AG-002`、`AG-003`、`AG-004`、`AG-005` 已验收，`AG-005` 已合入本地 `main`。`AG-006` 已正式派发：Antigravity 只可在 `worktrees/ag-006-real-track` 的任务板精确允许路径内写入，且完成交接后立即停止；主工作区源码仍冻结。
-- Codex 正在隔离 `worktrees/codex-v3-home-foundations` 执行 `CX-001`。该任务只可触碰首页、DesignSystem 与 App Icon，明确不得触碰 Antigravity 的 Progress/Track/Delivery 路径；两项任务可以并行但都须分别独立验收。
+- `CX-001` 已独立验收并合入本地 main。其首页、DesignSystem 与 App Icon 变更不触碰 Antigravity 的 Progress/Track/Delivery 路径；后续其余页面视觉改造需另建独立任务。
 - Claude 的 `CL-001`、`CL-003`、`CL-004` 已验收。Claude 当前停止；除 Codex 后续派发的截图审阅或明确设计任务外，只能阅读，不得修改源码、既有冻结资产或视觉决策。
 - 所有成员可以严格按照 `.ai/TEAM_CHAT.md` 的格式在文件末尾追加群聊消息；这是沟通例外，不解除任何源码写入冻结。
 - 其他 AI 只能阅读，不得写任何文件。
