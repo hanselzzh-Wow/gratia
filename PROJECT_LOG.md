@@ -98,6 +98,19 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：验收 Claude 的 CL-004 v3 SwiftUI 实施审计
+
+- Claude 仅新增 `.ai/handoffs/CL-004-swiftui-audit.md`，没有修改 SwiftUI、冻结资产、token 或协调文档；任务范围与停止条件符合要求。审计将五个区域映射为“现状 → v3 目标 → 实施项 → 截图验收点”，并把颜色、圆角、间距、阴影、字体、图标与无障碍要求回指到 v3 冻结输入。
+- 已确认的 P0 实施事实：当前 `DesignSystem.swift` 仍是冻结前候选色板；`HomeView` 仍含真实渐变；页面普遍以阴影代替 hairline；固定字号不满足 Dynamic Type；App Icon 槽位为空；Progress 的 `delivered` 中文展示仍不符合“待确认”契约。冻结的原创 Icon A 暖蓝 1024 主文件已存在于 CL-003 资产，缺的是后续受控的 Xcode 资产接入，不需要重画图标。
+- `CL-004` 改为 ACCEPTED，Claude 已停止。后续先完成 P0-C/P0-D 的真实行为闭环；视觉代码任务将按“token 底座 → 渐变/阴影清理 → 字体/无障碍 → 图标接入 → 截图审阅”拆开，届时让 Claude 对实际模拟器截图做验收而非继续产出脱离代码的稿件。
+
+### 2026-07-18：AG-005 初审完成，退回极小 R2 后再作独立验收
+
+- Codex 已审计 `codex/ag-005-real-response` 当前头 `0f709d8`：真实响应的 ViewModel、依赖注入、`PublicWishDTO.id`、重复提交、取消、成功文案和测试框架方向均符合 P0-C；Core Swift Testing 已由 Codex 独立跑得 15/15。
+- 暂不接受的两个可修问题已严格退回 Antigravity 自己的 worktree：非空说明必须编码为 trim 后的值并补 production ViewModel 断言；交接中不得把不存在的 `81cb49c` 写作最终提交，也不得把不可核验的 warning 结论当事实。R2 禁止扩展产品或视觉范围。
+- Codex 的第一次 Simulator 复验已成功生成工程并编译进入测试，但 Xcode beta 产出的默认结果包缺少 `Info.plist`，不能读取结构化测试数，故不作为“15/15”独立证据；R2 后将使用显式 result bundle 再验。没有生产 API 写入。
+- 接下来三步：收取 AG-005 R2 并复查范围/源码；以可读取 result bundle 重跑 Core 与 Simulator 测试；通过后在独立集成分支合入 P0-C，再拆 P0-D 追踪/交付。
+
 ### 2026-07-18：派发 Claude 的 CL-004 v3 SwiftUI 实施审计
 
 - `CL-003` 的 v3 视觉已经冻结，Claude 此前按停止条件空闲；这不是遗漏，也不应让它在没有实现约束时反复重画。随着 P0-B 已集成、P0-C 已由 Antigravity 提交等待独立验收，当前最有价值的设计工作是把冻结稿转成可执行、可截图验收的 SwiftUI 规范。
