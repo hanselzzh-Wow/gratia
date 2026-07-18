@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：P0-D 预审反馈后启动不冲突的 v3 Nearby/Response 视觉切片
+
+- Antigravity 的 `AG-006` 已出现真实 Track/交付实现与测试增量，Codex 的只读预审确认方向正确，但在提交前要求补固定 404 隐私文案、离页取消、实际去重计数、媒体失效 UI 与隐私回归断言；该反馈完全在原任务验收范围内，Codex 未代改其代码。
+- 为不让主线等待，Codex 新建 `CX-002`，只触碰 `NearbyView.swift`，使附近列表、详情和已验收的真实响应 UI 对齐 v3；严格禁止改 `ContentView`/`WishResponseViewModel`/Progress/Track/Delivery，避免和 AG-006 冲突。
+- 接下来三步：完成 CX-002 的 Simulator 截图与独立验收；收取并验收 AG-006；合并两条分支后继续 Publish/Profile/Tab Bar 的独立 v3 任务并准备真机闭环。
+
 ### 2026-07-18：v3 首页 Foundations 与原创 App Icon 已合入 main，新的原生预览可见
 
 - Codex 已将 `CX-001` 以 merge commit `46a5c05` 合入本地 main：全局 v3 token、首页暖白/细描边/暖蓝强调、默认零阴影、Dynamic Type、真实加载/空/错状态和冻结原创 App Icon 均已落地。此前的天空蓝渐变首页不再是当前 main；其它四个页面与底部 Tab Bar 仍待后续独立视觉任务改造。
