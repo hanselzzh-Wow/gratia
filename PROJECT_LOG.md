@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：自动推进暂停，等待 Antigravity 切换到 AG-005 worktree
+
+- `AG-005` 的任务板、限制、验收命令、隔离分支 `codex/ag-005-real-response`、worktree 与群聊末尾派发均已建立并同步；连续三次检查显示该 worktree 干净、没有 ACK、没有代码、没有提交。
+- 当前等待不是代码、后端、Xcode、Simulator、Apple 签名或用户选择问题：P0-A/P0-B 已在本地 main，P0-C 的唯一剩余阻塞是外部 Antigravity 会话尚未从结束的 AG-004 切换到新 worktree。
+- 恢复只需在 Antigravity 会话切换到 `worktrees/ag-005-real-response`，阅读末尾 `CHAT-20260718-151000-CODEX-032` 与 `.ai/TASKS.md` 的 `AG-005`，然后 ACK。Codex 将立即继续范围审计、独立验收、P0-D 和后续真机流程；不需要重建已有工程或重新做 P0-B。
+
 ### 2026-07-18：P0-B 真实发布已合入本地 main，AG-005 开始真实响应
 
 - Codex 将通过合并后复验的 `45b5206` 以 merge commit `6848cc3` 合入本地 `main`；发布表单不再伪造编号或写 `Wish.mockWishes`，而是经可注入 `PublishWishViewModel` 调现有 Cloudflare 兼容 API。此次仅合并源码和交接，不推送、部署、签名或生产写入。
