@@ -13,7 +13,7 @@
 | 模块 | 当前状态 | 说明 |
 | --- | --- | --- |
 | 产品方向 | 已纠正 | 最终消费者产品是原生 iOS App，不是网页 |
-| SwiftUI 客户端 | 主线已具备 P0-A/P0-B/P0-C | 真实公开列表、发布与响应已在本地 main 通过 iPhone Simulator 测试；P0-D 真实追踪/交付、v3 视觉与真机端到端验收尚未完成 |
+| SwiftUI 客户端 | 主线已具备 P0-A/P0-B/P0-C 与 v3 基线 | 真实公开列表、发布、响应和五栏原生导航已在本地 main；P0-D 真实追踪/交付、首页内容社区收敛与真机端到端验收尚未完成 |
 | 云端后端 | 已上线 | Cloudflare Worker + D1 + R2，健康检查和完整业务闭环均已通过 |
 | 生产 API | 可用 | `https://haluowode-mvp.hanselzzh.workers.dev` |
 | 网页前端 | 历史原型 | `https://hanselzzh-wow.github.io/` 仅作为交互参考和接口验证，不是最终产品 |
@@ -56,9 +56,9 @@ Cloudflare Worker API
 
 ## 接下来三步
 
-1. 从最新 main 正式派发 `AG-006`，完成真实查询进度与交付能力预览。
-2. 按冻结 v3 实施 SwiftUI 视觉基线、App Icon、动态字体和关键页面截图验收。
-3. 在真实 iPhone 以 Personal Team 安装、完成受控端到端试用，再决定 TestFlight 准备项。
+1. 等 Antigravity 在原 worktree 提交 `AG-006` 修订，独立复验后受控合入 main。
+2. 等 Claude 完成 `CL-005` 首页内容社区检查点，冻结故事流与系统原生 Liquid Glass 导航的实现输入。
+3. 恢复 Xcode 27 CoreSimulator 后完成 iOS 27 截图验收；随后在真实 iPhone 以 Personal Team 安装并完成受控端到端试用。
 
 ## 短期目标（下一个可演示版本）
 
@@ -97,6 +97,16 @@ Cloudflare Worker API
 这些问题不阻塞 Xcode 环境检查、工程骨架、API Client 和低保真页面地图。
 
 ## 工作记录（只追加）
+
+### 2026-07-18：系统原生 Liquid Glass 已具备实现条件，Xcode 27 模拟器服务待恢复
+
+- 主线 `ContentView.swift` 已确认只使用原生五栏 `TabView` + `Label`，没有 `UITabBarAppearance`、自定义毛玻璃、阴影或手工安全区导航；iOS 27 编译目录已生成完整 `Haluowode.app`，可执行文件、`Info.plist` 与 Assets 均存在。
+- 本轮尝试完成真实 iOS 27 截图验收：CoreSimulator 首次安装连接中断，iPhone 17 Pro 长时间停在 `Booting`；`simctl` 明确返回 `CoreSimulatorService connection interrupted`、`Invalid device state` 与 `server died`。正常关机也被同一服务卡住，因此没有把启动、安装或 Liquid Glass 截图误标为通过。
+- Xcode 27 的设备入口 `Device Hub` 可以打开；开发目录、Xcode 版本与 first-launch 状态正常。当前问题被限定为 CoreSimulator 运行状态，不是 SwiftUI 解析错误、App bundle 缺失或签名问题。
+- 只读复查外部工作区：`AG-006` 仍停在 `4a30bd0` 加未提交修订，尚未删除外部网络测试或提供生产展示 helper；`CL-005` worktree 尚无设计资产或新提交。Codex 不修改两者源码，也不把等待误报为完成。
+- 验证结果：主线 App bundle 结构存在；原生 TabView 静态检查通过；主工作区未改动用户/Claude 的既有脏文件；本轮只更新项目日志。
+- 接下来三步：CoreSimulator 恢复后安装/启动/截图；验收并合入 AG-006 新提交；验收 CL-005 首页设计并拆最小 SwiftUI 实现任务。
+- 未决/阻塞：iOS 27 beta 的 CoreSimulator 服务需恢复或重启后才能完成截图；真实 iPhone 安装仍需要产品负责人届时在 Xcode 完成设备信任与 Personal Team 签名。
 
 ### 2026-07-18：建立全 App Apple 体验蓝图，统一栏目、反馈与动效决策
 
