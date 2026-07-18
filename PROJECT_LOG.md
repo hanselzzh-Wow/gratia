@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：明确团队算力分配，AG-006 保持由 Antigravity 交付
+
+- 产品负责人明确：Antigravity 是团队的主要工程实现产能，应承担复杂、明确且可验收的实现工作；Codex 与 Claude 的工作时间优先保留给产品判断、架构/安全、主线集成、设计决策与真实截图验收。协作规则和任务板已同步这一优先级。
+- `AG-006` 的短时额度冷却只表示暂停，绝不表示转派或撤销。Antigravity 恢复后仍在其原隔离 worktree 完成已有的修订反馈、测试、交接和提交；Codex 在此期间不触碰该任务源码。
+- 接下来三步：等待并收取 Antigravity 的 AG-006 修订交付；独立复验真实查询、取消、隐私和交付预览后合入 main；再创建 P0-D 后续的 Tab Bar／Progress／Delivery v3 视觉任务，并在真实 iPhone 完成 Personal Team 安装试用。
+
 ### 2026-07-18：生产公开列表只读联调复核
 
 - Codex 对生产兼容 Worker 执行只读 `GET /api/wishes` 健康检查，收到有效 JSON `{ "wishes": [] }`；当前公开队列为空，未产生任何发布、响应、追踪或运营写入。

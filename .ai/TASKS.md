@@ -9,7 +9,7 @@
 | ID | 负责人 | 状态 | 任务 | 允许写入 | 停止条件 |
 | --- | --- | --- | --- | --- | --- |
 | COORD-001 | Codex | ACCEPTED | 已审计未分配生成的 iOS 候选工程，建立协作制度并决定保留范围 | `AGENTS.md`、`PROJECT_LOG.md`、`README.md`、`.ai/**`、`docs/ios-candidate-review.md` | 审查结论已记录；后续按小任务选择性集成 |
-| COORD-002 | Codex | IN_PROGRESS | 统筹团队自主推进至真实 iPhone 可安装试用；定义验收、冻结设计、拆实现、完成构建与设备测试 | 协调文档、正式源码集成和验收所需路径 | `docs/ios-mvp-acceptance.md` 全部 P0 通过后结束 |
+| COORD-002 | Codex | IN_PROGRESS | 统筹团队自主推进至真实 iPhone 可安装试用；定义验收、冻结设计、拆实现、完成构建与设备测试；优先把可独立验证的复杂实现交由 Antigravity | 协调文档、正式源码集成和验收所需路径 | `docs/ios-mvp-acceptance.md` 全部 P0 通过后结束 |
 | AG-001 | Antigravity | ACCEPTED | 已提交此前候选工程的文件、命令、假设、验证、未验证项和风险交接 | `.ai/handoffs/AG-001-antigravity.md` | 交接已完成；当前没有新的实现任务，只能参与群聊 |
 | AG-002 | Antigravity | ACCEPTED | 已机械整理现有后端与 Swift 候选模型的 API 映射和差距 | 仅 `.ai/handoffs/AG-002-api-map.md` | 交接已完成；Codex 已在 `docs/ios-api-contract.md` 纠正边界并冻结 v1 |
 | AG-003 | Antigravity | ACCEPTED | R5 已删除 R4 测试中残留的 `@unchecked Sendable`/锁包装；真实取消与竞态证据独立复验通过，等待 Codex 选择性集成 | 仅本任务 R3/R4/R5 明列的隔离 worktree路径与交接文件 | 已验收；不得自动继续或领取新任务 |
@@ -24,6 +24,12 @@
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
 | CL-004 | Claude | ACCEPTED | 已交付 v3 SwiftUI 实施审计：冻结视觉的精确落地、差异与截图验收清单已可直接约束后续实现 | `.ai/handoffs/CL-004-swiftui-audit.md` | 已验收；Claude 停止，待视觉实现后再做截图审阅，不得自动重画或改源码 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
+
+## 执行资源优先级（产品负责人决定）
+
+- Antigravity 是默认的主要工程实现负责人：优先承接范围清晰、难度充分、可在隔离 worktree 中验收的纵向切片与测试工作。每张任务卡仍必须明确接口、允许/禁止路径、验收命令和停止条件。
+- Codex 保留在产品判断、架构/安全边界、跨任务集成、最终质量门和确有必要的高风险修订上；Claude 保留在设计决策、设计规格与真实截图审阅上。两者不常规接管可由 Antigravity 完成的实现工作。
+- `AG-006` 的额度冷却只是暂停，不是转派或撤销：恢复后 Antigravity 继续在原 worktree 阅读 `CHAT-20260718-194000-CODEX-046` 并完成修订、验证、交接。Codex 在此期间不修改该任务源码。
 
 ## 当前 iOS 候选工程的验收状态
 
