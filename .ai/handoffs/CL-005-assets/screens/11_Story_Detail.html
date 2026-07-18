@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>CL-005 · 11 故事详情 · 沉浸阅读态</title>
+<style>
+  :root{
+    --ink-900:#171310; --ink-700:#4A443C; --ink-500:#847C6F; --ink-300:#C4BBAC;
+    --hairline:#E9E1D2; --hairline-strong:#D8CDB8;
+    --canvas:#FFFFFF; --canvas-warm:#FBF6EC; --canvas-sunk:#F3ECDD;
+    --accent:#3E6B92; --danger:#B3452F; --success:#4C7A52;
+    --r-xs:6px; --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0;}
+  body{width:393px; height:852px; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; overflow:hidden;}
+  .screen{width:393px; height:852px; position:relative; background:var(--canvas-warm); overflow:hidden;}
+
+  /* 沉浸阅读：图/视频延伸到状态栏下方，状态栏与返回/点赞以浮层按钮呈现；
+     这是 NavigationStack push 的详情页，系统浮动 Dock 按平台默认在推入详情时隐藏（.toolbar(.hidden, for: .tabBar)），
+     不是本设计手工去掉导航,让阅读区不被导航元素打断。 */
+  .media-hero{position:absolute; top:0; left:0; right:0; height:404px; background:var(--canvas-sunk); overflow:hidden;}
+  .media-hero .ph-icon{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:40px; height:40px; color:var(--ink-300);}
+
+  .statusbar-overlay{position:absolute; top:0; left:0; right:0; height:47px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:var(--ink-900); z-index:2;}
+  .back-btn{position:absolute; top:59px; left:20px; width:34px; height:34px; border-radius:var(--r-pill); background:rgba(255,255,255,0.85); border:1px solid var(--hairline); display:flex; align-items:center; justify-content:center; z-index:3;}
+  .back-btn svg{width:15px; height:15px; color:var(--ink-900);}
+  .like-overlay{position:absolute; top:59px; right:20px; width:34px; height:34px; border-radius:var(--r-pill); background:rgba(255,255,255,0.85); border:1px solid var(--hairline); display:flex; align-items:center; justify-content:center; z-index:3;}
+  .like-overlay svg{width:16px; height:16px; color:var(--ink-700);}
+  .play-badge-lg{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:56px; height:56px; border-radius:var(--r-pill); background:rgba(23,19,16,0.55); display:flex; align-items:center; justify-content:center; z-index:2;}
+  .play-badge-lg svg{width:22px; height:22px; color:#fff;}
+
+  .panel{position:absolute; top:374px; left:0; right:0; bottom:0; background:var(--canvas-warm); border-radius:var(--r-lg) var(--r-lg) 0 0; padding:20px 20px 22px; overflow:hidden;}
+  .grabber{width:36px; height:4px; border-radius:var(--r-pill); background:var(--hairline-strong); margin:0 auto 16px;}
+
+  .meta-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .tag{display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; border:1px solid var(--hairline-strong); color:var(--ink-700); padding:3px 9px; border-radius:var(--r-pill);}
+  .tag svg{width:11px; height:11px;}
+  .meta-text{font-size:11.5px; color:var(--ink-500);}
+
+  .title{font-size:19px; font-weight:700; line-height:26px; color:var(--ink-900); margin:0 0 16px;}
+
+  .section-label{font-size:11.5px; font-weight:600; color:var(--ink-500); margin:0 0 6px; letter-spacing:.2px;}
+  .how-text{font-size:13px; line-height:19px; color:var(--ink-700); margin:0 0 16px;}
+
+  .quote-block{background:var(--canvas-sunk); border-radius:var(--r-md); padding:14px 16px; margin-bottom:18px;}
+  .quote-text{font-size:13px; line-height:19px; color:var(--ink-700); margin:0;}
+  .quote-text .mark{color:var(--ink-300); font-weight:700;}
+  .quote-attr{font-size:11px; color:var(--ink-500); margin:8px 0 0;}
+
+  .divider{height:1px; background:var(--hairline); margin:0 0 16px;}
+
+  .cta-stack{display:flex; flex-direction:column; gap:10px;}
+  .btn-primary-full{background:var(--ink-900); color:#fff; font-size:14.5px; font-weight:600; padding:13px; border-radius:var(--r-md); text-align:center;}
+  .btn-secondary-full{background:var(--canvas); color:var(--ink-900); border:1px solid var(--hairline); font-size:14.5px; font-weight:600; padding:13px; border-radius:var(--r-md); text-align:center;}
+</style>
+</head>
+<body>
+  <div class="screen">
+    <div class="media-hero">
+      <svg class="ph-icon" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="15" height="12" rx="2"/><circle cx="8" cy="9.3" r="1.2"/><path d="M4 15l4.2-4 3 2.8 3.3-3.2L18 14.5"/></svg>
+      <div class="play-badge-lg"><svg viewBox="0 0 22 22" fill="currentColor" stroke="none"><path d="M8.5 6.5l8 4.5-8 4.5V6.5Z"/></svg></div>
+    </div>
+    <div class="statusbar-overlay">9:41</div>
+    <div class="back-btn"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 5l-6.5 6.5 6.5 6.5"/></svg></div>
+    <div class="like-overlay"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 18.5s-6.6-4.1-6.6-8.9A4.3 4.3 0 0 1 11 6.3a4.3 4.3 0 0 1 6.6 3.3c0 4.8-6.6 8.9-6.6 8.9Z"/></svg></div>
+
+    <div class="panel">
+      <div class="grabber"></div>
+      <div class="meta-row">
+        <span class="tag"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="14" height="14" rx="2"/><path d="M8 4v14M4 9h4"/></svg>现场录像</span>
+        <span class="meta-text">上海 · 6 天前完成</span>
+      </div>
+
+      <p class="title">想请路过的人对着夜景说一句"生日快乐"，作为送给远方她的一份惊喜。</p>
+
+      <p class="section-label">如何完成</p>
+      <p class="how-text">一位刚好在附近、通过人工审核的朋友接下了这个心愿。当晚在指定地点用手机录制了 30 秒祝福视频，运营确认内容后转交给发布者，全程未公开双方的联系方式。</p>
+
+      <div class="quote-block">
+        <p class="quote-text"><span class="mark">"</span>收到视频的那一刻很意外，谢谢这位素不相识的朋友，也谢谢帮我完成这个小心愿的平台。<span class="mark">"</span></p>
+        <p class="quote-attr">— 心愿发布者</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="cta-stack">
+        <div class="btn-primary-full">我也想发布心愿</div>
+        <div class="btn-secondary-full">去附近看看能帮什么</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
