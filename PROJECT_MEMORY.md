@@ -22,7 +22,7 @@
 
 - **运行状态：产品负责人已恢复自主推进。** Codex 继续验收、集成和依赖驱动派发；外部负责人仍只做唯一已派任务，交接后停止。
 - `main` merge commit `296ab12` 已具备真实公开列表、发布、响应、查询进度/交付与 v3 基线（P0-A/B/C/D）。AG-006 独立质量门：Core 17/17、iPhone 17 Pro iOS 27 Simulator 23/23，0 failure/skip/runtime warning。
-- `AG-007`：Antigravity 未 ACK，Codex 已收回并在 `worktrees/ag-007-v3-progress-delivery` 接管；仍只做 Progress/Delivery v3 视觉收口，严禁修改真实状态机、其他页面、Tab Bar、后端或签名。
+- `AG-007`：Codex 接管实现 commit `4db9037`，App 23/23、Core 17/17、parser/扫描通过，状态 REVIEW。当前缺查询/404/delivered/媒体失败四态截图；环境只有 headless Simulator runtime，未加入生产测试后门。截图补齐前不 ACCEPTED、不启动 AG-008。
 - `CL-005` 已验收并以 `c19ca38` 合入设计资产；MVP 裁决为去框化 Hero、16:7 缩略图、无点赞、详情隐藏系统 Tab Bar。`AG-008` 已登记为 PLANNED，须等 AG-007 验收并冻结公开故事数据来源后才正式派发。
 - main 已在 iPhone 17 Pro、iOS 27 Simulator 完成 build/install/launch；系统原生浮动 Liquid Glass Tab Bar 截图可见。首次冷启动曾白屏约 27 秒后恢复，日志显示网络经本机代理成功 200；随后暖启动 0.64 秒并立即渲染，未稳定复现为 App 启动缺陷。真机安装仍未完成。
 

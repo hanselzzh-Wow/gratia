@@ -98,6 +98,14 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：AG-007 视觉实现通过自动质量门，因缺四态截图保持 REVIEW
+
+- Codex 在原隔离 worktree 只修改 `ProgressView.swift` 与 `DeliveryPreviewView.swift`：使用 v3 token、语义字体、FocusState、2pt accent/danger 描边、44pt 控件、零普通阴影/渐变/Emoji，并保留真实查询、取消、错误和隐私语义。
+- 实现提交 `4db9037`；iPhone 17 Pro iOS 27 Simulator App 23/23，0 failure/skip/runtime warning；Core 17/17；parser、禁止项/隐私扫描、diff check 通过。
+- 测试过程中两次编译错误均在提交前修正：`WishDeliverableDTO.kind` 实际为开放 `DeliveryKind` RawRepresentable，不是 `DeliveryType`/带 `.unknown` 的 enum；最终使用 `DeliveryKind` 与 default fallback。
+- 当前系统能 headless build/test/screenshot，但没有可操作的 `Simulator.app`，`simctl io` 不支持触摸；不修改禁止的 ContentView、不加生产 launch 后门，因此无法切换到进度 Tab 并生成查询/404/delivered/媒体失败四态截图。
+- AG-007 状态为 REVIEW，AG-008 继续 PLANNED。下一步优先用受控 UI fixture/可交互 Simulator 补截图；截图通过后才集成 main 并正式派发首页实现。
+
 ### 2026-07-18：收回未 ACK 的 AG-007，由 Codex 接管避免主线空转
 
 - AG-007 正式 TASK 已在隔离 worktree 提交，但执行者持续无 ACK、无文件改动、无新 commit；产品负责人连续要求继续推进。
