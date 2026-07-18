@@ -7,7 +7,7 @@
 ## 当前规则
 
 - Codex 作为 PM/协调人可以进行只读审计，并修改协调文档、项目日志和验收结果；已验收的 AG-003 已由 Codex 集成到本地主分支，后续正式实现仍必须使用独立 worktree。
-- Antigravity 的 `AG-002` 至 `AG-006` 已验收，`AG-006` 已合入本地 `main`。`AG-007` 已正式派发：Antigravity 只可在 `worktrees/ag-007-v3-progress-delivery` 的任务板精确允许路径内写入，且完成交接后立即停止；主工作区源码仍冻结。
+- Antigravity 的 `AG-002` 至 `AG-006` 已验收，`AG-006` 已合入本地 `main`。`AG-007` 因 Antigravity 未 ACK 已由 Codex 收回并在 `worktrees/ag-007-v3-progress-delivery` 接管；Antigravity 当前无源码写权限，主工作区源码仍冻结。
 - `CX-001` 已独立验收并合入本地 main。其首页、DesignSystem 与 App Icon 变更不触碰 Antigravity 的 Progress/Track/Delivery 路径；后续其余页面视觉改造需另建独立任务。
 - `CX-002` 已由 Codex 独立验收并合入本地 main；其 Nearby/详情/响应视觉变更不触碰 `AG-006` 的 Progress/Track/Delivery/Content 路径，也不改变已验收的 response ViewModel 行为。后续其余页面视觉改造必须另建独立任务。
 - `CX-003` 已由 Codex 独立验收并合入本地 main；其 Publish/Profile 视觉变更不触碰 `AG-006` 的 Progress/Track/Delivery/Content 路径、任何 ViewModel 或业务语义。后续 Tab Bar 必须在 P0-D 收口后另建独立任务。

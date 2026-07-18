@@ -98,6 +98,13 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：收回未 ACK 的 AG-007，由 Codex 接管避免主线空转
+
+- AG-007 正式 TASK 已在隔离 worktree 提交，但执行者持续无 ACK、无文件改动、无新 commit；产品负责人连续要求继续推进。
+- Codex 依协作规则收回尚未开始的 AG-007，不把它误报为外部执行中；原 worktree/分支与允许/禁止路径不变，负责人改为 Codex。
+- 本轮使用 Apple 原生设计原则中的 8pt 网格、语义字体、44pt 点击区和无障碍；项目冻结优先，拒绝技能通用示例中的自定义玻璃、渐变与普通卡阴影。
+- AG-008 仍保持 PLANNED，待 AG-007 完成后再由 Antigravity 正式领取，避免同一执行者并发任务和未验收依赖。
+
 ### 2026-07-18：main 首次完成 iOS 27 安装启动与系统 Liquid Glass 截图
 
 - Codex 从 main 构建 Simulator App，成功启动 iPhone 17 Pro iOS 27、安装 `Haluowode.app` 并以前台 PID 启动 `com.hanselzzh.haluowode`；不再把 bundle 生成或测试通过当作运行证据。

@@ -16,7 +16,7 @@
 | AG-004 | Antigravity | ACCEPTED | 真实发布心愿纵向切片已通过独立质量门，等待 Codex 隔离集成到本地主分支 | 仅下文列出的 `codex/ag-004-real-publish` worktree 路径 | 已验收；不得自动领取响应、追踪、交付或视觉重画 |
 | AG-005 | Codex | ACCEPTED | 真实提交响应已在隔离集成分支通过独立质量门；Codex 接管补齐 trim 编码断言与可读取结果包证据，准备合入 main | `codex/ios-response-integration` 的响应源码、测试、交接与协调文件 | 仅待合入 main 后完成；Antigravity 无权继续写入或自动领取后续任务 |
 | AG-006 | Antigravity | ACCEPTED | P0-D 真实查询进度与交付已通过 Core 17/17、iPhone Simulator 23/23、隐私/Mock 扫描并合入 main | 历史 worktree `worktrees/ag-006-real-track`；源码权限已收回 | 已验收合入；不得继续修改或自动领取任务 |
-| AG-007 | Antigravity | IN_PROGRESS | v3 进度与交付视觉收口：保留 AG-006 真实状态机与隐私边界，只统一 Progress/Delivery UI | 仅 `worktrees/ag-007-v3-progress-delivery` 的任务卡精确路径 | 截图、测试、交接、STATUS 后停止；不得领取首页、Tab Bar 或真机任务 |
+| AG-007 | Codex | IN_PROGRESS | v3 进度与交付视觉收口：Antigravity 未 ACK，Codex 收回并在原隔离 worktree 接管 | 仅 `worktrees/ag-007-v3-progress-delivery` 的任务卡精确路径 | 截图、测试、交接后独立复核；不得扩到首页、Tab Bar 或真机任务 |
 | AG-008 | Antigravity | PLANNED | 首页内容社区 SwiftUI：实现已授权完成故事正常/空/错误/详情与双 CTA | 待 AG-007 验收后创建独立 worktree；精确范围见下文 | 未正式 TASK 前不得写入；完成后交接并停止 |
 | CX-001 | Codex | ACCEPTED | v3 首页基础视觉与原创 App Icon 已在隔离分支通过构建、Simulator 截图与结构化测试后合入 main | `codex/v3-home-foundations` 的首页、DesignSystem、App Icon、交接与群聊 | 已完成；其余页面视觉改造必须另建任务，且不得触碰 AG-006 的范围 |
 | CX-002 | Codex | ACCEPTED | v3 附近、详情与真实响应表单视觉已通过独立编译、Core 15/15、iPhone Simulator 15/15 与禁止项扫描，并已合入本地 main | `codex/v3-nearby-response` 的 Nearby、交接与群聊 | 已完成；后续 Publish/Profile/Tab Bar 必须另建任务，且不得触碰 AG-006 的范围 |
@@ -535,7 +535,7 @@ Codex 已逐页查看 393×852 正常/空/故事详情，核验 3x 尺寸、HTML
 
 ## AG-008：首页内容社区 SwiftUI（PLANNED，尚未授权写入）
 
-负责人：Antigravity。依赖：`AG-007` 完成并经 Codex 验收后，才由 Codex 从最新 main 创建 `worktrees/ag-008-home-community` / `codex/ag-008-home-community` 并发送正式 TASK。当前不得创建分支、修改文件或提前实现。
+负责人：Antigravity。依赖：`AG-007` 完成并经 Codex验收后，才由 Codex 从最新 main 创建 `worktrees/ag-008-home-community` / `codex/ag-008-home-community` 并发送正式 TASK。当前不得创建分支、修改文件或提前实现。
 
 计划目标：把 `CL-005` 已接受的内容社区首页落为 SwiftUI，首页只展示经独立授权、脱敏的已完成故事，支持正常/空/加载/错误/详情和“发布/附近”双 CTA；不得把活跃市场数据或私人 track DTO 当作公开故事源。正式派发前 Codex 必须先冻结故事数据来源/API 边界；若后端尚无公开故事端点，首版只能实现诚实空态与本地编译期 Preview fixture，不得在运行时伪造故事。
 
