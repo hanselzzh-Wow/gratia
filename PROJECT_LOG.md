@@ -13,7 +13,7 @@
 | 模块 | 当前状态 | 说明 |
 | --- | --- | --- |
 | 产品方向 | 已纠正 | 最终消费者产品是原生 iOS App，不是网页 |
-| SwiftUI 客户端 | 可在 Simulator 冷启动的候选工程 | AG-003 候选已在 Xcode 27 编译、安装并冷启动；真实公开列表已获 HTTP 200 并正确展示空状态，尚未合入 main，也未完成完整业务闭环或真机验收 |
+| SwiftUI 客户端 | 主线已具备 P0-A/P0-B/P0-C | 真实公开列表、发布与响应已在本地 main 通过 iPhone Simulator 测试；P0-D 真实追踪/交付、v3 视觉与真机端到端验收尚未完成 |
 | 云端后端 | 已上线 | Cloudflare Worker + D1 + R2，健康检查和完整业务闭环均已通过 |
 | 生产 API | 可用 | `https://haluowode-mvp.hanselzzh.workers.dev` |
 | 网页前端 | 历史原型 | `https://hanselzzh-wow.github.io/` 仅作为交互参考和接口验证，不是最终产品 |
@@ -56,9 +56,9 @@ Cloudflare Worker API
 
 ## 接下来三步
 
-1. Claude 完成 `CL-001` 首轮 UI 设计；Antigravity 完成 `AG-002` API 字段映射。
-2. Codex 按 `docs/ios-mvp-acceptance.md` 自主冻结设计和客户端架构，决定候选代码保留/重构范围。
-3. 将真实 API Client、核心闭环和测试拆成小任务，实现后进入 Xcode 构建、模拟器和真机验收。
+1. 从最新 main 正式派发 `AG-006`，完成真实查询进度与交付能力预览。
+2. 按冻结 v3 实施 SwiftUI 视觉基线、App Icon、动态字体和关键页面截图验收。
+3. 在真实 iPhone 以 Personal Team 安装、完成受控端到端试用，再决定 TestFlight 准备项。
 
 ## 短期目标（下一个可演示版本）
 
@@ -97,6 +97,13 @@ Cloudflare Worker API
 这些问题不阻塞 Xcode 环境检查、工程骨架、API Client 和低保真页面地图。
 
 ## 工作记录（只追加）
+
+### 2026-07-18：P0-C 已合入本地 main，主线 Simulator 复验通过
+
+- Codex 将已验收的隔离提交以 merge commit `e8caa45` 合入本地 `main`。此次只包含真实提交响应的 SwiftUI、可注入 ViewModel、测试和交接/协调记录；用户已有的网页文件、Claude 资产及其他未跟踪修改均未触碰。没有推送、部署、签名或生产 API 写入。
+- 合入后再生成 Xcode 工程并复验：Foundation Core 15/15；iPhone 17 Pro（iOS 27）Simulator 的显式结果包 `/private/tmp/haluowode-main-p0c-20260718.xcresult` 显示 15/15、0 failure、0 skip、0 runtime warning。Swift parser 与 `git diff --check` 通过。Xcode 仍给出既有的 iOS 16 测试 target 连接更新 XCTest runtime linker warning，结构化测试结果为通过；该 warning 不涉及产品运行路径。
+- 当前可运行预览已覆盖真实公开列表、发布和响应，但“查进度/看交付”仍是 P0-D 未完成项，且当前界面尚未落地冻结 v3 视觉。因此可以展示原生模拟器，不应称为完整可试用 MVP 或进入真实 iPhone 安装验收。
+- 接下来三步：正式派发 P0-D；独立验收并合入真实追踪/交付；实施 v3 视觉并用模拟器截图由设计复核，随后再启动 Personal Team 真机闭环。
 
 ### 2026-07-18：AG-005 真实响应在 Codex 隔离集成分支验收通过，准备合入 main
 
