@@ -98,6 +98,30 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：把多 AI 任务完成与快速接班卡同步设为硬门槛
+
+- 产品负责人要求接班卡能直接约束 Claude 与 Antigravity 的交接，而非只提供 Codex 个人摘要。`PROJECT_MEMORY.md` 现明确：Antigravity 必交 commit/路径/实际验证/隐私/未验证项，Claude 必交资产/状态/token/无障碍/授权边界；两者交接后立即 STATUS 并停止。
+- 只有 Codex 可在独立验收、退回、合入、任务派发或关键环境/产品决策时更新接班卡、任务板与正式日志。任何未完成“交接 + 独立验收 + 接班卡同步”的工作不得标记完成或作为后续依赖。
+- 接班卡只重写短的当前事实/恢复顺序；完整命令输出、历史与验收证据继续只追加到本日志，既让新会话低 token 续接，也保留可审计记录。
+- 验证：`AGENTS.md` 与 `PROJECT_MEMORY.md` 的职责、禁止事项、触发事件和停止条件一致；没有扩大任何代理的源码、后端、签名或主分支权限。
+- 接下来三步：产品负责人重启 Mac；Codex 恢复 Simulator 验收；继续收取并独立验收 AG-006 与 CL-005。
+
+### 2026-07-18：建立短上下文接班卡，避免新会话重复恢复长历史
+
+- 新增根目录 `PROJECT_MEMORY.md`，作为每个新会话/新 AI 的短续接入口：只保留北极星、不可违背项、冻结体验、活跃 worktree、系统阻塞、恢复顺序和最小核验命令；它不记录密钥、PIN、证书或用户隐私。
+- `AGENTS.md` 现要求先读 `PROJECT_MEMORY.md`、协作规则和 README；需要验收细节、历史裁决或冲突追溯时才按需读长的 `PROJECT_LOG.md`。开始写入前读取冻结/任务板与核对当前 Git/worktree 的约束保持不变。
+- `README.md` 同步标注短上下文与长日志的分工。此后每次状态变化：更新接班卡的“当前事实/恢复顺序”，并向本日志追加可追溯事实，避免接班卡无限膨胀。
+- 验证：接班卡已覆盖原生 iOS/Cloudflare 边界、五栏职责、系统 Liquid Glass、AG-006/CL-005 状态、CoreSimulator 的系统级阻塞、真机 Personal Team 前置条件和快速核验命令。
+- 接下来三步：产品负责人重启 Mac；Codex 恢复 Simulator 安装/截图；继续收取并验收 AG-006 与 CL-005。
+
+### 2026-07-18：确认 CoreSimulator 运行时 launchd 故障，截图验收等待系统重启
+
+- 为排除单一设备残留状态，Codex 尝试启动全新的 iPhone 17 Pro Max（iOS 27.0）Simulator；`simctl` 返回 `Unable to boot the Simulator`，底层错误为 `launchd failed to respond` 与 `launchd_sim may have crashed or quit responding`。该设备保持 Shutdown，未改动项目、模拟器内容或签名。
+- 现有 iPhone 17 Pro 虽显示 Booted，但 `simctl install` 与 `listapps` 均不返回；结合干净设备启动失败，根因被定位为 macOS/CoreSimulator 运行时服务，不是 App bundle、SwiftUI、Cloudflare API、Apple Team 或项目代码。
+- 验收结论：当前可证明主线 `Haluowode.app` 已生成、设备列表可读取；不能证明 App 已安装、启动、截图或 iOS 27 Liquid Glass 的肉眼效果。下一次可视化验收前需要产品负责人完整重启 Mac，再由 Codex 重启 Xcode/Simulator 流程。
+- 外部任务状态不变：AG-006 未提交，CL-005 未交付；两者均不影响该系统级阻塞的定位。
+- 接下来三步：用户重启 Mac；Codex 重新启动干净 Simulator 并安装/截图；随后继续收取并验收 AG-006 与 CL-005。
+
 ### 2026-07-18：Simulator 恢复启动但安装回执仍未通过；AG-006 收敛项再次明确
 
 - iOS 27 的 iPhone 17 Pro 已恢复为 `Booted`，证明此前 CoreSimulator 的启动故障已缓解；当前 `simctl install` 对完整主线 `Haluowode.app` 仍连续超时且没有成功回执，已主动取消悬挂命令。因而“模拟器启动”可记为恢复，“App 已安装/已截图/Liquid Glass 已肉眼验收”仍全部未通过。

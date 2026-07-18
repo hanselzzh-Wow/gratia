@@ -2,7 +2,7 @@
 
 一个“替远方的人去现场完成小心愿”的产品。最终消费者客户端将使用 SwiftUI 开发为原生 iOS App，并以 TestFlight 和 App Store 上架为目标；当前仓库已有的 React 页面是历史原型和接口验证工具，不是最终消费者产品。
 
-项目当前状态、短期与长期目标、未决问题和逐步工作记录统一维护在 [PROJECT_LOG.md](PROJECT_LOG.md)。任何新加入的 AI 或开发者都应先阅读该文件。
+新会话或新 AI 请先阅读短的 [PROJECT_MEMORY.md](PROJECT_MEMORY.md)：它包含当前目标、硬约束、活跃任务、阻塞与恢复顺序。完整的历史、验收证据与逐步工作记录维护在 [PROJECT_LOG.md](PROJECT_LOG.md)，需要追溯时再按需查阅。
 
 原生客户端的页面结构、视觉方向和 UI 设计师交付要求见 [iOS UI 设计任务书](docs/ios-ui-design-brief.md)。
 
