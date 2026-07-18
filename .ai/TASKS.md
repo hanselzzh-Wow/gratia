@@ -16,6 +16,7 @@
 | AG-004 | Antigravity | ACCEPTED | 真实发布心愿纵向切片已通过独立质量门，等待 Codex 隔离集成到本地主分支 | 仅下文列出的 `codex/ag-004-real-publish` worktree 路径 | 已验收；不得自动领取响应、追踪、交付或视觉重画 |
 | AG-005 | Codex | ACCEPTED | 真实提交响应已在隔离集成分支通过独立质量门；Codex 接管补齐 trim 编码断言与可读取结果包证据，准备合入 main | `codex/ios-response-integration` 的响应源码、测试、交接与协调文件 | 仅待合入 main 后完成；Antigravity 无权继续写入或自动领取后续任务 |
 | AG-006 | Antigravity | IN_PROGRESS | P0-D 真实查询进度与交付：以公开编号和联系方式查询，展示真实状态/时间线/派单人与后端能力链接交付 | 仅 `worktrees/ag-006-real-track` / `codex/ag-006-real-track`，精确路径与验收见下文 | 只完成本任务后交接并停止；不得自行领取视觉、真机或其他功能 |
+| CX-001 | Codex | IN_PROGRESS | v3 首页基础视觉与 App Icon：冻结 token、无渐变/默认零阴影、动态字体和原创图标落地 | 仅 `worktrees/codex-v3-home-foundations` / `codex/v3-home-foundations` 的精确路径 | 完成首页与图标的独立构建/截图验收后停止，不触碰 Progress 或其它页面 |
 | CL-001 | Claude | ACCEPTED | 已产出首轮 UI 设计：优先 8 组页面、Design System、文案和状态覆盖 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 已评审并冻结到 `docs/ios-design-freeze-v1.md` |
 | CL-002 | Claude | SUPERSEDED | 已补齐 v2.1 的响应、交付、Profile、安全页和蓝色 App Icon；信息结构保留，视觉因用户新反馈不进入实现 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 旧稿保留为状态与文案参考，不再继续迭代 |
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
@@ -260,6 +261,37 @@ git diff --check
 ```
 
 交接必须列实际发现/执行/通过数、每个生产状态、请求 ID/字段断言、取消观察、完整改动路径、warning、未验证项和 commit SHA。完成后 STATUS 并停止；越界或接口疑问先 `OBJECTION`。
+
+## CX-001：v3 首页基础视觉与 App Icon（Codex，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/codex-v3-home-foundations`
+
+分支：`codex/v3-home-foundations`
+
+唯一目标：将冻结的 v3 Foundations 落到 `DesignSystem.swift` 与首页，并将已冻结的原创 Icon A 作为实际 App Icon 接入。该任务提供下一轮可视化 Simulator 检查点；不改变任何业务 API、状态机、进度/交付代码或其它页面视觉。
+
+允许修改：
+
+- `ios/Haluowode/DesignSystem.swift`
+- `ios/Haluowode/HomeView.swift`
+- `ios/Haluowode/Assets.xcassets/AppIcon.appiconset/**`
+- `ios/Haluowode.xcodeproj/**`（仅在 XcodeGen 重新生成后出现必要差异时）
+- `ios/project.yml`（仅项目资源引用确有必要时）
+- `.ai/handoffs/CX-001-v3-home-foundations.md`
+- `.ai/TEAM_CHAT.md`（只追加 STATUS）
+
+禁止修改：`ProgressView.swift`、`TrackWishViewModel.swift`、`DeliveryPreviewView.swift`、其它四个页面、任何 ViewModel/Core Sources、后端/数据库/部署、签名/Apple 设置、依赖、生产 API、冻结设计文档、主工作区或 Git 历史；不得增加 Emoji、渐变、图片背景、第三方商标或新业务。
+
+必须交付：
+
+1. `DesignSystem` 与 `docs/ios-design-freeze-v3.md` 精确对齐：暖蓝 `#3E6B92`、暖白 canvas、sunk canvas、两级 hairline、暖黑/暖灰、danger/success、8 级间距、5 级圆角，并保留业务代码所需的兼容 token；不得保留 golden emphasis 语义。
+2. 全局按钮与背景迁移到语义化 Dynamic Type、v3 color/radius token；默认零阴影，不能让按钮/卡片因 token 替换回到旧蓝或系统红。
+3. 首页去除全部 `LinearGradient` 和 `.shadow`，使用 `canvas`、1pt hairline、冻结圆角和 Dynamic Type；保留现有加载/空/错/已加载状态与真实列表调用。`loaded` 横卡采用 140pt、12pt 间距和可见 trailing peek；不得为截图伪造数据。
+4. 顶栏图标必须为 SF Symbols Regular 风格且具有 44×44pt 点击区；不得使用 Emoji 或填充式第三方外观。失败态和安全提示都需使用 v3 danger/accent 的文本/图标双重表达。
+5. 从 `.ai/handoffs/CL-003-assets/icon/icon-a-warm-1024.png` 生成并接入全部 `AppIcon.appiconset` 必需尺寸。仅使用该冻结原创资产，不重画/不使用网络素材。
+6. 写入交接，包含精确 token、图标源/导出尺寸、修改路径、未验证项和实际命令结果。用 XcodeGen、Swift parser、Core 测试、iPhone 17 Pro Simulator build/launch、`git diff --check`、零 Emoji/零渐变/零 Home shadow 扫描、截图人工对比验收；不得以编译通过替代截图。
+
+停止条件：提供 iPhone 17 Pro Simulator 截图和可读取验证结果后立即停止，等待 Codex 集成；后续其余页面 v3 改造另建任务，绝不顺手扩范围。
 
 ## AG-006：真实查询进度与交付（P0-D，IN_PROGRESS，已派发）
 

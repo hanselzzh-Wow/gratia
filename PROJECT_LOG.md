@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：创建 Codex v3 首页/App Icon 隔离视觉切片，与 P0-D 并行
+
+- 为避免“等真实进度页完成才让产品负责人看到接近冻结方向的原生 UI”，Codex 创建 `CX-001`：只在独立 worktree 落地 v3 token、首页与冻结原创 Icon A。该任务禁止触碰 P0-D 的 Progress/Track/Delivery 路径，因此与 Antigravity 的 `AG-006` 可并行且不会产生代码冲突。
+- 视觉切片的固定验收是：暖白/暖蓝/细描边、默认零阴影、零渐变、零 Emoji、Dynamic Type、首页真实状态逻辑不变、140pt 横卡 trailing peek、44pt 顶栏点击区，以及从冻结 1024 原图生成全尺寸 App Icon。只提供真实 Simulator 截图，不为演示伪造心愿数据。
+- 接下来三步：完成 `CX-001` 并截图；收取 `AG-006` ACK/交付并独立验收；合并两条互不重叠的分支后，将 v3 扩展到其它页面并进入真机端到端验证。
+
 ### 2026-07-18：最新 main 原生模拟器预览已启动并留档
 
 - Codex 对合入 P0-C 后的本地 main 重新 Debug build，在 iPhone 17 Pro（iOS 27）Simulator 安装并冷启动 `com.hanselzzh.haluowode`，截图为 `/private/tmp/haluowode-main-p0c-preview.png`。该截图已供产品负责人查看，代表当前真实可运行 SwiftUI 候选，不是网页或静态设计稿。
