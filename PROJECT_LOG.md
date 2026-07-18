@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：AG-006 首轮独立验收完成，退回原实现者修订
+
+- Antigravity 已提交 `4a30bd0` 和交接。Codex 的独立证据为：Foundation Core 17/17 通过；iPhone 17 Pro（iOS 27）Simulator 结构化结果 21/21、0 failure、0 skip、0 runtime warning；真实追踪状态机、取消、实际去重、contact 成功清除和 404 固定脱敏文案均可在代码/测试中核对。
+- 该提交暂不 ACCEPTED：`git diff --check b199b17..4a30bd0` 实测在 `DeliveryPreviewView.swift:68` 报尾随空格；视频 `VideoPlayer` 没有可见失败态；Progress 输入有效性仍用 `.whitespaces`；404 的不泄露测试与 delivered=“待确认”回归断言未达到任务卡。已用精确可复验清单退回 Antigravity 的原 worktree，Codex 不代改源码。
+- 接下来三步：收取并复验 AG-006 修订提交；合入 P0-D 后创建 Tab Bar／Progress／Delivery v3 视觉任务；使用 Personal Team 在真实 iPhone 跑受控端到端试用。
+
 ### 2026-07-18：明确团队算力分配，AG-006 保持由 Antigravity 交付
 
 - 产品负责人明确：Antigravity 是团队的主要工程实现产能，应承担复杂、明确且可验收的实现工作；Codex 与 Claude 的工作时间优先保留给产品判断、架构/安全、主线集成、设计决策与真实截图验收。协作规则和任务板已同步这一优先级。
