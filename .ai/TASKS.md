@@ -12,10 +12,11 @@
 | COORD-002 | Codex | IN_PROGRESS | 统筹团队自主推进至真实 iPhone 可安装试用；定义验收、冻结设计、拆实现、完成构建与设备测试 | 协调文档、正式源码集成和验收所需路径 | `docs/ios-mvp-acceptance.md` 全部 P0 通过后结束 |
 | AG-001 | Antigravity | ACCEPTED | 已提交此前候选工程的文件、命令、假设、验证、未验证项和风险交接 | `.ai/handoffs/AG-001-antigravity.md` | 交接已完成；当前没有新的实现任务，只能参与群聊 |
 | AG-002 | Antigravity | ACCEPTED | 已机械整理现有后端与 Swift 候选模型的 API 映射和差距 | 仅 `.ai/handoffs/AG-002-api-map.md` | 交接已完成；Codex 已在 `docs/ios-api-contract.md` 纠正边界并冻结 v1 |
-| AG-003 | Antigravity | IN_PROGRESS | `bd87072` R1 有真实进步但仍被拒；按 `docs/reviews/ag-003-r1-review.md` 完成 R2 类型检查、城市筛选、请求测试、取消与依赖注入修订 | 原 AG-003 允许范围；另可新增响应 ViewModel、更新主区交接并追加群聊 | R2 全部验收通过、追加修订 commit、更新交接/STATUS 后停止 |
+| AG-003 | Antigravity | ACCEPTED | R5 已删除 R4 测试中残留的 `@unchecked Sendable`/锁包装；真实取消与竞态证据独立复验通过，等待 Codex 选择性集成 | 仅本任务 R3/R4/R5 明列的隔离 worktree路径与交接文件 | 已验收；不得自动继续或领取新任务 |
+| AG-004 | Antigravity | IN_PROGRESS | 真实发布心愿纵向切片：将三步发布表单接入现有 Cloudflare 兼容 API，完成校验、提交、成功/失败和单元测试 | 仅下文列出的 `codex/ag-004-real-publish` worktree 路径 | 提交、交接、STATUS 后立即停止；不得领取响应、追踪、交付或视觉重画 |
 | CL-001 | Claude | ACCEPTED | 已产出首轮 UI 设计：优先 8 组页面、Design System、文案和状态覆盖 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 已评审并冻结到 `docs/ios-design-freeze-v1.md` |
 | CL-002 | Claude | SUPERSEDED | 已补齐 v2.1 的响应、交付、Profile、安全页和蓝色 App Icon；信息结构保留，视觉因用户新反馈不进入实现 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 旧稿保留为状态与文案参考，不再继续迭代 |
-| CL-003 | Claude | IN_PROGRESS | 按 `docs/ios-visual-direction-v3.md` 制作零 Emoji、零渐变、温暖柔和且内容主导的视觉检查点 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、群聊追加 | 完成 3 个 Icon 方向、4 个关键页面、Foundations 与 1x/3x 导出，发 STATUS 后停止等待用户/Codex 评审 |
+| CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 当前 iOS 候选工程的验收状态
@@ -101,6 +102,117 @@ R1 交付还必须逐项填写 `docs/agent-delivery-quality-gate.md` 的存在�
 
 R1 的 12 个测试在 CLT workaround 下已由 Codex 独立确认真实通过，但 App typecheck 存在 `ProgressView` 同名遮蔽；“全部/全国”会发错 query；请求构造、响应 200、真实取消和 consent 明示仍未覆盖。完整证据与 R2 范围见 `docs/reviews/ag-003-r1-review.md`。修复责任继续归 Antigravity，不降低任务复杂度，也不由 Codex 代写。
 
+### AG-003 R3：真实取消、生产竞态与编码证据
+
+产品负责人已于 2026-07-18 恢复本任务。必须继续使用原工作区和分支：
+
+- worktree：`/Users/hansangbai/Documents/New project/worktrees/ag-003-core-api`
+- branch：`codex/ag-003-core-api`
+
+允许修改（仅限下列路径）：
+
+- `ios/Haluowode/WishListViewModel.swift`
+- 新建 `ios/HaluowodeTests/**`
+- `ios/project.yml` 与由该文件生成的 `ios/Haluowode.xcodeproj/**`
+- `ios/Packages/HaluowodeCore/Tests/HaluowodeCoreTests/HaluowodeCoreTests.swift`
+- `.ai/handoffs/AG-003-core-api.md`（交接报告；只追加/更新当前任务结论，不重写历史证据）
+- `.ai/TEAM_CHAT.md`（只能按格式追加 ACK/STATUS）
+
+禁止修改：任何其他 `ios/Haluowode/*.swift`、`ios/Packages/HaluowodeCore/Sources/**`、视觉 Token/资源、发布/进度/我的、后端、数据库、部署、生产 API、主工作区源码、`PROJECT_LOG.md`、`README.md`、`.ai/TASKS.md`、`.ai/WRITE_FREEZE.md`、Git 历史、签名配置和第三方依赖。
+
+权威输入：
+
+- `docs/reviews/ag-003-r2-runtime-review.md`
+- `docs/ios-api-contract.md`
+- `docs/ios-architecture.md`
+- `docs/agent-delivery-quality-gate.md`
+
+必须交付：
+
+1. 为 `WishListViewModel` 建立真实 iOS 单元测试 target（不得用局部整数或复制生产算法冒充测试）。可在 `project.yml` 添加 `HaluowodeTests` 后使用已验证的临时官方 XcodeGen 2.46.0 生成 project；不得安装其他依赖或手改生成工程绕过源配置。
+2. 使用可控、会真正等待的 `WishAPIProtocol` 测试替身，证明：请求 A 在等待时，开始请求 B 会使 A 的在途请求观察到取消；B 成功后，A 无论返回或抛错都不能覆盖 `WishListViewModel.state`。生产代码必须主动取消过期请求，不能只靠局部 generation guard 忽略旧结果。
+3. 使用同一真实生产 `WishListViewModel`，证明取消调用者的 `Task` 会传递给等待中的网络请求，且不把已取消请求显示为错误状态。测试不能预先让 mock 直接抛取消错误，也不能接受任何未断言的错误类型。
+4. 补全 `testCreateWishResponseSuccess201`：断言 POST method、path、`content-type`、`responderName`、`responderContact`、`note`、`contactConsent`，并断言 `website` 不在 body；断言响应的 `created`、id、name、contact 和 note。
+5. 保持公开列表运行时不读 `Wish.mockWishes`，不加入管理凭据、生产写入测试或视觉改造。
+
+验收命令（先在隔离 worktree 执行；有 Xcode 27 时不得只报 parser）：
+
+```bash
+/private/tmp/xcodegen-2.46.0-release/xcodegen/bin/xcodegen generate --spec ios/project.yml
+swift test --package-path ios/Packages/HaluowodeCore --scratch-path /private/tmp/haluowode-core-r3 --disable-xctest --enable-swift-testing
+xcodebuild -project ios/Haluowode.xcodeproj -scheme Haluowode -destination 'platform=iOS Simulator,id=742A9D34-5F88-4578-BB12-851A00D2C0FE' -derivedDataPath /private/tmp/haluowode-r3-tests test
+swiftc -frontend -parse ios/Haluowode/*.swift
+rg -n "Wish\.mockWishes|DispatchQueue\.main\.asyncAfter" ios/Haluowode/HomeView.swift ios/Haluowode/NearbyView.swift ios/Haluowode/Models.swift
+rg -n -i "admin|x-admin-key|api[_-]?key|cloudflare.*token" ios/Packages/HaluowodeCore ios/Haluowode
+git diff --check
+```
+
+交接必须写出实际发现/执行/通过测试数量、每个真实取消门的观察方法、所有修改路径、未验证项和 commit SHA。完成后立即发 STATUS 并停止；不得领取发布、追踪、响应或视觉任务。
+
+### AG-003 R4：旧请求晚到行为与 Swift 6 并发测试兼容性
+
+R3 的 `28492e8` 已通过真实 15 个 Core 测试、2 个 iOS Simulator XCTest、工程生成和静态扫描，但未满足完整竞态证明；详见 `docs/reviews/ag-003-r3-review.md`。继续使用同一 worktree、分支、允许路径、禁止路径和停止条件，不增加任何产品功能。
+
+必须修改并证明：
+
+1. 可控 API 替身收到 A 的取消时要记录取消，但能由测试选择保留 A 的 continuation；B 已完成后，分别让 A 晚到成功、晚到失败，两个分支都必须实际恢复 A 的等待调用并断言 production `WishListViewModel.state` 仍为 B 的 `.loaded`。
+2. 用 actor 或同等 Swift 6 安全机制替换 async context 中的 `NSLock` 和 `@unchecked Sendable`；Xcode 27 的 `WishListViewModelTests` 不得留下该类并发警告。
+3. Core `testRequestCancelled` 用确定性的请求已进入 transport gate 替换 2ms sleep，确保取消是针对真实在途请求。
+4. 重新执行 R3 的全部验收命令，交接如实列出实际发现/执行/通过数、编译 warning、已验证和未验证项；提交 R4、追加 STATUS 后立即停止。
+
+R4 不是 main 合入授权；在 Codex 独立验收前，AG-003 保持 `IN_PROGRESS`。
+
+### AG-003 R5：删除残留的手工 Sendable/锁包装
+
+R4 commit `ba6703c` 已获 15/15 Core 与 3/3 可读取 Simulator XCTest 的独立证据，完整结论见 `docs/reviews/ag-003-r4-review.md`。只剩一个明确不合格点：测试 actor 内仍定义 `ThreadSafeCancelledSet: @unchecked Sendable` 和 `NSLock`。这违反 R4 的“以 actor 安全机制替代 `@unchecked Sendable`/锁包装”要求。
+
+继续使用同一 worktree、分支和允许路径；只允许修改 `ios/HaluowodeTests/WishListViewModelTests.swift` 以及必要交接/群聊。删除该 class，让 `ControllableMockAPI` actor 直接保存取消城市的 `Set<String>`；不得改 production ViewModel、Core source、接口、页面或工程配置。重跑三条 iOS XCTest、Core 15 测试、parser/扫描/diff check，交接实际结果，提交 STATUS 后停止。
+
+## AG-004：真实发布心愿（P0-B）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/ag-004-real-publish`
+分支：`codex/ag-004-real-publish`
+
+前置：`main` 的 `dd46951`（AG-003 的已验收 API 基础集成）和 `docs/ios-design-freeze-v3.md`。
+
+唯一目标：把现有三步 `PublishView` 的本地假成功替换为真实的可注入 `WishAPIProtocol.createWish` 调用。完成后用户能在模拟器中填写、校验、提交，并看到后端返回的公开编号；本任务不得对生产 API 发起写请求，运行时联调由 Codex 另行执行。
+
+允许修改（仅限下列路径）：
+
+- `ios/Haluowode/PublishView.swift`
+- 新建 `ios/Haluowode/PublishWishViewModel.swift`
+- `ios/Haluowode/ContentView.swift`（仅 API 注入/发布入口所需的最小改动）
+- 新建 `ios/HaluowodeTests/PublishWishViewModelTests.swift`
+- `ios/project.yml` 与由此生成的 `ios/Haluowode.xcodeproj/**`
+- `.ai/handoffs/AG-004-real-publish.md`（交接）
+- `.ai/TEAM_CHAT.md`（仅追加 ACK/STATUS）
+
+禁止修改：`HaluowodeCore` Sources、`HomeView`、`NearbyView`、`ProgressView`、`ProfileView`、`Models.swift`、视觉资源/DesignSystem、后端/数据库/部署、生产 API、主工作区、任务板/冻结/项目日志、Git 历史、签名、依赖；不得增加 emoji、渐变、运营入口、账号、支付或本地假成功。
+
+必须交付：
+
+1. `@MainActor` 的 `PublishWishViewModel`，依赖可注入 `WishAPIProtocol`；`PublishView` 不得直接拼 URL 或调用 `URLSession`。
+2. 草稿覆盖现有字段，并将中文交付方式映射为 `DeliveryType`；`deadlineText` 使用明确、可测试的用户可见日期格式；感谢金由元正确换算为分。
+3. 提交前按 `docs/ios-api-contract.md` 校验请求字段长度、金额范围、交付方式与未预勾选的联系同意。无效时不得调用 API；提交中禁用重复提交；取消、400、429、网络和解码失败均保留草稿并给出不泄露联系信息的可重试提示。
+4. 201 与重复提交 200（`created == false`）都进入成功状态，显示真实 `publicCode`；成功状态不得把联系方式写入 `UserDefaults`、日志、公开列表或屏幕复制内容。
+5. 删除 `PublishView` 内的 `DispatchQueue.main.asyncAfter`、伪造编号及向 `Wish.mockWishes` 写入的运行时路径；不得以 Preview Mock 冒充运行时成功。
+6. 为真实 production ViewModel 增加测试替身和最少覆盖：无效输入不调用 API、正确 `CreateWishRequest` 编码、201、重复 200、失败保留草稿、提交中去重、caller 取消不显示失败。测试不得访问生产网络。
+7. 仅使用 `docs/ios-design-freeze-v3.md` 的禁止约束：不新增 Emoji 或渐变；不在此任务重画全局视觉。
+
+验收命令（在本 worktree 执行）：
+
+```bash
+/private/tmp/xcodegen-2.46.0-release/xcodegen/bin/xcodegen generate --spec ios/project.yml
+swift test --package-path ios/Packages/HaluowodeCore --scratch-path /private/tmp/haluowode-core-ag004 --disable-xctest --enable-swift-testing
+xcodebuild -project ios/Haluowode.xcodeproj -scheme Haluowode -destination 'platform=iOS Simulator,id=742A9D34-5F88-4578-BB12-851A00D2C0FE' -derivedDataPath /private/tmp/haluowode-ag004-tests -only-testing:HaluowodeTests test
+swiftc -frontend -parse ios/Haluowode/*.swift
+rg -n 'DispatchQueue\.main\.asyncAfter|Wish\.mockWishes' ios/Haluowode/PublishView.swift ios/Haluowode/PublishWishViewModel.swift
+rg -n -i 'admin|x-admin-key|api[_-]?key|cloudflare.*token' ios/Packages/HaluowodeCore ios/Haluowode
+git diff --check
+```
+
+交接必须给出实际发现/执行/通过测试数、ViewModel 每个状态的行为、完整改动路径、实际 warning、未验证项和 commit SHA。完成后发 STATUS 并停止。任何异常、接口差异或越界需求先发 `OBJECTION`，不得自行扩展。
+
 ## CL-002 P0 设计补齐
 
 状态：`SUPERSEDED FOR VISUALS`。其业务状态、文案和隐私处理可作为 CL-003 输入，但不得直接作为 SwiftUI 最终视觉。
@@ -127,6 +239,19 @@ R1 的 12 个测试在 CLT workaround 下已由 Codex 独立确认真实通过�
 - 不使用任何渐变；产品色彩保持克制，丰富色彩留给用户上传的照片和视频。
 - 第一检查点只交付 3 个 Icon 方向、首页、附近、详情与响应、一个复杂信息页和 v3 Foundations；先让用户可视化评审，再全量重画。
 - 卡片圆角、字体字号、行高、字重、间距、描边和图标线宽必须在 Foundations 中给出可追溯 Token。
+
+### CL-003 R1：检查点交付完整性
+
+`CL-003` 的方向性视觉质量已通过 Codex 中途评审，正式结论见 `docs/reviews/cl-003-checkpoint-review.md`；当前不接受以“多状态合板 1x”替代每页 3x 导出。保持原有允许路径和禁止路径，不得重画或新增页面。
+
+必须：
+
+1. 交付 `22_Detail_Response`、`41_Tracking_Detail` 的 3x PNG；
+2. 改善首页横向心愿卡的静态裁切，提供可见的横向浏览意图和可落地的 SwiftUI `ScrollView(.horizontal)`/trailing inset 说明；
+3. 在交接中按页面补齐 SwiftUI token、状态和无障碍注意项，明确 `#3E6B92` 与 Icon A 均为待产品负责人确认的开放决定；
+4. 重新做零 Emoji/零渐变检查，更新交接、发 STATUS 后立即停止。
+
+不得修改 SwiftUI、后端、任务/冻结/项目日志或任何 CL-003 之外的资产。
 
 ## 新任务创建要求
 

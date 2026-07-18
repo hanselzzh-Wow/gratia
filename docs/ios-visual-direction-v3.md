@@ -1,6 +1,6 @@
 # iOS MVP 视觉方向 v3
 
-状态：`USER-DIRECTED / CL-003 IN PROGRESS`
+状态：`FROZEN / CL-003 ACCEPTED`（实现基线见 `docs/ios-design-freeze-v3.md`）
 日期：2026-07-18（Asia/Shanghai）
 
 本文件记录用户查看实际预览后的最新视觉裁决，优先级高于 `docs/ios-design-freeze-v1.md` 中的视觉 Token。旧版的信息架构、业务状态与隐私约束仍可复用，但不得直接照搬旧版视觉。

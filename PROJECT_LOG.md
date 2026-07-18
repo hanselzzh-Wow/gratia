@@ -13,7 +13,7 @@
 | 模块 | 当前状态 | 说明 |
 | --- | --- | --- |
 | 产品方向 | 已纠正 | 最终消费者产品是原生 iOS App，不是网页 |
-| SwiftUI 客户端 | 未验收候选工程 | Antigravity 未经任务分配生成了 `ios/` 候选骨架；仅通过语法/格式检查，尚未用 Xcode 编译或接入真实 API |
+| SwiftUI 客户端 | 可在 Simulator 冷启动的候选工程 | AG-003 候选已在 Xcode 27 编译、安装并冷启动；真实公开列表已获 HTTP 200 并正确展示空状态，尚未合入 main，也未完成完整业务闭环或真机验收 |
 | 云端后端 | 已上线 | Cloudflare Worker + D1 + R2，健康检查和完整业务闭环均已通过 |
 | 生产 API | 可用 | `https://haluowode-mvp.hanselzzh.workers.dev` |
 | 网页前端 | 历史原型 | `https://hanselzzh-wow.github.io/` 仅作为交互参考和接口验证，不是最终产品 |
@@ -97,6 +97,205 @@ Cloudflare Worker API
 这些问题不阻塞 Xcode 环境检查、工程骨架、API Client 和低保真页面地图。
 
 ## 工作记录（只追加）
+
+### 2026-07-18：真实公开列表/API 基础已合入本地主分支，派发受控的真实发布任务
+
+- Codex 已将隔离提交 `08fe809` 以 merge commit `dd46951` 合入本地 `main`；合入前确认主工作区没有 `ios/` 本地改动，Claude 设计资产和用户未跟踪网页/桥接文件原样保留。没有推送、部署、签名或生产写入。
+- 合入内容提供 Foundation-only `HaluowodeCore`、真实公开列表 Client、首页/附近共享 `WishListViewModel`、取消/竞态保护、Core 15 条与 iOS 3 条已验证测试；原 R5 的 3 处 trailing whitespace 已由 Codex 在独立集成分支机械清理。
+- 已创建 `AG-004`：Antigravity 在新 worktree 只实现 P0-B 真实发布心愿。任务明确禁止生产写入测试、进度/交付/响应扩展、Emoji、渐变和视觉重画；需要真实 production ViewModel 测试、草稿隐私与可重试错误状态。
+- 接下来三步：创建 AG-004 隔离 worktree 并让其 ACK；Codex 审查主分支集成状态；AG-004 交付后独立复验，再派发 P0-C/P0-D。
+
+### 2026-07-18：AG-003 已进入 Codex 隔离集成复验，尚未触及主分支或生产环境
+
+- Codex 从 `main` 创建独立 worktree/分支 `codex/ios-api-base-integration`，以非提交合并方式纳入已验收的 `codex/ag-003-core-api`；自动合并无冲突，主工作区的 Claude 资产、用户未跟踪网页文件和主分支均未改动。
+- 在集成 worktree 中，Codex 仅机械删除 `HTTPTransport.swift` 的 3 处 trailing whitespace；XcodeGen 从 `ios/project.yml` 再生成工程、Swift parser、运行时 Mock/假延时扫描与管理凭据扫描均通过。
+- 独立测试：Foundation Core 实际 15/15 通过；iPhone 17 Pro（iOS 27）Simulator 的 `WishListViewModelTests` 实际 3/3 通过、0 failure/skip、无 runtime warning。Xcode 仍显示 iOS 16 测试 target 链接到较新 XCTest runtime 的既有 linker warning，但结构化结果为通过。
+- 接下来三步：在隔离分支提交该集成；复查提交范围与完整构建；创建后续真实发布、响应、追踪与交付闭环任务，禁止自动写生产测试数据。
+
+### 2026-07-18：验收 AG-003 R5，Antigravity 已停止等待后续指令
+
+- Codex 对 `0f07e6633e56adad047fcebf499f3cc156595792` 复查：R5 已删除 `ThreadSafeCancelledSet`、`@unchecked Sendable` 与 `NSLock`，取消记录直接由 `ControllableMockAPI` actor 内 `Set<String>` 隔离；隔离 worktree 干净。
+- 独立结果：Core Swift Testing 实际 15/15 通过；iPhone 17 Pro（iOS 27）Simulator 中 `WishListViewModelTests` 实际 3/3 通过、0 failure/skip、无 runtime warning；Swift parser、Mock/假延时与管理凭据扫描通过。
+- 分支全量格式检查仍发现 `HTTPTransport.swift` 的 3 处历史 trailing whitespace；它不属于 R5 允许改动范围，也不影响行为验收，Codex 将在独立集成步骤机械清理后复验，绝不要求 Antigravity 继续等待或扩展任务。
+- `AG-003` 已标记 ACCEPTED。Antigravity 界面的 `Non-blocking wait for task-750 execution` 属于其子任务调度等待，不是产品构建错误；当前可以停止该会话。
+- 接下来三步：创建隔离集成分支并清理格式后复验；合入真实列表/API 基础；按冻结 v3 视觉基线创建真实发布、响应、追踪与交付纵向闭环任务。
+
+### 2026-07-18：CL-003 通过并冻结原生 SwiftUI 视觉基线 v3
+
+- Codex 实际查看更新后的首页 393×852 1x：两张 140pt 横卡与 12pt 间距后，第三张卡真实露出约 49pt，确认横向浏览提示不再是代码意图或错误裁切；对应 3x 为 1179×2556。
+- 四个检查点页面均具备 1x/3x 导出；HTML/SVG 规则扫描没有实际 UI Emoji 或渐变。详情/响应 Bottom Sheet、进度多状态、逐页 token/状态/VoiceOver 说明、默认零阴影策略均通过。
+- 新增 `docs/ios-design-freeze-v3.md`，并把 `docs/ios-visual-direction-v3.md` 标记为冻结：采用原创 Icon A（路径与抵达点）和暖蓝 `#3E6B92`；暖中性色、圆角、字级、8pt 间距、SF Symbols 与唯一 Bottom Sheet 极轻阴影均成为后续 SwiftUI 任务的强制输入。
+- `CL-003` 已改为 ACCEPTED，群聊 `CHAT-20260718-153000-CODEX-025` 已通知 Claude 停止。旧 `ios-design-freeze-v1.md` 的视觉 token 被 v3 替代，但业务状态与隐私约束仍保留。
+- 接下来三步：等待 Antigravity 完成 AG-003 R5 的极小并发安全清理；独立复验后接受/合入真实列表与 API 基础；创建独立 worktree 实现真实发布、响应、追踪和交付闭环。
+
+### 2026-07-18：AG-003 R4 运行时质量门全部通过，R5 只清理残留的手工并发承诺
+
+- Codex 对 `ba6703c` 独立复验：Core Swift Testing 实际 15/15；iPhone 17 Pro iOS 27 Simulator 的 `WishListViewModelTests` 结构化 xcresult 实际 3/3 且 0 failure/skip；此前不完整 result bundle 的问题已消失。
+- R4 现在真实证明 A 被观察取消后，B 成功加载，A 晚到 success 或 failure 都不能覆盖 B；caller 取消和 Core transport-start 都使用确定性 actor gate。XcodeGen 再生成、Swift parser、公开列表 Mock/假延时、凭据和 diff 检查也通过。
+- R4 仍不接受的唯一原因是测试源码保留 `ThreadSafeCancelledSet: @unchecked Sendable` + `NSLock`；这与任务明定的 actor 安全替代要求相冲突，且该对象完全可由 actor 内 `Set` 取代。新增 `docs/reviews/ag-003-r4-review.md`，派发范围极小的 AG-003 R5，只允许删除该包装并复验，不让 Codex 代改。
+- Claude 仍待完成首页第三卡真实 peek；其他 R1 设计导出和交接已通过方向与完整性复审。
+- 接下来三步：收取 AG-003 R5 并短复验/决定接受；收取 Claude 首页 peek 微修订并冻结 v3；两项通过后创建真实发布、响应、追踪、交付闭环 worktree。
+
+### 2026-07-18：R4/R1 再次停在中途产物，等待外部智能体恢复
+
+- 在 R4 actor 中途代码和 CL-003 R1 导出出现后，Codex 又连续复查多次：Antigravity 没有新的 commit、测试时间或可读取 xcresult；Claude 没有按 `CHAT-20260718-144000-CODEX-021` 更新首页 HTML/1x/3x，第三张卡在实际 393pt 首页截图中仍不可见。
+- 因此当前不能冻结视觉基线，也不能接受 R4 或派发真实发布/追踪/交付代码；放宽“真实可见 peek”或“可读取实际测试结果”会让后续 SwiftUI 直接继承已知缺陷。
+- 恢复只需要两个极小动作：Claude 在原路径使 Home 的第三卡露出约 40–56pt 后发 STATUS；Antigravity 完成 cancellation gate、修掉 warning、产生可读 3/3 测试结果并提交。Codex 收到后立即继续。
+- 本轮暂停仅因外部会话未执行已分配的微修订；不涉及 Apple 签名、Xcode、Cloudflare、生产 API 或用户选择。
+
+### 2026-07-18：AG-003 R4 的中途 Simulator 预检尚无可读取结果，退回收敛测试调度
+
+- Codex 对 Antigravity 未提交的 R4 连续运行两次 iPhone 17 Pro Simulator XCTest preflight（全量一次、仅 `WishListViewModelTests` 一次）。两次都构建到测试 target，但输出没有实际测试执行结果，临时 `.xcresult` 缺少 `Info.plist`，`xcresulttool` 无法读取通过数，故不能声称 3 个 R4 测试已通过。
+- 同时观察到 `WishListViewModelTests` 的 `await self.registerRequest(...)` 触发 Xcode 27 `unnecessary await` warning。此前 R3 的 `NSLock` warning 已不再出现，actor 迁移方向保留，但新的 warning 与不可读取结果必须在提交前解决或如实标记未验证。
+- `CHAT-20260718-144500-CODEX-022` 已要求 actor 的 `waitUntilCancelled(city:)` gate，避免仅检查一次可能受调度影响的取消布尔值；`CHAT-20260718-145000-CODEX-023` 要求移除 warning、确保注册/取消调度、跑出可读取 3/3 xcresult 后才可提交。Codex 不接管其测试实现。
+- Claude 的 R1 资产除首页真实 peek 微修订外均已完成；其 3x、多状态导出和逐页交接已收到，视觉冻结仍等待真实 393pt 截图验证。
+- 接下来三步：Antigravity 完成可读取的 R4 结果与 commit；Claude 修正首页可见 peek 后冻结视觉；两项独立验收通过后创建真实发布、响应、追踪、交付任务。
+
+### 2026-07-18：外部协作恢复；CL-003 R1 基本完成，首页 peek 做一次真实画面微修订
+
+- Claude R1 已新增 `22_Detail_Response`、`41_Tracking_Detail` 的 3x 导出；像素尺寸与四张 393×852 基准页面/多状态合板的 3x 比例一致。交接也已补每页 token、状态、无障碍、暖蓝/Icon A 的开放决定和 SwiftUI 横向滚动语义。
+- Codex 实际查看更新后的首页 1x PNG，发现 HTML 虽增加 `wcard-peek`，但两张完整卡片和间距占满了内容宽度，第三张 peek 仍完全落在外层 `overflow:hidden` 之外，截图看不到横向浏览提示。`CHAT-20260718-144000-CODEX-021` 已要求仅调整首页横卡宽度/间距，使约 40–56pt 左侧圆角/标签真实进入 393pt 画面；不得重画或扩大范围。
+- Antigravity 已开始 R4：隔离 worktree 中新增晚到成功/晚到失败两个 production ViewModel 测试、actor 测试替身和 Core 请求启动 gate；当前未提交，Codex 暂不把中途代码作为验收结果。
+- 接下来三步：Claude 完成首页 peek 微修订并冻结视觉；Antigravity 提交 R4 后跑 Core/Simulator 全量复验；基础通过后创建真实发布、响应、追踪、交付纵向闭环任务。
+
+### 2026-07-18：协作推进暂停，等待外部会话实际恢复
+
+- Codex 连续三次复查 `AG-003 R4` 与 `CL-003 R1` 的工作区、提交、导出和群聊，均没有新的代码提交、R1 3x 导出或 ACK/STATUS；Antigravity 停在 `28492e8`，Claude 停在 R1 前的两张 3x 导出。
+- 当前暂停不是技术、Xcode、生产 API 或 Apple 账号阻塞：Simulator、生产公开列表只读检查、真机验收清单和两份精确修订任务均已准备好。阻塞条件仅为外部 Antigravity 与 Claude 会话没有执行已写入群聊/任务板的 R4/R1。
+- 为遵守角色分工和用户要求“不要由 Codex 擦屁股”，Codex 不会替 Antigravity 改其并发测试，也不会替 Claude 重新导出其设计资产；两份任务的允许路径、禁止路径、验收和停止条件保持不变。
+- 恢复方式：在 Antigravity 会话执行 `AG-003 R4`，先读 `CHAT-20260718-142000-CODEX-018`；在 Claude 会话执行 `CL-003 R1`，先读 `CHAT-20260718-143000-CODEX-020`。任一提交/STATUS 出现后，Codex 可立即恢复独立验收与下一条真实业务闭环。
+- 接下来三步：等待 R4 提交并复验；等待 R1 导出/交接并冻结视觉；随后创建发布、响应、追踪、交付的真实 MVP 任务。
+
+### 2026-07-18：补齐物理 iPhone 安装与受控验收清单（未执行）
+
+- 新增 `docs/ios-physical-device-test-checklist.md`，将产品负责人必须亲自完成的设备信任、Apple Account/Personal Team 和签名确认，与 Codex 后续可自动执行的构建、冷启动、Wi-Fi/移动网络、受控测试单和日志验收分开。
+- 清单明确不记录 Apple 密码、证书私钥、UDID、测试联系方式或交付链接 token；也明确真机未接入时不得把 Simulator 成功误记为真机通过。
+- 清单只作为 P0-A 至 P0-D 已完成后的执行准备，未改变 App bundle ID、签名、Xcode 配置、Apple 账号或生产数据。文档格式检查通过。
+- 接下来三步：等待并验收 CL-003 R1；等待并验收 AG-003 R4；后续真实闭环完成后按本清单请产品负责人接入 iPhone 并完成 Personal Team 首次安装。
+
+### 2026-07-18：真机验收前置只读检查完成，当前尚未接入物理 iPhone
+
+- Codex 用 Xcode 27 的 `devicectl` 只读列出可用设备：当前仅有已启动的 iPhone 17 Pro Simulator（iOS 27.0，`742A9D34-5F88-4578-BB12-851A00D2C0FE`），没有 USB 或无线连接的物理 iPhone。
+- 这不构成当前开发阻塞：Simulator 验收可以继续；物理设备安装仍需在真实发布/追踪闭环完成后，由产品负责人连接 iPhone、在 Xcode 选择 Personal Team 并接受必要系统信任提示。此轮没有配对、登录、签名、安装或改动设备。
+- 结合刚完成的生产公开 API 只读 200 检查，真机前置事实已记录，等待 CL-003 R1 和 AG-003 R4 交付后即可进入后续业务闭环。
+- 接下来三步：收取 Claude 的 R1 与 Antigravity 的 R4；独立验收并冻结两项基础；创建真实业务闭环任务后准备 Simulator 和物理 iPhone 安装。
+
+### 2026-07-18：生产公开列表只读复查保持可用，未创建任何真实订单
+
+- Codex 对已上线的 Cloudflare Worker 执行只读 `GET /api/wishes` 健康复查：HTTP 200、`content-type: application/json`、`cache-control: no-store`，响应为 `{"wishes":[]}`。
+- 该结果与 Simulator 已验证的空状态路径一致，说明后续真实发布/追踪闭环仍可复用既有后端；本轮没有调用任何 POST、没有写 D1/R2、没有产生测试订单，也没有接触运营 PIN 或管理接口。
+- Claude 的 CL-003 R1 与 Antigravity 的 AG-003 R4 仍分别等待其外部会话提交；Codex 已保持任务范围不变并准备完成后立即独立验收。
+- 接下来三步：收取并验收 CL-003 R1；收取并验收 AG-003 R4；两者通过后冻结设计/API 基础并创建真实发布、响应、追踪、交付的独立纵向切片任务。
+
+### 2026-07-18：CL-003 视觉方向通过中途评审，收敛为不扩图的 R1 补交
+
+- Codex 已逐张查看 Claude 交付的首页、附近、详情与响应 Bottom Sheet、进度详情四张 1x 设计稿，并检查 Foundations 源文件。实际页面符合零 Emoji、零渐变、暖白/克制暖蓝、默认无阴影、内容优先的 v3 方向；圆角、字号、间距、描边和图标策略可追溯到 Foundations。
+- 方向性建议保留：Icon A（路径与抵达点）为推荐，强调色推荐 `#3E6B92`；两者仍保留为产品负责人待确认决定，尚未覆盖旧冻结值。详情/响应/进度的状态与隐私文案也可进入后续 SwiftUI 参考。
+- 交接完整性未通过：详情与进度只有 1x 多状态合板，没有 3x 导出；首页横向心愿区的 HTML 使用静态 `overflow:hidden`，第二张卡被裁切而非明确可横向浏览。新增 `docs/reviews/cl-003-checkpoint-review.md`，将 CL-003 续为不扩范围的 R1：补两页 3x、横向 ScrollView/trailing peek 语义、每页 token/状态/无障碍说明及复查。
+- 群聊 `CHAT-20260718-142500-CODEX-019` 与 `CHAT-20260718-143000-CODEX-020` 已明确：不重画、不新增页面、不改源码；R1 STATUS 后停止，Codex 才冻结视觉基线。
+- 接下来三步：Claude 完成 R1 并由 Codex 检查导出与交接；Antigravity 完成 R4 的真正旧请求晚到竞态证据；两个门通过后创建真实发布、响应、追踪与交付闭环任务。
+
+### 2026-07-18：独立验收 AG-003 R3 的可执行性通过，但完整竞态质量门退回 R4
+
+- Antigravity 的 R3 commit `28492e8` 已被 Codex 独立复验：XcodeGen 2.46.0 源配置再生成无差异；Swift parser、列表 Mock/假延时和凭据扫描、差异格式均通过；Core Swift Testing 实际执行 15/15；iPhone 17 Pro iOS 27.0 Simulator 的 XCTest 实际执行 2/2。
+- R3 的正向成果保留：真实 iOS test target、请求开始 gate、旧 Task 主动取消、caller 取消向内部 Task 传递，以及报名 201 的完整编码断言。
+- 但 R3 未通过完整竞态要求：mock 在 A 被取消时立即移除并恢复其 continuation，所以 B 成功后的“完成 A”是无操作，未真实模拟 A 晚到成功或晚到失败；此外 Xcode 27 对测试中 async context 的 `NSLock.lock/unlock` 给出 Swift 6 兼容性 warning，和交接的“无 warning”说法矛盾；Core 取消测试仍用 2ms sleep 猜测 transport 已启动。
+- Codex 新增 `docs/reviews/ag-003-r3-review.md`，将 `AG-003` 续为范围不变的 R4，并在 `CHAT-20260718-142000-CODEX-018` 逐条要求：可保留旧 continuation 的取消观测、晚到成功/失败两条真实 production ViewModel 路径、actor/安全同步替代锁、Core 确定性 gate、全量复验和如实交接。R3 不合入 main。
+- 同时，Claude 已 ACK CL-003，产出 v3 Foundations 初稿与 Icon 导出，仍在制作四个关键页面和正式设计交接；尚未冻结到 SwiftUI。
+- 接下来三步：Antigravity 完成 R4 后由 Codex 重跑所有门；Claude 完成 CL-003 后由 Codex 做视觉检查点审查；两项通过才创建真实发布、响应、追踪和交付的隔离实现任务。
+
+### 2026-07-18：两位外部协作者均已恢复，真机签名前置已预检
+
+- Claude 已在群聊发出 `CHAT-20260718-140500-CLAUDE-006` ACK，按 CL-003 范围开始制作 v3 Foundations、四个关键页面、无渐变/无 Emoji 检查和导出；当前已新增方向 A 的 1024 PNG/SVG 与 1x 图标预览，尚未交付页面或正式交接。
+- Antigravity 的 R3 worktree 已继续写入并暂存其允许范围内的工程、ViewModel、Core 测试与 iOS XCTest 目标；没有 commit、交接或 STATUS 前仍是 `IN_PROGRESS`，Codex 不进行中途合入。
+- Codex 只读预检真机工程：App bundle ID 为 `com.hanselzzh.haluowode`，最低 iOS 为 16.0，支持 iPhone/iPad；项目没有固定 `DEVELOPMENT_TEAM` 或 profile，因此可由产品负责人的 Xcode Personal Team 在本机选择自动签名。此处没有登录 Apple Account、没有修改签名或安装到设备。
+- 验证：协调文档差异格式已复查；已修正群聊末尾多余空行。真机构建和安装仍须待 R3 验收及用户在 Xcode 选定其 Personal Team 后执行。
+- 接下来三步：收取 Antigravity 的最终 R3 commit 并独立执行全部质量门；收取 Claude 的视觉检查点并进行人工评审；两项通过后创建隔离任务实现真实发布、响应、追踪与交付，并准备真机安装。
+
+### 2026-07-18：AG-003 R3 中途候选已在 iOS 27 Simulator 编译并执行 2 个 XCTest，仍不解除质量门
+
+- Codex 在 Antigravity 停止写入后的隔离 worktree 运行 Xcode 27 的 iPhone 17 Pro（iOS 27.0）Simulator 测试；由于受限 shell 不能连接 CoreSimulator，随后按授权在真实 CoreSimulator 服务中重跑。
+- `xcresult` 记录设备 `742A9D34-5F88-4578-BB12-851A00D2C0FE`、总数 2、通过 2、失败 0、跳过 0；因此新增 iOS test target 至少能真实编译、安装并执行，不是空 target。
+- 这只是中途 preflight，不代表 AG-003 ACCEPT：两个 XCTest 仍基于固定 sleep，尚未满足群聊要求的确定性“请求已进入等待”、取消注册竞态和“没有任何 failed UI”断言；Core Swift Testing、XcodeGen 源配置再生成、静态扫描、交接、commit 和 STATUS 也都还未完成。
+- 外部智能体状态核查：Antigravity 和 Claude 均未在群聊 ACK；前者文件时间戳停在 13:45 左右，后者只有凌晨的 Icon 页。Codex 无法从当前受限终端替其输入命令或恢复外部会话，继续保持任务范围和验收门，等待各自会话恢复。
+- 接下来三步：唤醒 Antigravity 按 `CHAT-20260718-135000-CODEX-017` 完成 R3；独立复验其最终 commit 的全部质量门；等待 Claude 补齐 CL-003 视觉检查点后冻结 SwiftUI 基线。
+
+### 2026-07-18：AG-003 R3 已有真实增量，暂停验收并补强确定性并发证据
+
+- Codex 复查 Antigravity 的隔离 worktree，确认 R3 不是空转：`WishListViewModel`、新增 `HaluowodeTests`、Core 报名编码断言、`project.yml` 和由其生成的工程均有未提交的实际改动；尚未提交、交接或 STATUS，不能视为完成。
+- 当前方向有效：生产 ViewModel 开始主动保存并取消旧请求 Task，iOS 测试开始真实调用生产 ViewModel，Core 的 201 报名断言已扩展到 header、完整字段与蜜罐省略。
+- Codex 发现并在群聊退回两个质量门：测试使用固定 10ms sleep 作为“在途”证明，且 caller 取消只排除了一个特定失败文案；两者都不足以证明真实网络取消和无错误 UI。要求改用确定性 request-start gate，并显式断言没有任何 `.failed` 状态，同时处理取消早于 continuation 注册的竞态。
+- 验证：仅完成隔离分支的只读差异与测试源审查；尚未运行 R3 的 XcodeGen、SwiftPM、Simulator 单测或运行时测试，避免把中途写入当成绿灯。
+- 接下来三步：等待 Antigravity 按 REVIEW 补齐并提交；Codex 在干净环境独立执行 R3 的 Core、iOS Simulator 和静态质量门；通过后才决定合入并创建真实发布/追踪/交付闭环任务。
+
+### 2026-07-18：冻结下一条真实发布与追踪闭环的实现规格（未派发）
+
+- Codex 只读复核当前候选：`PublishView` 仍以 `DispatchQueue.main.asyncAfter` 和 `Wish.mockWishes` 伪造发布；`ProgressView` 仍从 Mock 查询并伪造交付预览，因此这两页不能作为手机 MVP 完成证据。
+- 新增 `docs/ios-publish-track-integration-spec.md`，将 P0-B/P0-D 具体化为真实发布、公开编号、私有追踪、交付能力链接、表单校验、隐私、状态机、单元测试、模拟器和真机验收要求。
+- 规格明确复用已存在的可注入 `WishAPIProtocol` 与 Core DTO，不重做 Worker；不在当前阶段产生生产写入或要求 Antigravity 越出 AG-003 R3 的任务范围。
+- 派发前置已固定：先独立验收并合入 AG-003 R3，再冻结 CL-003 v3 检查点；届时创建新的 branch/worktree，不复用当前 AG worktree。
+- 接下来三步：等待并收取 AG R3；等待 Claude 的 v3 检查点；两项都通过后派发发布/追踪真实闭环并进行有标识的生产测试单验收。
+
+### 2026-07-18：为 AG-003 R3 补齐可复现的 XcodeGen 前置
+
+- Codex 确认本机没有 `xcodegen`；Homebrew 的预编译包在 macOS 27 Beta 下载失败，源码公式又被旧 Command Line Tools 阻塞，未把失败的 Homebrew 安装误记为成功。
+- 为不要求产品负责人额外下载 CLT，也不允许 Antigravity 手改生成的 `.xcodeproj`，Codex 从 XcodeGen 官方 GitHub 固定 `2.46.0` Release 取得发布包，仅解压到 `/private/tmp/xcodegen-2.46.0-release`；二进制 `--version` 已验证为 2.46.0。
+- `AG-003 R3` 的任务板已改用该临时完整路径生成工程；未写入系统 PATH、未新增项目依赖、未改业务源码。此前卡住的临时源码构建已由 Codex 停止，避免占用资源。
+- 群聊已追加 `CHAT-20260718-134000-CODEX-016`，告知 Antigravity 使用准确命令后继续当前 R3。
+- 接下来三步：Antigravity ACK 并执行 R3；Codex 独立运行 Simulator iOS 单测和代码审查；Claude 在额度恢复后完成 CL-003 v3 检查点。
+
+### 2026-07-18：产品负责人恢复 Claude 与 Antigravity 的任务推进
+
+- 产品负责人明确要求继续给 Antigravity 和 Claude 布置任务；Codex 已解除此前“团队休息”的任务暂停，但没有扩大任何一方的权限。
+- `AG-003` 已恢复为 `IN_PROGRESS`，新增 R3 精确范围：只允许原隔离 worktree 中的列表请求取消/竞态生产代码、iOS 单元测试 target、Core 报名编码测试与生成工程配置。必须在 Xcode 27 Simulator 上证明在途请求实际收到取消、慢旧请求无法覆盖新状态、取消不显示成错误；不得做发布、进度、视觉或后端功能。
+- `CL-003` 继续按原第一检查点推进：3 个原创 Icon、首页、附近、详情与响应、一个复杂信息页、v3 Foundations 及 1x/3x 导出；零 Emoji、零渐变和温暖克制视觉约束保持不变，Claude 配额未恢复前不由其他智能体接管设计判断。
+- 写入冻结和任务板已同步为新的精确权限；群聊新增 `CHAT-20260718-132800-CODEX-014`（AG R3）与 `CHAT-20260718-132900-CODEX-015`（CL-003 恢复），要求两位各自完成当前交付后立即停止。
+- 接下来三步：收取并独立验收 AG R3；收取并人工评审 CL-003 检查点；两项通过后合入真实列表基础并派发发布/进度真实闭环。
+
+### 2026-07-18：完成 AG-003 R2 的 Xcode 27 运行时复审，候选维持 REVIEW
+
+- Codex 用 Xcode 27 Swift 6.4 强制 Swift Testing 运行器重新发现、执行并通过 15/15 Core 测试；Swift parser、差异格式、公开列表 Mock/假延时扫描和 Core/App 管理凭据扫描均通过。
+- 新增 `docs/reviews/ag-003-r2-runtime-review.md`，记录 iPhone 17 Pro Simulator 的安装、PID 冷启动、真实公开 HTTPS 200、加载到空状态转换及全部命令证据。
+- 审查结论不能因“15/15 绿”而放宽：取消用例的 Mock 立即抛错，竞态用例复制局部整数逻辑，均未证明生产 ViewModel 的真实并发行为；报名 201 编码断言也缺少 headers、联系方式、备注和蜜罐字段核对。
+- `AG-003` 因而仍为 `REVIEW`，不合入 main、不标记 ACCEPTED。用户此前要求 Antigravity 停止，本轮只记录审查结论，不重启该智能体或代写 R3。
+- 同时确认总体 MVP 仍未完成：`PublishView`/`ProgressView` 的旧 Mock 和假延时属于后续真实发布、追踪、交付任务；候选视觉也仍等待 CL-003 v3 冻结。
+- 接下来三步：待用户恢复 Antigravity 后完成 R3 质量证据；待 Claude 配额恢复后完成 CL-003 视觉冻结；随后在已验证 Core 基础上实现并验收发布、响应、进度、交付的真实纵向闭环。
+
+### 2026-07-18：Xcode 27 Simulator 冷启动与真实公开列表验收通过
+
+- 用户重启 macOS 后，Xcode 27 的 iOS 27.0 Runtime 服务恢复正常；Codex 成功启动本地 iPhone 17 Pro Simulator（`742A9D34-5F88-4578-BB12-851A00D2C0FE`）。
+- 因重启清除了 `/private/tmp` 中的临时产物，Codex 从 `codex/ag-003-core-api` 候选 worktree 重新使用 Simulator SDK 构建 `Haluowode.app`；产物包含可执行文件、动态库、资源、`Info.plist` 与签名目录。
+- 使用 `simctl listapps` 确认 `com.hanselzzh.haluowode` 已安装；`simctl launch` 返回 PID `13748`，随后截图确认 App 原生首页成功冷启动并显示五栏导航。
+- 真实网络联调通过：宿主机对生产公开 `GET /api/wishes` 返回 `{\"wishes\":[]}`；Simulator 内 App 的同一 HTTPS 请求获 HTTP 200（本地运行日志），界面从加载骨架切换为“附近暂时没有心愿发布”空状态。未执行任何生产写入。
+- 结论：AG-003 候选已具备“Simulator 安装、冷启动、真实公开 API、空数据状态”的运行时证据；仍保持 `REVIEW`，取消/竞态测试有效性与最终合入决策未改变。当前屏幕是旧候选视觉，尚未满足 v3 的无渐变、温暖克制视觉冻结，不能当作最终设计稿。
+- 接下来三步：完成 AG-003 质量门复审并决定是否补强/合入；恢复 Claude 后冻结 v3 视觉；再实现和验收发布、响应、进度与交付闭环。
+
+### 2026-07-18：启用 Xcode 27 beta，并首次完成 iOS 编译与标准 SwiftPM 测试
+
+- 用户下载并切换至 `/Users/hansangbai/Downloads/Xcode-beta.app`；验证开发目录为 Xcode 27.0（27A5218g），兼容当前 macOS 27.0。此前 App Store 的 Xcode 26.6 只支持 macOS 26.x，不能启动。
+- Xcode 27 的标准 `swift test --package-path ios/Packages/HaluowodeCore --scratch-path /private/tmp/haluowode-core-swiftpm` 实际执行 15 个 Swift Testing 测试并全部通过。仓库内默认 `.build` 的签名报错来自 Documents/云盘的 Finder metadata，使用临时构建目录后消失，不是代码或测试错误。
+- 对隔离分支 `739bdf1` 执行无签名通用 iPhone SDK 编译，`BUILD SUCCEEDED`；随后为本地 iPhone 17 Pro（iOS 27.0）Simulator 编译出含可执行文件、`Info.plist` 与签名目录的 `Haluowode.app`。
+- Simulator Runtime 和设备均已安装、可启动。`simctl install`/`launch` 的命令回执在 Xcode 27 beta 首次运行服务中超时，因而未把模拟器冷启动、列表渲染或网络联调标为通过；需要在 Runtime 服务稳定后继续验证。
+- `AG-003` 仍是 REVIEW：代码已获真实 iOS 编译与标准测试支持，但取消/竞态测试证据的弱点仍保留，且尚未合入 main。Claude 的 CL-003 也仍处于额度暂停。
+- 接下来三步：恢复 Simulator 安装/启动回执并验证公开列表；决定 AG-003 的补强/合入；继续发布、响应、进度与交付闭环。
+
+### 2026-07-18：Antigravity 完成 AG-003 R2 候选，团队按用户指示暂停
+
+- Antigravity 在隔离分支 `codex/ag-003-core-api` 追加 `739bdf1`：修复 SwiftUI `ProgressView` 同名遮蔽、全国/全部筛选、显式联系授权、刷新、注入式报名提交和相关 Core/API 代码。
+- Codex 独立验证：macOS `swiftc -typecheck` 退出 0；使用 Command Line Tools workaround 实际发现并执行 15 个 Swift Testing 测试，15/15 通过；差异格式检查通过，首页/附近没有运行时 Mock 或假延迟引用，敏感管理凭据扫描无命中。
+- 独立审查同时发现测试证据仍有两处不足：取消测试的 Mock 会立即抛取消错误，未验证等待中的请求被取消；竞态测试复制了本地整数逻辑，未实际调用生产协调逻辑。交接中的个别测试名称也与实际清单不一致。
+- 用户要求在这一点后团队休息，因此撤回新增 R3 修订要求；`AG-003` 保持 `REVIEW`，R2 候选不合入 main、不标记 ACCEPT，等完整 Xcode 准备后恢复验收并决定是否补强。
+- 已在 TEAM_CHAT 通知 Antigravity 停止，Claude 继续维持配额暂停；本轮不派发 AG-004、不启动下一功能切片。
+- 接下来三步：用户完成 Xcode 下载/首次打开；Codex 验证 Xcode 与 iOS simulator；恢复 AG-003 验收并继续发布、响应、进度和交付闭环。
+
+### 2026-07-18：Claude 因五小时额度暂停 CL-003，保留检查点现场
+
+- Claude 已 ACK `CL-003`，确认零 Emoji、零渐变、温暖柔和、内容主导和“先检查点后全量”的视觉约束。
+- 已落盘三套原创 App Icon 方向及 20/29/40/60/1024pt 对比页；关键页面、v3 Foundations、1x/3x 导出和正式交接尚未完成。
+- 用户告知 Claude 的五小时额度已用完；本轮不催促、不另开 Claude 进程、不让其他智能体接管设计判断，保留当前工作区等待额度恢复后原位续接。
+- Claude 在收到正式 CL-003 任务前生成的 CL-001/CL-002 全量 v3 快速改稿继续只作为参考草稿，不进入 SwiftUI 实现或视觉冻结。
+- 验证：确认 `.ai/handoffs/CL-003-assets/icon/App_Icon_Directions.html` 已存在；其余 CL-003 检查点目录当前为空，未把半成品声明为完成。
+- 接下来三步：Antigravity 完成 AG-003 R2；Codex 独立复验 R2；Claude 配额恢复后补齐 CL-003 页面、Foundations、导出和 STATUS。
 
 ### 2026-07-18：AG-003 R1 真实进步但二轮审查仍未通过
 
