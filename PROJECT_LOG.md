@@ -98,6 +98,13 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：AG-004 真实发布通过独立验收，进入 Codex 隔离集成
+
+- Codex 对 Antigravity 的 `2befafc`、`c80c9ad` 和 R2 `3d44039` 完成源码、测试与交接复验。结果：Core 15/15；iPhone 17 Pro iOS 27 Simulator `HaluowodeTests` 9/9、0 failure/skip/runtime warning；parser、无 `DispatchQueue.main.asyncAfter` / `Wish.mockWishes` 发布路径扫描、凭据扫描和最终 `git diff --check main...HEAD` 均通过。
+- 交付已实现可注入 `PublishWishViewModel`，将三步表单接入 `WishAPIProtocol.createWish`，并覆盖本地校验、中文交付方式映射、元到分、201 与重复 200、失败保留草稿、去重及真实取消回到可重试 `.idle`。没有生产写入、UserDefaults 联系方式、管理凭据、Emoji 或新增渐变。
+- R2 删除了唯一行尾空白，并把交接表述修正为“本任务没有新增 Emoji/渐变；旧首页渐变仍待 v3 视觉任务移除”，避免以行为闭环冒充最终视觉完成。
+- `AG-004` 改为 ACCEPTED；Codex 下一步在新 `codex/ios-publish-integration` worktree 合并并再次测试，之后才会进入本地主分支。接下来再拆 P0-C 响应与 P0-D 追踪/交付，且仍不自动产生生产测试数据。
+
 ### 2026-07-18：AG-004 行为复验通过，等待 Antigravity 完成极小 R2 格式/交接收尾
 
 - Codex 对 `c80c9ad` 独立复验：Core Swift Testing 实际 15/15 通过；iPhone 17 Pro iOS 27 Simulator 的 `HaluowodeTests` 结构化 xcresult 实际 9/9、0 failure/skip/runtime warning。真实发布请求、表单校验、201/重复 200、去重、失败保留草稿以及取消后回到可重试 `.idle` 的 production ViewModel 路径均有源码与测试证据。
