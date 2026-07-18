@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：AG-005 R2 仅完成源码行修正，已派发严格 R3
+
+- Antigravity 的 `6381e2c` 正确将非空 `note` 改为 trim 后编码，但未按 R2 补测试断言；交接仍写不存在的 `5c35990`，并且没有追加 STATUS。其源码方向可保留，但质量交付不成立，Codex 没有接受或合入。
+- Codex 已在 AG-005 自身 worktree 的群聊末尾派发 R3：仅允许现有 production ViewModel 测试补“空白为 nil + 非空去空白”双断言、修正交接事实、如实报告可读取验证结果与 SHA；禁止再次触碰 production/工程/P0-D/视觉。此举用于让实现代理形成完整的可验证交付习惯，而不是由 Codex 代写。
+- 接下来三步：收取 R3 STATUS；用显式 result bundle 独立复验 Core 与 Simulator；若通过，在隔离集成分支合入 P0-C，随后派发 P0-D。
+
 ### 2026-07-18：验收 Claude 的 CL-004 v3 SwiftUI 实施审计
 
 - Claude 仅新增 `.ai/handoffs/CL-004-swiftui-audit.md`，没有修改 SwiftUI、冻结资产、token 或协调文档；任务范围与停止条件符合要求。审计将五个区域映射为“现状 → v3 目标 → 实施项 → 截图验收点”，并把颜色、圆角、间距、阴影、字体、图标与无障碍要求回指到 v3 冻结输入。
