@@ -17,6 +17,7 @@
 | AG-005 | Codex | ACCEPTED | 真实提交响应已在隔离集成分支通过独立质量门；Codex 接管补齐 trim 编码断言与可读取结果包证据，准备合入 main | `codex/ios-response-integration` 的响应源码、测试、交接与协调文件 | 仅待合入 main 后完成；Antigravity 无权继续写入或自动领取后续任务 |
 | AG-006 | Antigravity | ACCEPTED | P0-D 真实查询进度与交付已通过 Core 17/17、iPhone Simulator 23/23、隐私/Mock 扫描并合入 main | 历史 worktree `worktrees/ag-006-real-track`；源码权限已收回 | 已验收合入；不得继续修改或自动领取任务 |
 | AG-007 | Antigravity | IN_PROGRESS | v3 进度与交付视觉收口：保留 AG-006 真实状态机与隐私边界，只统一 Progress/Delivery UI | 仅 `worktrees/ag-007-v3-progress-delivery` 的任务卡精确路径 | 截图、测试、交接、STATUS 后停止；不得领取首页、Tab Bar 或真机任务 |
+| AG-008 | Antigravity | PLANNED | 首页内容社区 SwiftUI：实现已授权完成故事正常/空/错误/详情与双 CTA | 待 AG-007 验收后创建独立 worktree；精确范围见下文 | 未正式 TASK 前不得写入；完成后交接并停止 |
 | CX-001 | Codex | ACCEPTED | v3 首页基础视觉与原创 App Icon 已在隔离分支通过构建、Simulator 截图与结构化测试后合入 main | `codex/v3-home-foundations` 的首页、DesignSystem、App Icon、交接与群聊 | 已完成；其余页面视觉改造必须另建任务，且不得触碰 AG-006 的范围 |
 | CX-002 | Codex | ACCEPTED | v3 附近、详情与真实响应表单视觉已通过独立编译、Core 15/15、iPhone Simulator 15/15 与禁止项扫描，并已合入本地 main | `codex/v3-nearby-response` 的 Nearby、交接与群聊 | 已完成；后续 Publish/Profile/Tab Bar 必须另建任务，且不得触碰 AG-006 的范围 |
 | CX-003 | Codex | ACCEPTED | v3 发布与我的视觉已通过独立编译、Core 15/15、iPhone Simulator 15/15 与禁止项扫描，并已合入本地 main | `codex/v3-publish-profile` 的 Publish/Profile、交接与群聊 | 已完成；Tab Bar 必须等 AG-006 收口后另建任务，且不得触碰其范围 |
@@ -24,7 +25,7 @@
 | CL-002 | Claude | SUPERSEDED | 已补齐 v2.1 的响应、交付、Profile、安全页和蓝色 App Icon；信息结构保留，视觉因用户新反馈不进入实现 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 旧稿保留为状态与文案参考，不再继续迭代 |
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
 | CL-004 | Claude | ACCEPTED | 已交付 v3 SwiftUI 实施审计：冻结视觉的精确落地、差异与截图验收清单已可直接约束后续实现 | `.ai/handoffs/CL-004-swiftui-audit.md` | 已验收；Claude 停止，待视觉实现后再做截图审阅，不得自动重画或改源码 |
-| CL-005 | Claude | IN_PROGRESS | 首页内容社区设计检查点：把首页从第二个心愿列表重构为已完成、已授权故事的内容入口；只出设计交接，不写产品代码 | `worktrees/claude-cl-005-home-community` 内的 `.ai/handoffs/CL-005-*/**` 与群聊 | 完成交接、STATUS 后立即停止；不得自行实现、改冻结或领取其它页面 |
+| CL-005 | Claude | ACCEPTED | 首页内容社区设计检查点已验收：正常/空/故事详情资产、职责、隐私和无障碍交接完整 | 历史 worktree `worktrees/claude-cl-005-home-community`；写权限已收回 | 已验收合入；不得继续重画或自行实现 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -527,6 +528,18 @@ Codex 已独立复验并于本地 main merge commit `296ab12` 合入：Core 17/1
 6. 提供设计自检：画板尺寸、零 Emoji、零渐变、系统浮动 Liquid Glass Dock 与五项可访问目的地兼容、所有卡片/按钮文本是否符合隐私边界；完成后准确写交接、发 STATUS 并立即停止。
 
 Codex 验收方式：逐页查看 HTML/1x/3x、对照上述职责与隐私清单、扫描 Emoji/渐变/浮动 Dock，确认不含任何 SwiftUI/后端/冻结文件改动；在 Codex 接受前不得进入实现或修改设计冻结。
+
+### CL-005 验收结论与产品裁决
+
+Codex 已逐页查看 393×852 正常/空/故事详情，核验 3x 尺寸、HTML、零 Emoji/渐变/自定义阴影、隐私关键字和 diff；交付以 main `c19ca38` 接受。MVP 裁决：采用去框化 Hero；故事缩略图固定 16:7；点赞图标完全不实现；故事详情使用系统 API 隐藏 Tab Bar；交付示意文案先作为 MVP 文案，后续文案校对不得阻塞实现。
+
+## AG-008：首页内容社区 SwiftUI（PLANNED，尚未授权写入）
+
+负责人：Antigravity。依赖：`AG-007` 完成并经 Codex 验收后，才由 Codex 从最新 main 创建 `worktrees/ag-008-home-community` / `codex/ag-008-home-community` 并发送正式 TASK。当前不得创建分支、修改文件或提前实现。
+
+计划目标：把 `CL-005` 已接受的内容社区首页落为 SwiftUI，首页只展示经独立授权、脱敏的已完成故事，支持正常/空/加载/错误/详情和“发布/附近”双 CTA；不得把活跃市场数据或私人 track DTO 当作公开故事源。正式派发前 Codex 必须先冻结故事数据来源/API 边界；若后端尚无公开故事端点，首版只能实现诚实空态与本地编译期 Preview fixture，不得在运行时伪造故事。
+
+预计允许路径仅为 `HomeView.swift`、新建故事展示类型/ViewModel/测试、必要的 `ContentView` 导航注入、交接与群聊；禁止 Nearby/Publish/Progress/Profile、Core 既有公开列表契约、后端、签名、DesignSystem 和自绘 Tab Bar。正式任务卡会给出精确路径、数据边界、截图与测试命令。
 
 ## 新任务创建要求
 

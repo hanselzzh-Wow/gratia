@@ -23,7 +23,7 @@
 - **运行状态：产品负责人已恢复自主推进。** Codex 继续验收、集成和依赖驱动派发；外部负责人仍只做唯一已派任务，交接后停止。
 - `main` merge commit `296ab12` 已具备真实公开列表、发布、响应、查询进度/交付与 v3 基线（P0-A/B/C/D）。AG-006 独立质量门：Core 17/17、iPhone 17 Pro iOS 27 Simulator 23/23，0 failure/skip/runtime warning。
 - `AG-007`：`worktrees/ag-007-v3-progress-delivery`，只做 Progress/Delivery v3 视觉收口，严禁修改真实状态机、其他页面、Tab Bar、后端或签名。
-- `CL-005` 恢复原任务：`worktrees/claude-cl-005-home-community`，继续交付首页正常/空/故事详情设计资产与职责/隐私/无障碍交接；不得写 SwiftUI。
+- `CL-005` 已验收并以 `c19ca38` 合入设计资产；MVP 裁决为去框化 Hero、16:7 缩略图、无点赞、详情隐藏系统 Tab Bar。`AG-008` 已登记为 PLANNED，须等 AG-007 验收并冻结公开故事数据来源后才正式派发。
 - CoreSimulator 已能执行 iOS 27 单元测试并产出可读取 xcresult；主线 App 的干净启动、系统 Dock 截图和真机安装仍未完成。
 
 ## 强制交接与接班卡同步
@@ -55,7 +55,7 @@
 ## 恢复顺序
 
 1. Antigravity 完成 AG-007 后：独立复验 Progress/Delivery 截图、23+ App 测试、Core、隐私和禁止项，合格才集成。
-2. Claude 完成 CL-005 后：逐页验收职责、授权、零 Emoji/渐变和系统导航前提；接受后再派首页实现任务。
+2. AG-007 验收后：先冻结公开故事数据来源/API 边界，再把 AG-008 从 PLANNED 转为正式首页实现任务；无公开端点时不得伪造运行时故事。
 3. Codex 在干净 iOS 27 Simulator 安装/启动 main 并截图验证系统 Dock；不能把测试或 bundle 生成当作运行通过。
 4. 视觉与首页收口后：用户连接 iPhone，选择 Personal Team 并信任开发者；Codex 构建安装并跑受控真实闭环。
 
