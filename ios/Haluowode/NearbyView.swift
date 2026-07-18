@@ -2,257 +2,263 @@ import SwiftUI
 import HaluowodeCore
 
 struct NearbyView: View {
-    @EnvironmentObject var viewModel: WishListViewModel
+    @EnvironmentObject private var viewModel: WishListViewModel
     @State private var searchKeywords = ""
     @State private var selectedDeliveryFilter = "全部"
     @State private var showFilterSheet = false
     @State private var localCity = "全国"
 
-    let deliveryTypes = ["全部", "口播视频", "景色配音", "手写卡片"]
+    private let deliveryTypes = ["全部", "口播视频", "景色配音", "手写卡片"]
 
-    var filteredWishes: [PublicWishDTO] {
-        if case .loaded(let wishes) = viewModel.state {
-            return wishes.filter { wish in
-                let matchSearch = searchKeywords.isEmpty ||
-                                  wish.landmark.localizedCaseInsensitiveContains(searchKeywords) ||
-                                  wish.message.localizedCaseInsensitiveContains(searchKeywords)
-                let matchDelivery = selectedDeliveryFilter == "全部" ||
-                                    wish.deliveryType.label == selectedDeliveryFilter
-                return matchSearch && matchDelivery
-            }
+    private var filteredWishes: [PublicWishDTO] {
+        guard case .loaded(let wishes) = viewModel.state else { return [] }
+        return wishes.filter { wish in
+            let matchSearch = searchKeywords.isEmpty ||
+                wish.landmark.localizedCaseInsensitiveContains(searchKeywords) ||
+                wish.message.localizedCaseInsensitiveContains(searchKeywords)
+            let matchDelivery = selectedDeliveryFilter == "全部" || wish.deliveryType.label == selectedDeliveryFilter
+            return matchSearch && matchDelivery
         }
-        return []
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // 1. Search Bar
-                HStack {
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(DesignSystem.textSecondary)
-                        TextField("搜索地标、心愿内容...", text: $searchKeywords)
-                            .font(.system(size: 14))
-                            .foregroundColor(DesignSystem.textNavy)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.white)
-                    .cornerRadius(DesignSystem.radiusSmall)
-                    .shadow(color: Color.black.opacity(0.01), radius: 3, x: 0, y: 1)
-
-                    Button(action: {
-                        localCity = viewModel.selectedCity
-                        showFilterSheet = true
-                    }) {
-                        Image(systemName: "slider.horizontal.3")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(DesignSystem.primaryBlue)
-                            .padding(8)
-                            .background(Color.white)
-                            .cornerRadius(DesignSystem.radiusSmall)
-                            .shadow(color: Color.black.opacity(0.01), radius: 3, x: 0, y: 1)
-                    }
-                }
-                .padding(.horizontal, DesignSystem.spacing20)
-                .padding(.vertical, DesignSystem.spacing12)
-
-                // 2. Horizontal Filter Capsules
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: DesignSystem.spacing8) {
-                        ForEach(deliveryTypes, id: \.self) { type in
-                            Button(action: {
-                                selectedDeliveryFilter = type
-                            }) {
-                                Text(type)
-                                    .font(.system(size: 13, weight: .medium))
-                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 6)
-                                    .background(selectedDeliveryFilter == type ? DesignSystem.primaryBlue : Color.white)
-                                    .foregroundColor(selectedDeliveryFilter == type ? .white : DesignSystem.textNavy)
-                                    .cornerRadius(20)
-                                    .shadow(color: Color.black.opacity(0.01), radius: 3, x: 0, y: 1)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, DesignSystem.spacing20)
-                }
-                .padding(.bottom, DesignSystem.spacing12)
-
-                // 3. Status View / Result List
-                switch viewModel.state {
-                case .idle, .loading:
-                    Spacer()
-                    SwiftUI.ProgressView("正在加载心愿...")
-                    Spacer()
-                case .failed(let error):
-                    Spacer()
-                    VStack(spacing: DesignSystem.spacing16) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.system(size: 48))
-                            .foregroundColor(.red.opacity(0.7))
-                        Text(error)
-                            .font(.system(size: 14))
-                            .foregroundColor(DesignSystem.textSecondary)
-                        Button(action: {
-                            Task {
-                                await viewModel.fetchWishes()
-                            }
-                        }) {
-                            Text("重试")
-                        }
-                        .buttonStyle(SecondaryButtonStyle())
-                        .frame(width: 120)
-                    }
-                    Spacer()
-                case .empty:
-                    Spacer()
-                    VStack(spacing: DesignSystem.spacing12) {
-                        Image(systemName: "square.stack.3d.up.slash")
-                            .font(.system(size: 48))
-                            .foregroundColor(DesignSystem.textSecondary.opacity(0.5))
-                        Text("没有找到符合条件的心愿")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(DesignSystem.textNavy)
-                    }
-                    Spacer()
-                case .loaded:
-                    // Result Count Header
-                    HStack {
-                        Text("共找到 \(filteredWishes.count) 个心愿")
-                            .font(.system(size: 13))
-                            .foregroundColor(DesignSystem.textSecondary)
-                        Spacer()
-                    }
-                    .padding(.horizontal, DesignSystem.spacing20)
-                    .padding(.vertical, DesignSystem.spacing8)
-
-                    if filteredWishes.isEmpty {
-                        Spacer()
-                        VStack(spacing: DesignSystem.spacing12) {
-                            Image(systemName: "square.stack.3d.up.slash")
-                                .font(.system(size: 48))
-                                .foregroundColor(DesignSystem.textSecondary.opacity(0.5))
-                            Text("没有找到符合条件的心愿")
-                                .font(.system(size: 15, weight: .medium))
-                                .foregroundColor(DesignSystem.textNavy)
-                        }
-                        Spacer()
-                    } else {
-                        List(filteredWishes) { wish in
-                            ZStack {
-                                NavigationLink(destination: WishDetailView(wish: wish)) {
-                                    EmptyView()
-                                }
-                                .opacity(0)
-
-                                WishRowView(wish: wish)
-                            }
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                            .padding(.horizontal, DesignSystem.spacing20)
-                            .padding(.vertical, 6)
-                        }
-                        .listStyle(.plain)
-                        .refreshable {
-                            await viewModel.fetchWishes()
-                        }
-                    }
-                }
+                searchAndFilter
+                filterChips
+                content
             }
             .navigationTitle("附近的心愿")
+            .navigationBarTitleDisplayMode(.inline)
             .warmBackground()
             .sheet(isPresented: $showFilterSheet) {
                 FilterSheetView(selectedCity: $localCity, isPresented: $showFilterSheet) { newCity in
                     viewModel.selectedCity = newCity
-                    Task {
-                        await viewModel.fetchWishes()
-                    }
+                    Task { await viewModel.fetchWishes() }
                 }
             }
-            .task {
-                await viewModel.fetchWishes()
+            .task { await viewModel.fetchWishes() }
+        }
+    }
+
+    private var searchAndFilter: some View {
+        HStack(spacing: DesignSystem.spacing12) {
+            HStack(spacing: DesignSystem.spacing8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(DesignSystem.ink500)
+                    .accessibilityHidden(true)
+                TextField("搜索地标、心愿内容", text: $searchKeywords)
+                    .font(DesignSystem.bodyFont)
+                    .foregroundStyle(DesignSystem.ink900)
+            }
+            .padding(.horizontal, DesignSystem.spacing12)
+            .frame(minHeight: 44)
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
+                    .fill(DesignSystem.canvasSunk)
+            )
+
+            Button {
+                localCity = viewModel.selectedCity
+                showFilterSheet = true
+            } label: {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.body.weight(.regular))
+                    .foregroundStyle(DesignSystem.accent)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
+                            .fill(DesignSystem.canvas)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
+                                    .stroke(DesignSystem.hairlineStrong, lineWidth: 1)
+                            )
+                    )
+            }
+            .accessibilityLabel("筛选城市")
+        }
+        .padding(.horizontal, DesignSystem.spacing20)
+        .padding(.vertical, DesignSystem.spacing12)
+    }
+
+    private var filterChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: DesignSystem.spacing8) {
+                ForEach(deliveryTypes, id: \.self) { type in
+                    Button {
+                        selectedDeliveryFilter = type
+                    } label: {
+                        Text(type)
+                            .font(DesignSystem.metadataFont.weight(.semibold))
+                            .foregroundStyle(selectedDeliveryFilter == type ? .white : DesignSystem.ink700)
+                            .padding(.horizontal, DesignSystem.spacing16)
+                            .frame(minHeight: 36)
+                            .background(
+                                Capsule()
+                                    .fill(selectedDeliveryFilter == type ? DesignSystem.accent : DesignSystem.canvas)
+                                    .overlay(
+                                        Capsule().stroke(
+                                            selectedDeliveryFilter == type ? DesignSystem.accent : DesignSystem.hairline,
+                                            lineWidth: 1
+                                        )
+                                    )
+                            )
+                    }
+                    .accessibilityAddTraits(selectedDeliveryFilter == type ? .isSelected : [])
+                }
+            }
+            .padding(.horizontal, DesignSystem.spacing20)
+        }
+        .padding(.bottom, DesignSystem.spacing12)
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch viewModel.state {
+        case .idle, .loading:
+            Spacer()
+            SwiftUI.ProgressView("正在加载心愿")
+                .tint(DesignSystem.accent)
+                .font(DesignSystem.metadataFont)
+            Spacer()
+        case .failed(let error):
+            Spacer()
+            VStack(spacing: DesignSystem.spacing16) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.largeTitle.weight(.regular))
+                    .foregroundStyle(DesignSystem.danger)
+                Text(error)
+                    .font(DesignSystem.bodyFont)
+                    .foregroundStyle(DesignSystem.ink700)
+                    .multilineTextAlignment(.center)
+                Button("重试") { Task { await viewModel.fetchWishes() } }
+                    .buttonStyle(SecondaryButtonStyle())
+                    .frame(width: 120)
+            }
+            .padding(.horizontal, DesignSystem.spacing32)
+            Spacer()
+        case .empty:
+            emptyState
+        case .loaded:
+            VStack(spacing: 0) {
+                HStack {
+                    Text("共找到 \(filteredWishes.count) 个心愿")
+                        .font(DesignSystem.metadataFont)
+                        .foregroundStyle(DesignSystem.ink700)
+                    Spacer()
+                }
+                .padding(.horizontal, DesignSystem.spacing20)
+                .padding(.vertical, DesignSystem.spacing8)
+
+                if filteredWishes.isEmpty {
+                    emptyState
+                } else {
+                    List(filteredWishes) { wish in
+                        NavigationLink(destination: WishDetailView(wish: wish)) {
+                            WishRowView(wish: wish)
+                        }
+                        .buttonStyle(.plain)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .padding(.horizontal, DesignSystem.spacing20)
+                        .padding(.vertical, DesignSystem.spacing4)
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .refreshable { await viewModel.fetchWishes() }
+                }
             }
         }
     }
+
+    private var emptyState: some View {
+        VStack(spacing: DesignSystem.spacing12) {
+            Spacer()
+            Image(systemName: "tray")
+                .font(.largeTitle.weight(.regular))
+                .foregroundStyle(DesignSystem.ink500)
+            Text("没有找到符合条件的心愿")
+                .font(DesignSystem.bodyFont)
+                .foregroundStyle(DesignSystem.ink700)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
 }
 
-// Wish Card Row
 struct WishRowView: View {
     let wish: PublicWishDTO
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
-            HStack {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
+            HStack(alignment: .top) {
                 Text("\(wish.city) · \(wish.landmark)")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(DesignSystem.textNavy)
-                Spacer()
+                    .font(DesignSystem.headlineFont)
+                    .foregroundStyle(DesignSystem.ink900)
+                    .lineLimit(1)
+                Spacer(minLength: DesignSystem.spacing8)
                 Text("¥\(Int(wish.rewardYuan))")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(DesignSystem.highlightGold)
+                    .font(DesignSystem.headlineFont)
+                    .foregroundStyle(DesignSystem.ink900)
             }
 
             Text(wish.message)
-                .font(.system(size: 14))
-                .foregroundColor(DesignSystem.textSecondary)
+                .font(DesignSystem.bodyFont)
+                .foregroundStyle(DesignSystem.ink700)
                 .lineLimit(3)
-                .lineSpacing(3)
+                .lineSpacing(2)
 
             HStack {
                 Text(wish.deliveryType.label)
-                    .font(.system(size: 11, weight: .semibold))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(DesignSystem.primaryBlue.opacity(0.1))
-                    .foregroundColor(DesignSystem.primaryBlue)
-                    .cornerRadius(4)
-
+                    .font(DesignSystem.captionFont.weight(.semibold))
+                    .foregroundStyle(DesignSystem.accent)
+                    .padding(.horizontal, DesignSystem.spacing8)
+                    .frame(minHeight: 28)
+                    .background(
+                        Capsule()
+                            .fill(DesignSystem.canvasSunk)
+                            .overlay(Capsule().stroke(DesignSystem.hairline, lineWidth: 1))
+                    )
                 Spacer()
-
-                Text("期望时间: \(wish.deadlineText)")
-                    .font(.system(size: 12))
-                    .foregroundColor(DesignSystem.textSecondary)
+                Text("期望时间：\(wish.deadlineText)")
+                    .font(DesignSystem.captionFont)
+                    .foregroundStyle(DesignSystem.ink500)
+                    .lineLimit(1)
             }
-            .padding(.top, 4)
         }
         .padding(DesignSystem.spacing16)
-        .background(DesignSystem.cardBg)
-        .cornerRadius(DesignSystem.radiusMedium)
-        .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
+        .v3Card()
     }
 }
 
-// Filter Sheet View
 struct FilterSheetView: View {
     @Binding var selectedCity: String
     @Binding var isPresented: Bool
     var onConfirm: (String) -> Void
 
-    let cities = ["全国", "杭州", "上海", "北京", "深圳", "广州"]
+    private let cities = ["全国", "杭州", "上海", "北京", "深圳", "广州"]
 
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
                 Text("选择城市")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(DesignSystem.textNavy)
+                    .font(DesignSystem.headlineFont)
+                    .foregroundStyle(DesignSystem.ink900)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: DesignSystem.spacing8) {
                         ForEach(cities, id: \.self) { city in
-                            Button(action: {
-                                selectedCity = city
-                            }) {
+                            Button { selectedCity = city } label: {
                                 Text(city)
-                                    .font(.system(size: 14, weight: .medium))
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(selectedCity == city ? DesignSystem.primaryBlue : Color.gray.opacity(0.1))
-                                    .foregroundColor(selectedCity == city ? .white : DesignSystem.textNavy)
-                                    .cornerRadius(8)
+                                    .font(DesignSystem.metadataFont.weight(.semibold))
+                                    .foregroundStyle(selectedCity == city ? .white : DesignSystem.ink700)
+                                    .padding(.horizontal, DesignSystem.spacing16)
+                                    .frame(minHeight: 40)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
+                                            .fill(selectedCity == city ? DesignSystem.accent : DesignSystem.canvasSunk)
+                                    )
                             }
                         }
                     }
@@ -271,16 +277,12 @@ struct FilterSheetView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("重置") {
-                        selectedCity = "全国"
-                    }
-                    .foregroundColor(DesignSystem.primaryBlue)
+                    Button("重置") { selectedCity = "全国" }
+                        .foregroundStyle(DesignSystem.accent)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("关闭") {
-                        isPresented = false
-                    }
-                    .foregroundColor(DesignSystem.primaryBlue)
+                    Button("关闭") { isPresented = false }
+                        .foregroundStyle(DesignSystem.accent)
                 }
             }
         }
@@ -288,282 +290,172 @@ struct FilterSheetView: View {
     }
 }
 
-// Wish Detail View
 struct WishDetailView: View {
     let wish: PublicWishDTO
     @State private var showApplySheet = false
     @State private var showSuccess = false
-    @Environment(\.wishAPIClient) var apiClient
+    @Environment(\.wishAPIClient) private var apiClient
 
     var body: some View {
         VStack(spacing: 0) {
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
-                    // Header Card
-                    VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
-                        HStack {
-                            Text(wish.deliveryType.label)
-                                .font(.system(size: 12, weight: .bold))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(DesignSystem.primaryBlue.opacity(0.1))
-                                .foregroundColor(DesignSystem.primaryBlue)
-                                .cornerRadius(4)
-
-                            Spacer()
-
-                            Text(wish.status.label)
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(DesignSystem.primaryBlue)
-                        }
-
-                        Text("\(wish.city) · \(wish.landmark)")
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(DesignSystem.textNavy)
-
-                        HStack {
-                            Text("感谢金：")
-                                .font(.system(size: 14))
-                                .foregroundColor(DesignSystem.textSecondary)
-                            Text("¥\(Int(wish.rewardYuan))")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(DesignSystem.highlightGold)
-                        }
-                    }
-                    .padding(DesignSystem.spacing20)
-                    .background(DesignSystem.cardBg)
-                    .cornerRadius(DesignSystem.radiusLarge)
-                    .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
-
-                    // Wish Content Card
-                    VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
-                        Text("心愿内容")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(DesignSystem.textNavy)
-
-                        Text(wish.message)
-                            .font(.system(size: 15))
-                            .foregroundColor(DesignSystem.textNavy.opacity(0.9))
-                            .lineSpacing(5)
-
-                        Divider()
-                            .padding(.vertical, 4)
-
-                        HStack {
-                            Text("期望完成时间")
-                                .font(.system(size: 13))
-                                .foregroundColor(DesignSystem.textSecondary)
-                            Spacer()
-                            Text(wish.deadlineText)
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(DesignSystem.textNavy)
-                        }
-                    }
-                    .padding(DesignSystem.spacing20)
-                    .background(DesignSystem.cardBg)
-                    .cornerRadius(DesignSystem.radiusLarge)
-                    .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
-
-                    // Process Guide
-                    VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
-                        Text("接单履约说明")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(DesignSystem.textNavy)
-
-                        Text("1. 提交响应后，平台运营人员会在12小时内与您联系。\n2. 人工匹配确认后，您需要在规定时间内前往现场履约。\n3. 上传拍摄的照片/视频，确认合格后即可获得相应感谢金。")
-                            .font(.system(size: 13))
-                            .foregroundColor(DesignSystem.textSecondary)
-                            .lineSpacing(4)
-                    }
-                    .padding(DesignSystem.spacing20)
-                    .background(DesignSystem.cardBg)
-                    .cornerRadius(DesignSystem.radiusLarge)
-                    .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
-
-                    // Security Warning
-                    HStack {
-                        Image(systemName: "shield.fill")
-                            .foregroundColor(DesignSystem.primaryBlue)
-                        Text("响应者与发布者的私人联系方式均不对外公开，完全由平台居中保障双方利益。")
-                            .font(.system(size: 12))
-                            .foregroundColor(DesignSystem.textSecondary)
-                            .lineSpacing(2)
-                    }
-                    .padding(.horizontal, 8)
+                    headerCard
+                    contentCard
+                    processCard
+                    safetyNotice
                 }
                 .padding(DesignSystem.spacing20)
             }
 
-            // Bottom Action
-            VStack {
-                Button(action: {
-                    showApplySheet = true
-                }) {
-                    Text("我刚好在这里，可以帮忙")
-                }
+            Button("我刚好在这里，可以帮忙") { showApplySheet = true }
                 .buttonStyle(PrimaryButtonStyle())
                 .padding(DesignSystem.spacing20)
-            }
-            .background(Color.white.shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: -4))
+                .background(
+                    DesignSystem.canvas.overlay(alignment: .top) {
+                        Rectangle().fill(DesignSystem.hairline).frame(height: 1)
+                    }
+                )
         }
         .navigationTitle("心愿详情")
         .navigationBarTitleDisplayMode(.inline)
         .warmBackground()
         .sheet(isPresented: $showApplySheet) {
             ApplyResponseSheet(wish: wish, isPresented: $showApplySheet, showSuccess: $showSuccess, apiClient: apiClient)
+                .presentationDetents([.large])
         }
         .navigationDestination(isPresented: $showSuccess) {
             ApplySuccessView(wish: wish)
         }
     }
+
+    private var headerCard: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing16) {
+            HStack {
+                detailChip(wish.deliveryType.label)
+                Spacer()
+                Text(wish.status.label)
+                    .font(DesignSystem.metadataFont.weight(.semibold))
+                    .foregroundStyle(DesignSystem.accent)
+            }
+            Text("\(wish.city) · \(wish.landmark)")
+                .font(DesignSystem.titleFont)
+                .foregroundStyle(DesignSystem.ink900)
+            HStack(spacing: DesignSystem.spacing4) {
+                Text("感谢金")
+                    .font(DesignSystem.bodyFont)
+                    .foregroundStyle(DesignSystem.ink700)
+                Text("¥\(Int(wish.rewardYuan))")
+                    .font(DesignSystem.titleFont)
+                    .foregroundStyle(DesignSystem.ink900)
+            }
+        }
+        .padding(DesignSystem.spacing20)
+        .v3Card(radius: DesignSystem.radiusLarge)
+    }
+
+    private var contentCard: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
+            Text("心愿内容")
+                .font(DesignSystem.headlineFont)
+                .foregroundStyle(DesignSystem.ink900)
+            Text(wish.message)
+                .font(DesignSystem.bodyFont)
+                .foregroundStyle(DesignSystem.ink700)
+                .lineSpacing(3)
+            Divider().overlay(DesignSystem.hairline)
+            HStack {
+                Text("期望完成时间")
+                    .font(DesignSystem.metadataFont)
+                    .foregroundStyle(DesignSystem.ink700)
+                Spacer()
+                Text(wish.deadlineText)
+                    .font(DesignSystem.metadataFont.weight(.semibold))
+                    .foregroundStyle(DesignSystem.ink900)
+            }
+        }
+        .padding(DesignSystem.spacing20)
+        .v3Card(radius: DesignSystem.radiusLarge)
+    }
+
+    private var processCard: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
+            Text("接单履约说明")
+                .font(DesignSystem.headlineFont)
+                .foregroundStyle(DesignSystem.ink900)
+            Text("提交响应后，运营人员会确认匹配。确认后请在约定时间前往现场履约；完成后上传照片或视频，等待发布者确认。")
+                .font(DesignSystem.bodyFont)
+                .foregroundStyle(DesignSystem.ink700)
+                .lineSpacing(3)
+        }
+        .padding(DesignSystem.spacing20)
+        .v3Card(radius: DesignSystem.radiusLarge)
+    }
+
+    private var safetyNotice: some View {
+        Label("响应者与发布者的联系方式均不对外公开，由平台居中保护。", systemImage: "shield")
+            .font(DesignSystem.metadataFont)
+            .foregroundStyle(DesignSystem.ink700)
+            .padding(DesignSystem.spacing12)
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                    .fill(DesignSystem.canvasSunk)
+                    .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusMedium).stroke(DesignSystem.hairline, lineWidth: 1))
+            )
+    }
+
+    private func detailChip(_ text: String) -> some View {
+        Text(text)
+            .font(DesignSystem.captionFont.weight(.semibold))
+            .foregroundStyle(DesignSystem.accent)
+            .padding(.horizontal, DesignSystem.spacing8)
+            .frame(minHeight: 28)
+            .background(Capsule().fill(DesignSystem.canvasSunk))
+    }
 }
 
-// Apply Response Sheet
 struct ApplyResponseSheet: View {
+    private enum ResponseField: Hashable { case name, contact, note }
+
     let wish: PublicWishDTO
     @Binding var isPresented: Bool
     @Binding var showSuccess: Bool
-
     @StateObject private var viewModel: WishResponseViewModel
+    @FocusState private var focusedField: ResponseField?
 
     init(wish: PublicWishDTO, isPresented: Binding<Bool>, showSuccess: Binding<Bool>, apiClient: WishAPIProtocol) {
         self.wish = wish
-        self._isPresented = isPresented
-        self._showSuccess = showSuccess
-        self._viewModel = StateObject(wrappedValue: WishResponseViewModel(wishId: wish.id, apiClient: apiClient))
+        _isPresented = isPresented
+        _showSuccess = showSuccess
+        _viewModel = StateObject(wrappedValue: WishResponseViewModel(wishId: wish.id, apiClient: apiClient))
     }
 
-    var isFormValid: Bool {
-        let isNotSubmitting = viewModel.state != .submitting
-        return !viewModel.name.trimmingCharacters(in: .whitespaces).isEmpty &&
-               !viewModel.contact.trimmingCharacters(in: .whitespaces).isEmpty &&
-               viewModel.agreeContact &&
-               isNotSubmitting
+    private var isFormValid: Bool {
+        !viewModel.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !viewModel.contact.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            viewModel.agreeContact && viewModel.state != .submitting
     }
 
-    var isSubmitting: Bool {
-        viewModel.state == .submitting
-    }
+    private var isSubmitting: Bool { viewModel.state == .submitting }
 
     var body: some View {
         NavigationStack {
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
-                    // Summary info
-                    HStack {
-                        Text("\(wish.city) · \(wish.landmark)")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(DesignSystem.textNavy)
-                        Spacer()
-                        Text("感谢金: ¥\(Int(wish.rewardYuan))")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(DesignSystem.highlightGold)
-                    }
-                    .padding(DesignSystem.spacing16)
-                    .background(DesignSystem.primaryBlue.opacity(0.05))
-                    .cornerRadius(DesignSystem.radiusSmall)
-
-                    if case .failed(let err) = viewModel.state {
-                        HStack(spacing: DesignSystem.spacing8) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.red)
-                            Text(err)
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.red)
-                            Spacer()
-                            Button(action: {
-                                submitResponse()
-                            }) {
-                                Text("重试")
-                                    .font(.system(size: 13, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 4)
-                                    .background(DesignSystem.primaryBlue)
-                                    .cornerRadius(DesignSystem.radiusSmall)
-                            }
-                        }
-                        .padding()
-                        .background(Color.red.opacity(0.1))
-                        .cornerRadius(DesignSystem.radiusSmall)
-                    }
-
-                    // Name Field
-                    VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
-                        Text("您的称呼")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(DesignSystem.textNavy)
-                        TextField("如：小张", text: $viewModel.name)
-                            .padding()
-                            .background(Color.gray.opacity(0.05))
-                            .cornerRadius(DesignSystem.radiusSmall)
-                            .disabled(isSubmitting)
-
-                        if let error = viewModel.validationErrors["responderName"] {
-                            Text(error)
-                                .font(.caption)
-                                .foregroundColor(.red)
-                        }
-                    }
-
-                    // Contact Field
-                    VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
-                        Text("联系方式 (仅运营可见)")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(DesignSystem.textNavy)
-                        TextField("微信号或手机号", text: $viewModel.contact)
-                            .padding()
-                            .background(Color.gray.opacity(0.05))
-                            .cornerRadius(DesignSystem.radiusSmall)
-                            .disabled(isSubmitting)
-
-                        if let error = viewModel.validationErrors["responderContact"] {
-                            Text(error)
-                                .font(.caption)
-                                .foregroundColor(.red)
-                        }
-                    }
-
-                    // Note Field
-                    VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
-                        Text("补充说明 (选填)")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(DesignSystem.textNavy)
-                        TextEditor(text: $viewModel.note)
-                            .frame(height: 100)
-                            .padding(8)
-                            .background(Color.gray.opacity(0.05))
-                            .cornerRadius(DesignSystem.radiusSmall)
-                            .disabled(isSubmitting)
-
-                        if let error = viewModel.validationErrors["note"] {
-                            Text(error)
-                                .font(.caption)
-                                .foregroundColor(.red)
-                        }
-                    }
-
-                    // Consent checkbox
-                    Toggle(isOn: $viewModel.agreeContact) {
-                        Text("同意平台运营人员与我联系确认匹配事宜。")
-                            .font(.system(size: 12))
-                            .foregroundColor(DesignSystem.textSecondary)
-                    }
-                    .toggleStyle(CheckboxToggleStyle())
-                    .disabled(isSubmitting)
-
+                    summary
+                    if case .failed(let message) = viewModel.state { failure(message) }
+                    textField(label: "您的称呼", placeholder: "如：小张", text: $viewModel.name, field: .name, error: viewModel.validationErrors["responderName"])
+                    textField(label: "联系方式（仅运营可见）", placeholder: "微信号或手机号", text: $viewModel.contact, field: .contact, error: viewModel.validationErrors["responderContact"])
+                    noteField
+                    consent
                     if let error = viewModel.validationErrors["contactConsent"] {
-                        Text(error)
-                            .font(.caption)
-                            .foregroundColor(.red)
+                        Label(error, systemImage: "exclamationmark.triangle")
+                            .font(DesignSystem.captionFont)
+                            .foregroundStyle(DesignSystem.danger)
                     }
-
-                    Spacer()
-
                     Button(action: submitResponse) {
                         if isSubmitting {
-                            SwiftUI.ProgressView()
-                                .tint(.white)
+                            SwiftUI.ProgressView().tint(.white)
                         } else {
                             Text("提交响应")
                         }
@@ -581,14 +473,116 @@ struct ApplyResponseSheet: View {
                         viewModel.cancel()
                         isPresented = false
                     }
-                    .foregroundColor(DesignSystem.primaryBlue)
-                    .disabled(isSubmitting)
+                    .foregroundStyle(DesignSystem.accent)
                 }
             }
-            .onDisappear {
-                viewModel.cancel()
+            .onDisappear { viewModel.cancel() }
+        }
+    }
+
+    private var summary: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
+                Text("\(wish.city) · \(wish.landmark)")
+                    .font(DesignSystem.headlineFont)
+                    .foregroundStyle(DesignSystem.ink900)
+                Text("感谢金 ¥\(Int(wish.rewardYuan))")
+                    .font(DesignSystem.metadataFont)
+                    .foregroundStyle(DesignSystem.ink700)
+            }
+            Spacer()
+        }
+        .padding(DesignSystem.spacing16)
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                .fill(DesignSystem.canvasSunk)
+                .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusMedium).stroke(DesignSystem.hairline, lineWidth: 1))
+        )
+    }
+
+    private func failure(_ message: String) -> some View {
+        HStack(spacing: DesignSystem.spacing8) {
+            Image(systemName: "exclamationmark.triangle")
+                .foregroundStyle(DesignSystem.danger)
+            Text(message)
+                .font(DesignSystem.metadataFont.weight(.semibold))
+                .foregroundStyle(DesignSystem.danger)
+            Spacer()
+            Button("重试") { submitResponse() }
+                .font(DesignSystem.metadataFont.weight(.semibold))
+                .foregroundStyle(DesignSystem.accent)
+        }
+        .padding(DesignSystem.spacing12)
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
+                .fill(DesignSystem.canvas)
+                .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).stroke(DesignSystem.danger, lineWidth: 1))
+        )
+    }
+
+    private func textField(label: String, placeholder: String, text: Binding<String>, field: ResponseField, error: String?) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
+            Text(label)
+                .font(DesignSystem.headlineFont)
+                .foregroundStyle(DesignSystem.ink900)
+            TextField(placeholder, text: text)
+                .font(DesignSystem.bodyFont)
+                .foregroundStyle(DesignSystem.ink900)
+                .padding(.horizontal, DesignSystem.spacing12)
+                .frame(minHeight: 48)
+                .background(fieldBackground(isFocused: focusedField == field, hasError: error != nil))
+                .focused($focusedField, equals: field)
+                .disabled(isSubmitting)
+            if let error {
+                Label(error, systemImage: "exclamationmark.triangle")
+                    .font(DesignSystem.captionFont)
+                    .foregroundStyle(DesignSystem.danger)
             }
         }
+    }
+
+    private var noteField: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
+            Text("补充说明（选填）")
+                .font(DesignSystem.headlineFont)
+                .foregroundStyle(DesignSystem.ink900)
+            TextEditor(text: $viewModel.note)
+                .font(DesignSystem.bodyFont)
+                .foregroundStyle(DesignSystem.ink900)
+                .scrollContentBackground(.hidden)
+                .padding(DesignSystem.spacing8)
+                .frame(height: 112)
+                .background(fieldBackground(isFocused: focusedField == .note, hasError: viewModel.validationErrors["note"] != nil))
+                .focused($focusedField, equals: .note)
+                .disabled(isSubmitting)
+            if let error = viewModel.validationErrors["note"] {
+                Label(error, systemImage: "exclamationmark.triangle")
+                    .font(DesignSystem.captionFont)
+                    .foregroundStyle(DesignSystem.danger)
+            }
+        }
+    }
+
+    private var consent: some View {
+        Toggle(isOn: $viewModel.agreeContact) {
+            Text("同意平台运营人员与我联系确认匹配事宜。")
+                .font(DesignSystem.metadataFont)
+                .foregroundStyle(DesignSystem.ink700)
+        }
+        .toggleStyle(CheckboxToggleStyle())
+        .disabled(isSubmitting)
+    }
+
+    private func fieldBackground(isFocused: Bool, hasError: Bool) -> some View {
+        RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
+            .fill(DesignSystem.canvasSunk)
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
+                    .stroke(
+                        hasError ? DesignSystem.danger : (isFocused ? DesignSystem.accent : DesignSystem.hairlineStrong),
+                        lineWidth: isFocused ? 2 : 1
+                    )
+            )
     }
 
     private func submitResponse() {
@@ -602,7 +596,6 @@ struct ApplyResponseSheet: View {
     }
 }
 
-// Apply Success View
 struct ApplySuccessView: View {
     let wish: PublicWishDTO
     @Environment(\.dismiss) private var dismiss
@@ -610,66 +603,58 @@ struct ApplySuccessView: View {
     var body: some View {
         VStack(spacing: DesignSystem.spacing24) {
             Spacer()
-
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 72))
-                .foregroundColor(DesignSystem.primaryBlue)
-
+            Image(systemName: "checkmark.circle")
+                .font(.largeTitle.weight(.regular))
+                .foregroundStyle(DesignSystem.success)
+                .accessibilityHidden(true)
             VStack(spacing: DesignSystem.spacing8) {
                 Text("响应已提交")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(DesignSystem.textNavy)
-
+                    .font(DesignSystem.titleFont)
+                    .foregroundStyle(DesignSystem.ink900)
                 Text("已收到响应，等待运营确认，不代表已经接单。")
-                    .font(.system(size: 14))
-                    .foregroundColor(DesignSystem.textSecondary)
+                    .font(DesignSystem.bodyFont)
+                    .foregroundStyle(DesignSystem.ink700)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, DesignSystem.spacing20)
             }
-
-            // Wish details
             VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
                 Text("\(wish.city) · \(wish.landmark)")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(DesignSystem.textNavy)
+                    .font(DesignSystem.headlineFont)
+                    .foregroundStyle(DesignSystem.ink900)
                 Text(wish.message)
-                    .font(.system(size: 13))
-                    .foregroundColor(DesignSystem.textSecondary)
+                    .font(DesignSystem.metadataFont)
+                    .foregroundStyle(DesignSystem.ink700)
                     .lineLimit(2)
             }
-            .padding()
+            .padding(DesignSystem.spacing16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(DesignSystem.bgWarmWhite)
-            .cornerRadius(DesignSystem.radiusMedium)
+            .v3Card()
             .padding(.horizontal, DesignSystem.spacing24)
-
             Spacer()
-
-            Button(action: {
-                dismiss()
-            }) {
-                Text("我知道了")
-            }
-            .buttonStyle(PrimaryButtonStyle())
-            .padding(.horizontal, DesignSystem.spacing24)
-            .padding(.bottom, 30)
+            Button("我知道了") { dismiss() }
+                .buttonStyle(PrimaryButtonStyle())
+                .padding(.horizontal, DesignSystem.spacing24)
+                .padding(.bottom, DesignSystem.spacing24)
         }
         .navigationBarBackButtonHidden(true)
         .warmBackground()
     }
 }
 
-// Custom Checkbox Toggle Style
 struct CheckboxToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
-        HStack {
-            Image(systemName: configuration.isOn ? "checkmark.square.fill" : "square")
-                .foregroundColor(configuration.isOn ? DesignSystem.primaryBlue : DesignSystem.textSecondary)
-                .font(.system(size: 20))
-                .onTapGesture {
-                    configuration.isOn.toggle()
-                }
-            configuration.label
+        Button {
+            configuration.isOn.toggle()
+        } label: {
+            HStack(alignment: .top, spacing: DesignSystem.spacing8) {
+                Image(systemName: configuration.isOn ? "checkmark.square" : "square")
+                    .font(.body.weight(.regular))
+                    .foregroundStyle(configuration.isOn ? DesignSystem.accent : DesignSystem.ink500)
+                    .accessibilityHidden(true)
+                configuration.label
+            }
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .accessibilityValue(configuration.isOn ? "已同意" : "未同意")
     }
 }
