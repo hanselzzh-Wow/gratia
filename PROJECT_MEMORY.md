@@ -13,17 +13,17 @@
 
 ## 已冻结的产品与体验
 
-- 五栏：**首页**（经授权、脱敏的已完成故事与“发布/帮助”转化）、**附近**（活跃心愿市场/搜索/响应）、**发布**、**进度**（私密查询/交付）、**我的**（访客帮助/隐私）。
+- 产品负责人最新裁决的五个 Dock 位置是：**首页、搜索、中央发布动作、帮助、我的**。它是四个一级页面加一个中央全局动作；旧“附近”改为“帮助”，旧“进度”移入“我的”的“我发布的/我帮助的”内部导航。
 - 首页不是第二个市场；MVP 没有账号、好友、私信、评论、关注或伪造点赞数。公开故事需独立同意，不能暴露交付链接或私人订单。
-- 原生 `TabView` 负责导航：iOS 26+ 让系统呈现浮动 Liquid Glass，旧系统自然回退。禁止网页式自绘 Dock、固定 blur、渐变、Emoji、默认卡片阴影。
-- 视觉：暖白/暖蓝、SF Symbols、8pt 节奏、Dynamic Type、44pt 点击区、内容优先；权威输入为 `docs/ios-experience-blueprint.md` 与 `docs/ios-design-freeze-v3.md`。
+- Dock 不显示汉字但必须保留 VoiceOver 名称、选中态与 44pt 命中区；普通图标为黑/深灰，只有中央发布为主题色。帮助使用两只手相握的原创图标。中央发布打开真实发布流程，不是第五个持久页面。
+- 最新视觉为用户认可的 Claude 版本：大面积纯白、媒体优先，主题色 `#9A536D`，深色 `#7F4058`，柔粉 `#E4C6D0`，浅粉底 `#FAF4F6`，主文字 `#191719`。此裁决在首页/导航/搜索/帮助/我的范围内取代旧 v3 暖蓝与旧五栏；Dynamic Type、VoiceOver、44pt、隐私和真实状态规则仍有效。
 
 ## 当前事实（每次续接先验证）
 
 - **运行状态：产品负责人已恢复自主推进。** Codex 继续验收、集成和依赖驱动派发；外部负责人仍只做唯一已派任务，交接后停止。
 - `main` merge commit `296ab12` 已具备真实公开列表、发布、响应、查询进度/交付与 v3 基线（P0-A/B/C/D）。AG-006 独立质量门：Core 17/17、iPhone 17 Pro iOS 27 Simulator 23/23，0 failure/skip/runtime warning。
 - `AG-007`：Codex 接管实现 commit `4db9037`，App 23/23、Core 17/17、parser/扫描通过，状态 REVIEW。当前缺查询/404/delivered/媒体失败四态截图；环境只有 headless Simulator runtime，未加入生产测试后门。截图补齐前不 ACCEPTED、不启动 AG-008。
-- `CL-005` 已验收并以 `c19ca38` 合入设计资产；MVP 裁决为去框化 Hero、16:7 缩略图、无点赞、详情隐藏系统 Tab Bar。`AG-008` 已登记为 PLANNED，须等 AG-007 验收并冻结公开故事数据来源后才正式派发。
+- `CL-005` 已验收并以 `c19ca38` 合入设计资产。产品负责人随后认可 Claude 新版本，并授权其直接实现；`CL-006` 已创建独立 worktree `worktrees/claude-cl-006-home-search-help-ui` / 分支 `codex/cl-006-home-search-help-ui`，状态 IN_PROGRESS。允许范围为首页、搜索、帮助、我的、导航与必要主题 token，明确禁止 AG-007 路径、后端、签名和运行时伪造故事。旧 `AG-008` 已 SUPERSEDED。
 - main 已在 iPhone 17 Pro、iOS 27 Simulator 完成 build/install/launch；系统原生浮动 Liquid Glass Tab Bar 截图可见。首次冷启动曾白屏约 27 秒后恢复，日志显示网络经本机代理成功 200；随后暖启动 0.64 秒并立即渲染，未稳定复现为 App 启动缺陷。真机安装仍未完成。
 
 ## 强制交接与接班卡同步
@@ -54,9 +54,9 @@
 
 ## 恢复顺序
 
-1. Antigravity 完成 AG-007 后：独立复验 Progress/Delivery 截图、23+ App 测试、Core、隐私和禁止项，合格才集成。
-2. AG-007 验收后：先冻结公开故事数据来源/API 边界，再把 AG-008 从 PLANNED 转为正式首页实现任务；无公开端点时不得伪造运行时故事。
-3. AG-007/AG-008 收口后在 iOS 27 Simulator 复验完整五栏与冷/暖启动；保留首次冷启动白屏为观察项，不在未复现前猜测代码根因。
+1. Claude 在 CL-006 worktree ACK 后只实现任务卡范围；完成代码、截图、测试、commit、交接与 STATUS 后立即停止，Codex 独立验收。
+2. Codex 补齐 AG-007 的四态截图证据；CL-006 不得修改 Progress/Track/Delivery，避免冲突。
+3. 两项均验收后由 Codex 按依赖顺序集成，在 iOS 27 Simulator 复验首页/搜索/发布/帮助/我的与冷暖启动；无公开故事 API 时运行态保持诚实空态。
 4. 用户连接 iPhone，选择 Personal Team 并信任开发者；Codex 构建安装并跑受控真实闭环。
 
 ## 快速核验
