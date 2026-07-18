@@ -1,6 +1,6 @@
 # 多 AI 任务板
 
-最后更新：2026-07-18 20:55（Asia/Shanghai）
+最后更新：2026-07-18 23:24（Asia/Shanghai）
 
 永久角色分工见 `.ai/ROLES.md`。
 
@@ -17,7 +17,7 @@
 | AG-005 | Codex | ACCEPTED | 真实提交响应已在隔离集成分支通过独立质量门；Codex 接管补齐 trim 编码断言与可读取结果包证据，准备合入 main | `codex/ios-response-integration` 的响应源码、测试、交接与协调文件 | 仅待合入 main 后完成；Antigravity 无权继续写入或自动领取后续任务 |
 | AG-006 | Antigravity | ACCEPTED | P0-D 真实查询进度与交付已通过 Core 17/17、iPhone Simulator 23/23、隐私/Mock 扫描并合入 main | 历史 worktree `worktrees/ag-006-real-track`；源码权限已收回 | 已验收合入；不得继续修改或自动领取任务 |
 | AG-007 | Codex | REVIEW | v3 进度与交付视觉已提交 `4db9037`，App 23/23、Core 17/17；待四态截图补证 | 仅 `worktrees/ag-007-v3-progress-delivery` 的任务卡精确路径 | 截图证据补齐前不得 ACCEPTED 或启动 AG-008 |
-| AG-008 | Antigravity | PLANNED | 首页内容社区 SwiftUI：实现已授权完成故事正常/空/错误/详情与双 CTA | 待 AG-007 验收后创建独立 worktree；精确范围见下文 | 未正式 TASK 前不得写入；完成后交接并停止 |
+| AG-008 | Antigravity | SUPERSEDED | 旧首页内容社区 SwiftUI 计划已被产品负责人 2026-07-18 的新首页与五位 Dock 裁决替代 | 无；不得创建旧计划 worktree 或实现旧五栏 | 旧计划停止，不得自行领取替代任务 |
 | CX-001 | Codex | ACCEPTED | v3 首页基础视觉与原创 App Icon 已在隔离分支通过构建、Simulator 截图与结构化测试后合入 main | `codex/v3-home-foundations` 的首页、DesignSystem、App Icon、交接与群聊 | 已完成；其余页面视觉改造必须另建任务，且不得触碰 AG-006 的范围 |
 | CX-002 | Codex | ACCEPTED | v3 附近、详情与真实响应表单视觉已通过独立编译、Core 15/15、iPhone Simulator 15/15 与禁止项扫描，并已合入本地 main | `codex/v3-nearby-response` 的 Nearby、交接与群聊 | 已完成；后续 Publish/Profile/Tab Bar 必须另建任务，且不得触碰 AG-006 的范围 |
 | CX-003 | Codex | ACCEPTED | v3 发布与我的视觉已通过独立编译、Core 15/15、iPhone Simulator 15/15 与禁止项扫描，并已合入本地 main | `codex/v3-publish-profile` 的 Publish/Profile、交接与群聊 | 已完成；Tab Bar 必须等 AG-006 收口后另建任务，且不得触碰其范围 |
@@ -26,6 +26,7 @@
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
 | CL-004 | Claude | ACCEPTED | 已交付 v3 SwiftUI 实施审计：冻结视觉的精确落地、差异与截图验收清单已可直接约束后续实现 | `.ai/handoffs/CL-004-swiftui-audit.md` | 已验收；Claude 停止，待视觉实现后再做截图审阅，不得自动重画或改源码 |
 | CL-005 | Claude | ACCEPTED | 首页内容社区设计检查点已验收：正常/空/故事详情资产、职责、隐私和无障碍交接完整 | 历史 worktree `worktrees/claude-cl-005-home-community`；写权限已收回 | 已验收合入；不得继续重画或自行实现 |
+| CL-006 | Claude | IN_PROGRESS | 将用户已认可的 Claude 首页风格与新信息架构直接落到 SwiftUI：媒体首页、搜索、居中发布、帮助、我的 | 仅 `worktrees/claude-cl-006-home-search-help-ui` 的任务卡精确路径 | 完成代码、测试、截图、commit、交接与 STATUS 后立即停止等待 Codex 验收 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -533,13 +534,70 @@ Codex 验收方式：逐页查看 HTML/1x/3x、对照上述职责与隐私清单
 
 Codex 已逐页查看 393×852 正常/空/故事详情，核验 3x 尺寸、HTML、零 Emoji/渐变/自定义阴影、隐私关键字和 diff；交付以 main `c19ca38` 接受。MVP 裁决：采用去框化 Hero；故事缩略图固定 16:7；点赞图标完全不实现；故事详情使用系统 API 隐藏 Tab Bar；交付示意文案先作为 MVP 文案，后续文案校对不得阻塞实现。
 
-## AG-008：首页内容社区 SwiftUI（PLANNED，尚未授权写入）
+## AG-008：首页内容社区 SwiftUI（SUPERSEDED，不得执行）
 
-负责人：Antigravity。依赖：`AG-007` 完成并经 Codex验收后，才由 Codex 从最新 main 创建 `worktrees/ag-008-home-community` / `codex/ag-008-home-community` 并发送正式 TASK。当前不得创建分支、修改文件或提前实现。
+原计划已被产品负责人 2026-07-18 确认的新首页、搜索、帮助与四页加中央发布动作的信息架构替代。不得创建原计划分支、修改文件或提前实现；后续实现以 `CL-006` 为准。
 
 计划目标：把 `CL-005` 已接受的内容社区首页落为 SwiftUI，首页只展示经独立授权、脱敏的已完成故事，支持正常/空/加载/错误/详情和“发布/附近”双 CTA；不得把活跃市场数据或私人 track DTO 当作公开故事源。正式派发前 Codex 必须先冻结故事数据来源/API 边界；若后端尚无公开故事端点，首版只能实现诚实空态与本地编译期 Preview fixture，不得在运行时伪造故事。
 
 预计允许路径仅为 `HomeView.swift`、新建故事展示类型/ViewModel/测试、必要的 `ContentView` 导航注入、交接与群聊；禁止 Nearby/Publish/Progress/Profile、Core 既有公开列表契约、后端、签名、DesignSystem 和自绘 Tab Bar。正式任务卡会给出精确路径、数据边界、截图与测试命令。
+
+## CL-006：用户认可风格的 SwiftUI 首页与导航落地（Claude，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/claude-cl-006-home-search-help-ui`
+
+分支：`codex/cl-006-home-search-help-ui`
+
+本任务是产品负责人明确批准的角色例外：Claude 可以在本独立 worktree 内把其当前获认可的设计直接落到 Xcode SwiftUI 源文件。该例外仅限本卡允许路径，不授权后端、业务契约、签名、主分支或其它任务源码。
+
+唯一目标：保持产品负责人已认可的 Claude 当前版本视觉风格，将顶层结构改为四个页面加中央全局发布动作：`首页｜搜索｜发布｜帮助｜我的`；移除一级“进度”，把查询/进度入口收进“我的”，并让首页成为白底、媒体优先的公开内容流。
+
+权威输入与裁决：
+
+- 产品负责人认可的 Claude 当前设计版本：`https://claude.ai/code/artifact/982c770b-f435-42a7-ac45-b51ea67922c9?via=auto_preview`
+- 本任务卡内的文字裁决优先于旧 `docs/ios-design-freeze-v3.md` 中冲突的蓝色、附近、进度与五页面导航；未冲突的原生 iOS、Dynamic Type、VoiceOver、44pt、安全区和隐私规则继续有效。
+- 主题色：`#9A536D`；深色 `#7F4058`；柔和粉 `#E4C6D0`；浅粉底 `#FAF4F6`；大画布 `#FFFFFF`；主文字 `#191719`。大面积保持白色，只有中央发布和必要小面积强调使用主题色。
+- 首页 Preview 可以使用明确标注的纯虚构内容与本地占位媒体；运行时不得伪造已发布用户、互动数字或生产故事。不得使用可识别真人、第三方商标或未授权素材。
+
+允许修改（仅本 worktree）：
+
+- `ios/Haluowode/ContentView.swift`
+- `ios/Haluowode/DesignSystem.swift`
+- `ios/Haluowode/HomeView.swift`
+- `ios/Haluowode/NearbyView.swift`（只用于改造成“帮助”入口并保留现有真实公开心愿/响应行为）
+- `ios/Haluowode/ProfileView.swift`
+- `ios/Haluowode/PublishView.swift`（仅适配中央发布入口、主题 token 或关闭/返回导航，不改业务状态机）
+- 新建 `ios/Haluowode/SearchView.swift`
+- 新建仅展示用的 `ios/Haluowode/HomePreviewFixtures.swift` 与本地、原创、无身份媒体资源 `ios/Haluowode/Assets.xcassets/PreviewMedia/**`
+- `ios/HaluowodeTests/**`（仅导航、筛选、可访问性或纯展示逻辑测试；不得改已有业务断言以迁就实现）
+- `.ai/handoffs/CL-006-home-search-help-ui.md`
+- `.ai/TEAM_CHAT.md`（只追加 ACK/OBJECTION/STATUS）
+
+禁止修改：`ProgressView.swift`、`TrackWishViewModel.swift`、`DeliveryPreviewView.swift`（AG-007 路径，只能复用不能改）、所有其它 ViewModel、Core Sources/API 模型、后端/数据库/部署、生产 API、项目签名/Bundle ID/证书、依赖、`project.yml`、生成的 `.xcodeproj`、主工作区、任务板、冻结文件、项目日志、Git 历史。不得增加账号、好友、关注、自由私信、评论后端、点赞后端、假互动数字、精确个人位置或运行时 Mock 故事。
+
+必须交付：
+
+1. Dock 视觉顺序固定为首页、搜索、中央发布、帮助、我的；页面图标黑色/深灰，只有中央发布为玫红主题色。视觉不显示汉字时仍须给每项保留准确 VoiceOver 名称、可识别选中态和至少 44pt 命中区。帮助使用原创“两只手相握”SVG/Shape 图标，不以附近、定位针或普通爱心代替。
+2. 中央发布是全局动作，打开现有真实 `PublishView` Sheet/全屏流程，不把它实现为第五个持久页面；发布完成后不得改变现有真实 API、校验、取消、错误和编号语义。
+3. 首页采用白底媒体优先信息流，去掉大段 App 介绍；“许个愿”若保留在右上角只能是克制的次入口。首页正常样式只在 SwiftUI Preview/测试 fixture 展示两条明确虚构故事；运行 App 没有合法公开故事源时必须展示诚实空态，不得用活跃心愿或私人 track 数据冒充完成故事。互动只显示图标，不显示伪造数量；不得把评论/点赞呈现为已接通后端。
+4. 搜索页支持公开字段的地点、公共地标、主题/场景、交付形式筛选，结果沿用媒体信息流视觉；筛选可以形成首页可清除的条件标签。只搜索明确公开内容，位置最多到城市/公共地标，不索引联系方式、精确个人位置或私人查询数据。若目前没有公开故事 API，搜索 UI 和过滤逻辑只在 Preview fixture 可演示，运行态诚实说明暂无公开内容。
+5. “帮助”页复用现有真实 `PublicWishDTO` 列表与响应流程，把“附近”语义改成帮助；不得破坏列表加载/空/错误/刷新、详情和真实 `WishResponseViewModel` 提交、取消、失败、成功语义。
+6. “我的”显示“我发布的”“我帮助的”两个入口，并把现有进度查询作为其内部导航目的地；不得伪造账户或本地历史聚合，也不得修改 AG-007 的 Progress/Track/Delivery 源码。
+7. 新 Dock 如需自定义以满足中央动作和独立色彩，必须保持 safe area、键盘、横竖屏、Reduce Transparency、Dynamic Type、VoiceOver、44pt 命中区；不得用固定截图式布局。iOS 16–27 至少编译通过，系统原生控件能满足的部分优先保留系统行为。
+8. 提供 iPhone 17 Pro Simulator 的首页、搜索、帮助、我的、发布入口截图；测试/构建必须是真实执行结果。交接列出精确改动路径、实际测试数量、warning、未验证项、素材来源/授权边界和 commit SHA。
+
+验收命令（在本 worktree 执行）：
+
+```bash
+/private/tmp/xcodegen-2.46.0-release/xcodegen/bin/xcodegen generate --spec ios/project.yml
+swift test --package-path ios/Packages/HaluowodeCore --scratch-path /private/tmp/haluowode-core-cl006 --disable-xctest --enable-swift-testing
+xcodebuild -project ios/Haluowode.xcodeproj -scheme Haluowode -destination 'platform=iOS Simulator,id=742A9D34-5F88-4578-BB12-851A00D2C0FE' -derivedDataPath /private/tmp/haluowode-cl006-tests test
+swiftc -frontend -parse ios/Haluowode/*.swift
+rg -n -i 'admin|x-admin-key|api[_-]?key|cloudflare.*token|Wish\.mockWishes|LinearGradient' ios/Haluowode ios/Packages/HaluowodeCore
+git diff --check
+```
+
+停止条件：Claude 完成允许范围内代码、验证、截图、commit、交接，并在本 worktree `.ai/TEAM_CHAT.md` 追加准确 STATUS 后立即停止；不得合入 main、推送、部署、改签名、领取下一任务或顺手修改 AG-007。Codex 独立验收后才决定合入或退回。
 
 ## 新任务创建要求
 

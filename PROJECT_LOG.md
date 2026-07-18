@@ -753,3 +753,13 @@ Cloudflare Worker API
 - Cloudflare Worker、D1、R2 上线，生产完整 E2E 与只读安全检查通过。
 - GitHub Pages 原型连接生产后端；该页面现被重新定义为历史原型。
 - 相关本地源码提交：`6bb64c4`；GitHub Pages 发布提交：`9a3187d`。
+### 2026-07-18：派发 CL-006，Claude 获准直接落地已认可 SwiftUI 设计
+
+- 产品负责人确认满意 Claude 当前版本整体风格，并明确要求 Codex 给 Claude Xcode 源文件写入权限。
+- 最新信息架构冻结为四个页面加中央全局动作：`首页｜搜索｜发布｜帮助｜我的`。移除一级“进度”，查询/交付入口进入“我的”的“我发布的/我帮助的”；“附近”改为“帮助”。
+- Dock 普通图标黑/深灰且不显示汉字，保留 VoiceOver 与 44pt；只有中央发布使用玫红主题色，帮助使用两手相握的原创图标。
+- 视觉色板冻结为 `#9A536D`、`#7F4058`、`#E4C6D0`、`#FAF4F6`、`#FFFFFF`、`#191719`；首页保持白底、媒体优先。Preview 可用明确虚构素材，运行时不得伪造故事、账号或互动数字。
+- 创建独立 worktree `worktrees/claude-cl-006-home-search-help-ui`，分支 `codex/cl-006-home-search-help-ui`，起点为 main `3e5cb0c`。CL-006 只允许导航、Home/Search/Help/Profile、必要 Publish 适配、DesignSystem、展示 fixture/本地原创媒体和相关测试；禁止 AG-007 的 Progress/Track/Delivery、业务 ViewModel/Core、后端、签名、部署和主分支。
+- 旧 `AG-008` 因产品方向更新标记 SUPERSEDED。CL-006 必须完成真实构建/测试/Simulator 截图、commit、交接和 STATUS 后停止，等待 Codex 独立验收。
+- 当前验证：worktree 创建成功；尚未执行 CL-006 源码构建或测试，尚待 Claude ACK 与实现。
+- 接下来三步：Claude ACK 并实现；Codex 保持 AG-007 路径隔离并补证；收到 CL-006 STATUS 后独立复验再决定集成。
