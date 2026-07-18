@@ -7,11 +7,11 @@
 ## 当前规则
 
 - Codex 作为 PM/协调人可以进行只读审计，并修改协调文档、项目日志和验收结果；已验收的 AG-003 已由 Codex 集成到本地主分支，后续正式实现仍必须使用独立 worktree。
-- Antigravity 的 `AG-002` 至 `AG-006` 已验收，`AG-006` 已合入本地 `main`。`AG-007` 已正式派发：Antigravity 只可在 `worktrees/ag-007-v3-progress-delivery` 的任务板精确允许路径内写入，且完成交接后立即停止；主工作区源码仍冻结。
+- Antigravity 的 `AG-002` 至 `AG-006` 已验收，`AG-006` 已合入本地 `main`。`AG-007` 因 Antigravity 未 ACK 已由 Codex 收回并在 `worktrees/ag-007-v3-progress-delivery` 接管；Antigravity 当前无源码写权限，主工作区源码仍冻结。
 - `CX-001` 已独立验收并合入本地 main。其首页、DesignSystem 与 App Icon 变更不触碰 Antigravity 的 Progress/Track/Delivery 路径；后续其余页面视觉改造需另建独立任务。
 - `CX-002` 已由 Codex 独立验收并合入本地 main；其 Nearby/详情/响应视觉变更不触碰 `AG-006` 的 Progress/Track/Delivery/Content 路径，也不改变已验收的 response ViewModel 行为。后续其余页面视觉改造必须另建独立任务。
 - `CX-003` 已由 Codex 独立验收并合入本地 main；其 Publish/Profile 视觉变更不触碰 `AG-006` 的 Progress/Track/Delivery/Content 路径、任何 ViewModel 或业务语义。后续 Tab Bar 必须在 P0-D 收口后另建独立任务。
-- Claude 的 `CL-001`、`CL-003`、`CL-004` 已验收。`CL-005` 已在独立 worktree 派发：Claude 只能写任务卡精确列出的新首页内容社区设计交接/资产与群聊，不得修改源码、既有冻结资产或视觉决策；完成后立即停止等待验收。
+- Claude 的 `CL-001`、`CL-003`、`CL-004`、`CL-005` 已验收；Claude 当前无写入任务。`AG-008` 仅为 PLANNED，尚不解除任何写入范围，必须等 AG-007 验收和正式 TASK。
 - 所有成员可以严格按照 `.ai/TEAM_CHAT.md` 的格式在文件末尾追加群聊消息；这是沟通例外，不解除任何源码写入冻结。
 - 其他 AI 只能阅读，不得写任何文件。
 - 除 `AG-007` 隔离 worktree 的精确授权路径外，任何代理不得修改 `ios/`、后端、部署配置、主分支或 Git 历史。既有隔离集成分支已把 AG-003 至 AG-006 与 CX-001/002/003 复验并合入本地主分支；未经 Codex 再次验收不得合入任何后续源码。

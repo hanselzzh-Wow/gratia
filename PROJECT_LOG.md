@@ -98,6 +98,30 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：收回未 ACK 的 AG-007，由 Codex 接管避免主线空转
+
+- AG-007 正式 TASK 已在隔离 worktree 提交，但执行者持续无 ACK、无文件改动、无新 commit；产品负责人连续要求继续推进。
+- Codex 依协作规则收回尚未开始的 AG-007，不把它误报为外部执行中；原 worktree/分支与允许/禁止路径不变，负责人改为 Codex。
+- 本轮使用 Apple 原生设计原则中的 8pt 网格、语义字体、44pt 点击区和无障碍；项目冻结优先，拒绝技能通用示例中的自定义玻璃、渐变与普通卡阴影。
+- AG-008 仍保持 PLANNED，待 AG-007 完成后再由 Antigravity 正式领取，避免同一执行者并发任务和未验收依赖。
+
+### 2026-07-18：main 首次完成 iOS 27 安装启动与系统 Liquid Glass 截图
+
+- Codex 从 main 构建 Simulator App，成功启动 iPhone 17 Pro iOS 27、安装 `Haluowode.app` 并以前台 PID 启动 `com.hanselzzh.haluowode`；不再把 bundle 生成或测试通过当作运行证据。
+- 首次截图为纯白屏；运行日志无崩溃，显示首次网络请求经本机 `127.0.0.1:7890` 代理完成 TLS 并返回 200，约 27 秒后首页与 Tab Bar 正常渲染。
+- 终止进程后暖启动实测 `simctl launch` 0.640 秒，立即截图确认首页、五个系统目的地和 iOS 27 原生浮动 Liquid Glass Tab Bar 均可见；因此此前 CoreSimulator 启动/安装阻塞已解除。
+- 截图证据位于 Codex 可视化目录的 `main-home-ios27-loaded.png` 与 `main-home-ios27-warm.png`；未提交到产品仓库。首次冷启动白屏保留为观察项，尚不能归因于 App 代码或稳定复现。
+- 未验证：真实 iPhone、Personal Team 签名、触摸交互完整闭环、弱网/无网冷启动、Reduce Transparency/Reduce Motion 和 iOS 16–25 系统 Tab Bar 回退。
+- 下一步：等待 AG-007 ACK/交付并独立验收；正式化 AG-008 前冻结公开故事数据边界；视觉收口后进行真机安装。
+
+### 2026-07-18：验收 CL-005 并登记首页实现接力
+
+- Claude 在 `8a98bf7` 交付首页正常、无授权故事空态、故事详情三页 HTML 与 1x/3x PNG；Codex 实测尺寸分别为 393×852 与 1179×2556，逐页查看视觉并确认首页/附近职责分离。
+- 扫描确认无 Emoji、渐变、自定义阴影、联系方式、能力 URL/token；交接未修改 SwiftUI、后端或冻结文档。设计资产以 main `c19ca38` 接受。
+- 产品裁决：MVP 采用去框化 Hero和稳定 16:7 故事缩略图；不显示点赞图标或假互动；详情页使用系统 API 隐藏 Tab Bar；示意文案可先进入 MVP 后独立校对。
+- `AG-008` 登记为 PLANNED，但不与 AG-007 并发分配给同一执行者。AG-007 验收后，Codex 必须先确认公开故事的数据/API 来源；没有合法公开端点时，运行时只能诚实空态，Preview fixture 不得进入生产数据路径。
+- 下一步：Antigravity 先完成 AG-007；Codex 验收后正式化 AG-008；同时继续 main 干净启动/System Dock 截图和真机准备。
+
 ### 2026-07-18：恢复自主推进，验收合入 AG-006 并派发进度视觉收口
 
 - 产品负责人明确要求恢复并自动安排新工作，解除此前全团队暂停；唯一任务、隔离 worktree、交接后停止和独立验收规则继续有效。
