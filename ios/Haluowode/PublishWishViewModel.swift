@@ -129,16 +129,25 @@ public final class PublishWishViewModel: ObservableObject {
         let task = Task {
             do {
                 let result = try await apiClient.createWish(request: request)
-                guard !Task.isCancelled else { return }
+                guard !Task.isCancelled else {
+                    self.state = .idle
+                    return
+                }
 
                 self.state = .success(publicCode: result.wish.publicCode)
             } catch {
-                guard !Task.isCancelled else { return }
-
+                // If task is cancelled, revert state back to .idle so user can retry
                 if error is CancellationError {
+                    self.state = .idle
                     return
                 }
                 if let apiErr = error as? HaluowodeAPIError, case .requestCancelled = apiErr {
+                    self.state = .idle
+                    return
+                }
+
+                guard !Task.isCancelled else {
+                    self.state = .idle
                     return
                 }
 

@@ -231,7 +231,7 @@ final class PublishWishViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.state, .success(publicCode: "HW20260718-ABC"))
     }
 
-    // Test 6: cancellation does not trigger failed state
+    // Test 6: cancellation does not trigger failed state and reverts to .idle, draft remains intact
     @MainActor
     func testCancellationDoesNotSetFailedState() async throws {
         let mockAPI = PublishMockAPI()
@@ -265,14 +265,14 @@ final class PublishWishViewModelTests: XCTestCase {
         await mockAPI.completeRequest(with: .failure(HaluowodeAPIError.requestCancelled))
         await callerTask.value
 
-        // Assert state is NOT failed using switch
-        switch viewModel.state {
-        case .failed(let message):
-            XCTFail("State should not be failed. Got: .failed(\(message))")
-        default:
-            // State should remain submitting (or previous state) and not be failed
-            XCTAssertEqual(viewModel.state, .submitting)
-        }
+        // State must revert to .idle to allow retries
+        XCTAssertEqual(viewModel.state, .idle)
+
+        // Draft values MUST remain intact!
+        XCTAssertEqual(viewModel.name, "小白")
+        XCTAssertEqual(viewModel.contact, "wx_12345")
+        XCTAssertEqual(viewModel.landmark, "西湖断桥")
+        XCTAssertEqual(viewModel.words, "生日快乐，天天开心！")
     }
 }
 
