@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：当前主线 iPhone Simulator 可构建、冷启动并显示真实公开列表空状态
+
+- Codex 用 Xcode 27 对本地 `main` 重新生成工程、Debug build 成功，并在 iPhone 17 Pro（iOS 27）Simulator 安装、显式冷启动 `com.hanselzzh.haluowode`。首次截图在公开列表 HTTPS 请求等待期间为白屏；同一冷启动约 2.5 秒后，日志确认生产兼容 `GET /api/wishes` 返回 HTTP 200，首页正常显示五栏原生界面和真实空状态。
+- 预览截图保存为 `/private/tmp/haluowode-main-after-wait.png`，已向产品负责人展示。该界面是可运行候选，不是最终视觉验收：仍含旧天空蓝/渐变/阴影/固定字体，且 P0-C 尚未合入、P0-D 仍是假进度流程，不能把它称为可试用 MVP 或要求真机安装。
+- 接下来三步：完成并验收 AG-005 R3、隔离合入真实响应；派发并验收真实追踪/交付 P0-D；落地 v3 视觉基线与 App Icon 后，再以 Personal Team 在真实 iPhone 安装完整闭环候选。
+
 ### 2026-07-18：AG-005 R2 仅完成源码行修正，已派发严格 R3
 
 - Antigravity 的 `6381e2c` 正确将非空 `note` 改为 trim 后编码，但未按 R2 补测试断言；交接仍写不存在的 `5c35990`，并且没有追加 STATUS。其源码方向可保留，但质量交付不成立，Codex 没有接受或合入。
