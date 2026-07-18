@@ -18,6 +18,7 @@
 | AG-006 | Antigravity | IN_PROGRESS | P0-D 真实查询进度与交付：以公开编号和联系方式查询，展示真实状态/时间线/派单人与后端能力链接交付 | 仅 `worktrees/ag-006-real-track` / `codex/ag-006-real-track`，精确路径与验收见下文 | 只完成本任务后交接并停止；不得自行领取视觉、真机或其他功能 |
 | CX-001 | Codex | ACCEPTED | v3 首页基础视觉与原创 App Icon 已在隔离分支通过构建、Simulator 截图与结构化测试后合入 main | `codex/v3-home-foundations` 的首页、DesignSystem、App Icon、交接与群聊 | 已完成；其余页面视觉改造必须另建任务，且不得触碰 AG-006 的范围 |
 | CX-002 | Codex | ACCEPTED | v3 附近、详情与真实响应表单视觉已通过独立编译、Core 15/15、iPhone Simulator 15/15 与禁止项扫描，并已合入本地 main | `codex/v3-nearby-response` 的 Nearby、交接与群聊 | 已完成；后续 Publish/Profile/Tab Bar 必须另建任务，且不得触碰 AG-006 的范围 |
+| CX-003 | Codex | IN_PROGRESS | v3 发布与我的视觉：沿用真实发布状态机，落地 v3 token、Dynamic Type、hairline、表单 focus/error 与无渐变零常规阴影 | 仅 `worktrees/codex-v3-publish-profile` / `codex/v3-publish-profile` 的 Publish/Profile、交接与群聊 | 不触碰 Progress/Track/Delivery、ContentView、ViewModel 或任何业务行为；完成截图/测试后停止 |
 | CL-001 | Claude | ACCEPTED | 已产出首轮 UI 设计：优先 8 组页面、Design System、文案和状态覆盖 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 已评审并冻结到 `docs/ios-design-freeze-v1.md` |
 | CL-002 | Claude | SUPERSEDED | 已补齐 v2.1 的响应、交付、Profile、安全页和蓝色 App Icon；信息结构保留，视觉因用户新反馈不进入实现 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 旧稿保留为状态与文案参考，不再继续迭代 |
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
@@ -288,6 +289,33 @@ git diff --check
 5. 运行 Swift parser、Core 15/15、iPhone 17 Pro Simulator `HaluowodeTests`、零 Emoji/零渐变/零 Nearby 常规 shadow/硬编码 cornerRadius 扫描和 `git diff --check`；生成实际 Simulator 截图。交接如实列 warning/未验证项，完成后停止。
 
 停止条件：截图和可读取测试结果齐全后立即停止，等待 Codex 验收。后续 Publish/Profile/Tab Bar 不得顺手改造。
+
+## CX-003：v3 发布与我的视觉（Codex，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/codex-v3-publish-profile`
+
+分支：`codex/v3-publish-profile`
+
+唯一目标：把已验收的真实发布心愿流程和“我的”页面对齐 v3 冻结视觉。保留现有的 `PublishWishViewModel`、真实 API 注入、校验、失败、取消、重复提交、成功编号、隐私边界与页面导航；本任务不改业务数据、API 或任何进度/交付路径。
+
+允许修改：
+
+- `ios/Haluowode/PublishView.swift`
+- `ios/Haluowode/ProfileView.swift`
+- `.ai/handoffs/CX-003-v3-publish-profile.md`
+- `.ai/TEAM_CHAT.md`（只追加 STATUS）
+
+禁止修改：`ContentView.swift`、所有 ViewModel、所有测试、Core Sources、Home/Nearby/Progress、DesignSystem、App Icon、后端/部署、签名/依赖/生产 API/主工作区/Git 历史；不得增加 Emoji、渐变、运营入口、账号、支付、Mock 数据或改变任何成功/失败/取消语义。
+
+必须交付：
+
+1. 发布三步、表单、确认与真实成功页使用现有 v3 token：暖白/暖蓝/细描边、普通卡默认零阴影、圆角走 token；不留 `.shadow`、硬编码 `.cornerRadius`、`LinearGradient` 或 Emoji。金额、公开编号等核心信息使用 `ink900`，而非高饱和装饰色。
+2. 发布输入使用 `canvasSunk`/`hairlineStrong`，焦点为 2pt accent，字段错误为 danger 描边和文字；提交时保留既有禁用与取消语义。所有字面量字号改为 Dynamic Type 语义字体，普通图标为 Regular SF Symbols。
+3. Profile 的身份、历史、帮助与隐私区块统一为 v3 分组和 hairline；不得伪造账户登录、订单、消息或运营功能。
+4. 所有真实加载、校验失败、网络失败、提交中、成功编号与隐私状态仍可达，不展示或持久化联系方式。
+5. 运行 Swift parser、Core 15/15、iPhone 17 Pro Simulator `HaluowodeTests`、禁止项扫描和 `git diff --check`；生成实际 Simulator 截图。交接如实记录 warning/未验证项，完成后停止。
+
+停止条件：截图和可读取测试结果齐全后立即停止，等待 Codex 验收；Tab Bar、Progress、Track、Delivery、Content 和所有行为改造必须另建任务。
 
 ## CX-001：v3 首页基础视觉与 App Icon（Codex，ACCEPTED）
 
