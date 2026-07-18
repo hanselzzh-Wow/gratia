@@ -1,52 +1,46 @@
 import SwiftUI
+import HaluowodeCore
 
 struct PublishView: View {
+    @ObservedObject var viewModel: PublishWishViewModel
     @Binding var selectedTab: Int
     @State private var currentStep = 1
-
-    // Step 1 State
-    @State private var scene = "生日祝福"
-    @State private var city = "杭州"
-    @State private var landmark = ""
-
-    // Step 2 State
-    @State private var words = ""
-    @State private var deliveryType = "口播视频"
-    @State private var date = Date()
-
-    // Step 3 State
-    @State private var reward = 18
-    @State private var name = ""
-    @State private var contact = ""
-    @State private var agreeContact = false
-
-    // Success State
-    @State private var generatedId = ""
-    @State private var isSuccess = false
-    @State private var isSubmitting = false
 
     let scenes = ["生日祝福", "加油鼓励", "毕业祝福", "浪漫表白", "节日问候", "其他小心愿"]
     let cities = ["杭州", "上海", "北京", "深圳", "广州"]
     let rewards = [12, 18, 28]
 
     var isStep1Valid: Bool {
-        !landmark.trimmingCharacters(in: .whitespaces).isEmpty
+        !viewModel.landmark.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     var isStep2Valid: Bool {
-        !words.trimmingCharacters(in: .whitespaces).isEmpty && words.count <= 120
+        !viewModel.words.trimmingCharacters(in: .whitespaces).isEmpty && viewModel.words.count <= 120
     }
 
     var isStep3Valid: Bool {
-        !name.trimmingCharacters(in: .whitespaces).isEmpty &&
-        !contact.trimmingCharacters(in: .whitespaces).isEmpty &&
-        agreeContact
+        !viewModel.name.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !viewModel.contact.trimmingCharacters(in: .whitespaces).isEmpty &&
+        viewModel.agreeContact
+    }
+
+    var isSubmitting: Bool {
+        viewModel.state == .submitting
+    }
+
+    var isSuccess: Bool {
+        if case .success = viewModel.state {
+            return true
+        }
+        return false
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if !isSuccess {
+                if case .success(let publicCode) = viewModel.state {
+                    successView(publicCode: publicCode)
+                } else {
                     // Step Progress Indicator
                     HStack(spacing: 4) {
                         ForEach(1...3, id: \.self) { index in
@@ -57,6 +51,34 @@ struct PublishView: View {
                     }
                     .padding(.horizontal, DesignSystem.spacing20)
                     .padding(.top, DesignSystem.spacing8)
+
+                    // Failed Error Banner
+                    if case .failed(let message) = viewModel.state {
+                        HStack(spacing: DesignSystem.spacing8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.red)
+                            Text(message)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.red)
+                            Spacer()
+                            Button(action: {
+                                submitWish()
+                            }) {
+                                Text("重试")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4)
+                                    .background(DesignSystem.primaryBlue)
+                                    .cornerRadius(DesignSystem.radiusSmall)
+                            }
+                        }
+                        .padding()
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(DesignSystem.radiusSmall)
+                        .padding(.horizontal, DesignSystem.spacing20)
+                        .padding(.top, DesignSystem.spacing8)
+                    }
 
                     ScrollView {
                         VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
@@ -96,21 +118,18 @@ struct PublishView: View {
                                 }
                             }) {
                                 if isSubmitting {
-                                    ProgressView()
+                                    SwiftUI.ProgressView()
                                         .tint(.white)
                                 } else {
                                     Text(currentStep == 3 ? "确认并提交" : "继续")
                                 }
                             }
                             .buttonStyle(PrimaryButtonStyle(isDisabled: currentStep == 1 ? !isStep1Valid : (currentStep == 2 ? !isStep2Valid : !isStep3Valid)))
-                            .disabled(currentStep == 1 ? !isStep1Valid : (currentStep == 2 ? !isStep2Valid : !isStep3Valid) || isSubmitting)
+                            .disabled((currentStep == 1 ? !isStep1Valid : (currentStep == 2 ? !isStep2Valid : !isStep3Valid)) || isSubmitting)
                         }
                         .padding(DesignSystem.spacing20)
                     }
                     .background(Color.white.shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: -4))
-
-                } else {
-                    successView
                 }
             }
             .navigationTitle(isSuccess ? "发布成功" : "发布心愿 (步骤 \(currentStep)/3)")
@@ -120,7 +139,8 @@ struct PublishView: View {
                 if !isSuccess {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("取消") {
-                            resetForm()
+                            viewModel.resetForm()
+                            currentStep = 1
                             selectedTab = 0 // Return to home
                         }
                         .foregroundColor(DesignSystem.primaryBlue)
@@ -152,18 +172,18 @@ struct PublishView: View {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: DesignSystem.spacing8) {
                     ForEach(scenes, id: \.self) { item in
                         Button(action: {
-                            scene = item
+                            viewModel.scene = item
                         }) {
                             Text(item)
                                 .font(.system(size: 13, weight: .medium))
                                 .padding(.vertical, 10)
                                 .frame(maxWidth: .infinity)
-                                .background(scene == item ? DesignSystem.primaryBlue.opacity(0.1) : Color.white)
-                                .foregroundColor(scene == item ? DesignSystem.primaryBlue : DesignSystem.textNavy)
+                                .background(viewModel.scene == item ? DesignSystem.primaryBlue.opacity(0.1) : Color.white)
+                                .foregroundColor(viewModel.scene == item ? DesignSystem.primaryBlue : DesignSystem.textNavy)
                                 .cornerRadius(DesignSystem.radiusSmall)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
-                                        .stroke(scene == item ? DesignSystem.primaryBlue : Color.gray.opacity(0.2), lineWidth: scene == item ? 1.5 : 1)
+                                        .stroke(viewModel.scene == item ? DesignSystem.primaryBlue : Color.gray.opacity(0.2), lineWidth: viewModel.scene == item ? 1.5 : 1)
                                 )
                         }
                     }
@@ -179,14 +199,14 @@ struct PublishView: View {
                 HStack(spacing: DesignSystem.spacing8) {
                     ForEach(cities, id: \.self) { c in
                         Button(action: {
-                            city = c
+                            viewModel.city = c
                         }) {
                             Text(c)
                                 .font(.system(size: 13, weight: .medium))
                                 .padding(.vertical, 8)
                                 .frame(maxWidth: .infinity)
-                                .background(city == c ? DesignSystem.primaryBlue : Color.white)
-                                .foregroundColor(city == c ? .white : DesignSystem.textNavy)
+                                .background(viewModel.city == c ? DesignSystem.primaryBlue : Color.white)
+                                .foregroundColor(viewModel.city == c ? .white : DesignSystem.textNavy)
                                 .cornerRadius(DesignSystem.radiusSmall)
                                 .shadow(color: Color.black.opacity(0.01), radius: 3, x: 0, y: 1)
                         }
@@ -199,7 +219,7 @@ struct PublishView: View {
                 Text("具体地标/位置")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(DesignSystem.textNavy)
-                TextField("例如：西湖断桥、和平饭店门口", text: $landmark)
+                TextField("例如：西湖断桥、和平饭店门口", text: $viewModel.landmark)
                     .padding()
                     .background(Color.white)
                     .cornerRadius(DesignSystem.radiusSmall)
@@ -207,6 +227,12 @@ struct PublishView: View {
                         RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
                             .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                     )
+
+                if let error = viewModel.validationErrors["landmark"] {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
             }
         }
     }
@@ -231,12 +257,12 @@ struct PublishView: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(DesignSystem.textNavy)
                     Spacer()
-                    Text("\(words.count)/120")
+                    Text("\(viewModel.words.count)/120")
                         .font(.system(size: 12))
-                        .foregroundColor(words.count > 120 ? .red : DesignSystem.textSecondary)
+                        .foregroundColor(viewModel.words.count > 120 ? .red : DesignSystem.textSecondary)
                 }
 
-                TextEditor(text: $words)
+                TextEditor(text: $viewModel.words)
                     .frame(height: 120)
                     .padding(8)
                     .background(Color.white)
@@ -245,6 +271,12 @@ struct PublishView: View {
                         RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
                             .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                     )
+
+                if let error = viewModel.validationErrors["message"] {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
             }
 
             // Delivery Type Options
@@ -266,7 +298,7 @@ struct PublishView: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(DesignSystem.textNavy)
 
-                DatePicker("选择日期", selection: $date, in: Date()..., displayedComponents: .date)
+                DatePicker("选择日期", selection: $viewModel.date, in: Date()..., displayedComponents: .date)
                     .padding()
                     .background(Color.white)
                     .cornerRadius(DesignSystem.radiusSmall)
@@ -280,12 +312,12 @@ struct PublishView: View {
 
     func deliveryTypeRow(type: String, desc: String, icon: String) -> some View {
         Button(action: {
-            deliveryType = type
+            viewModel.deliveryType = type
         }) {
             HStack(spacing: DesignSystem.spacing12) {
                 Image(systemName: icon)
                     .font(.title3)
-                    .foregroundColor(deliveryType == type ? DesignSystem.primaryBlue : DesignSystem.textSecondary)
+                    .foregroundColor(viewModel.deliveryType == type ? DesignSystem.primaryBlue : DesignSystem.textSecondary)
                     .frame(width: 32)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -298,7 +330,7 @@ struct PublishView: View {
                         .multilineTextAlignment(.leading)
                 }
                 Spacer()
-                if deliveryType == type {
+                if viewModel.deliveryType == type {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(DesignSystem.primaryBlue)
                 }
@@ -308,7 +340,7 @@ struct PublishView: View {
             .cornerRadius(DesignSystem.radiusSmall)
             .overlay(
                 RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
-                    .stroke(deliveryType == type ? DesignSystem.primaryBlue : Color.gray.opacity(0.2), lineWidth: deliveryType == type ? 1.5 : 1)
+                    .stroke(viewModel.deliveryType == type ? DesignSystem.primaryBlue : Color.gray.opacity(0.2), lineWidth: viewModel.deliveryType == type ? 1.5 : 1)
             )
         }
     }
@@ -335,7 +367,7 @@ struct PublishView: View {
                 HStack(spacing: DesignSystem.spacing12) {
                     ForEach(rewards, id: \.self) { r in
                         Button(action: {
-                            reward = r
+                            viewModel.reward = r
                         }) {
                             VStack(spacing: 4) {
                                 Text("¥\(r)")
@@ -345,12 +377,12 @@ struct PublishView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
-                            .background(reward == r ? DesignSystem.primaryBlue : Color.white)
-                            .foregroundColor(reward == r ? .white : DesignSystem.textNavy)
+                            .background(viewModel.reward == r ? DesignSystem.primaryBlue : Color.white)
+                            .foregroundColor(viewModel.reward == r ? .white : DesignSystem.textNavy)
                             .cornerRadius(DesignSystem.radiusSmall)
                             .overlay(
                                 RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
-                                    .stroke(reward == r ? DesignSystem.primaryBlue : Color.gray.opacity(0.2), lineWidth: 1)
+                                    .stroke(viewModel.reward == r ? DesignSystem.primaryBlue : Color.gray.opacity(0.2), lineWidth: 1)
                             )
                         }
                     }
@@ -362,7 +394,7 @@ struct PublishView: View {
                 Text("您的称呼")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(DesignSystem.textNavy)
-                TextField("如：小白", text: $name)
+                TextField("如：小白", text: $viewModel.name)
                     .padding()
                     .background(Color.white)
                     .cornerRadius(DesignSystem.radiusSmall)
@@ -370,6 +402,12 @@ struct PublishView: View {
                         RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
                             .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                     )
+
+                if let error = viewModel.validationErrors["requesterName"] {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
             }
 
             // Contact Field
@@ -377,7 +415,7 @@ struct PublishView: View {
                 Text("您的联系方式 (仅运营可见)")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(DesignSystem.textNavy)
-                TextField("微信或手机号", text: $contact)
+                TextField("微信或手机号", text: $viewModel.contact)
                     .padding()
                     .background(Color.white)
                     .cornerRadius(DesignSystem.radiusSmall)
@@ -385,17 +423,29 @@ struct PublishView: View {
                         RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
                             .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                     )
+
+                if let error = viewModel.validationErrors["contact"] {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
             }
 
             // Consent checkbox
-            Toggle(isOn: $agreeContact) {
+            Toggle(isOn: $viewModel.agreeContact) {
                 Text("我已知晓联系方式仅限运营沟通，并同意心愿通过审核后向附近的人公开（公开版块隐藏联系方式）。")
-                    .font(.system(size: 11))
+                    .font(.system(size: 11)    )
                     .foregroundColor(DesignSystem.textSecondary)
                     .lineSpacing(2)
             }
             .toggleStyle(CheckboxToggleStyle())
             .padding(.top, 4)
+
+            if let error = viewModel.validationErrors["contactConsent"] {
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(.red)
+            }
 
             // Summary Card
             VStack(alignment: .leading, spacing: 8) {
@@ -403,10 +453,10 @@ struct PublishView: View {
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(DesignSystem.textNavy)
                 Divider()
-                Text("• 目标：\(city) · \(landmark) (\(scene))")
-                Text("• 形式：\(deliveryType)")
-                Text("• 内容：\"\(words)\"")
-                Text("• 金额：¥\(reward)")
+                Text("• 目标：\(viewModel.city) · \(viewModel.landmark) (\(viewModel.scene))")
+                Text("• 形式：\(viewModel.deliveryType)")
+                Text("• 内容：\"\(viewModel.words)\"")
+                Text("• 金额：¥\(viewModel.reward)")
             }
             .font(.system(size: 12))
             .foregroundColor(DesignSystem.textSecondary)
@@ -419,7 +469,7 @@ struct PublishView: View {
     }
 
     // MARK: - Success View
-    var successView: some View {
+    func successView(publicCode: String) -> some View {
         VStack(spacing: DesignSystem.spacing24) {
             Spacer()
 
@@ -444,13 +494,13 @@ struct PublishView: View {
                     .font(.system(size: 12))
                     .foregroundColor(DesignSystem.textSecondary)
 
-                Text(generatedId)
+                Text(publicCode)
                     .font(.system(size: 24, weight: .bold, design: .monospaced))
                     .foregroundColor(DesignSystem.textNavy)
 
                 HStack(spacing: DesignSystem.spacing16) {
                     Button(action: {
-                        UIPasteboard.general.string = generatedId
+                        UIPasteboard.general.string = publicCode
                     }) {
                         Label("复制编号", systemImage: "doc.on.doc")
                             .font(.system(size: 13, weight: .semibold))
@@ -495,18 +545,18 @@ struct PublishView: View {
 
             VStack(spacing: DesignSystem.spacing12) {
                 Button(action: {
-                    // Navigate to Progress tab
                     selectedTab = 3
-                    resetForm()
+                    viewModel.resetForm()
+                    currentStep = 1
                 }) {
                     Text("查看心愿进度")
                 }
                 .buttonStyle(PrimaryButtonStyle())
 
                 Button(action: {
-                    // Return to Home
                     selectedTab = 0
-                    resetForm()
+                    viewModel.resetForm()
+                    currentStep = 1
                 }) {
                     Text("返回首页")
                 }
@@ -530,48 +580,8 @@ struct PublishView: View {
 
     // MARK: - Actions
     func submitWish() {
-        isSubmitting = true
-
-        // Simulate API Request
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyMMdd"
-            let dateStr = formatter.string(from: Date())
-            let randomCode = String((0..<5).map { _ in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".randomElement()! })
-            self.generatedId = "HW\(dateStr)-\(randomCode)"
-
-            // Add to mock lists
-            let newWish = Wish(
-                id: self.generatedId,
-                city: self.city,
-                landmark: self.landmark,
-                content: self.words,
-                deliveryType: self.deliveryType,
-                date: formatter.string(from: self.date),
-                reward: self.reward,
-                status: "审核中",
-                creatorName: self.name
-            )
-            Wish.mockWishes.insert(newWish, at: 0)
-
-            self.isSubmitting = false
-            self.isSuccess = true
+        Task {
+            await viewModel.submitWish()
         }
-    }
-
-    func resetForm() {
-        currentStep = 1
-        scene = "生日祝福"
-        city = "杭州"
-        landmark = ""
-        words = ""
-        deliveryType = "口播视频"
-        date = Date()
-        reward = 18
-        name = ""
-        contact = ""
-        agreeContact = false
-        isSuccess = false
-        generatedId = ""
     }
 }

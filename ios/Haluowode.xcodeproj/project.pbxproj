@@ -9,9 +9,9 @@
 /* Begin PBXBuildFile section */
 		20B3F5482F1D4D8776B4E424 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D8C38BCFAD380951D6D5BB7 /* HomeView.swift */; };
 		28BD8396213BF32C2A5C6DEA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8336A40B8AC7F8E866C78B1A /* ContentView.swift */; };
+		41E3B30923E7F9F433042C42 /* PublishWishViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0FD3ED9D702DFF7121D610C /* PublishWishViewModel.swift */; };
 		45156BB63F587FC5E663A120 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F81EECC54084008EC49A7 /* ProfileView.swift */; };
 		4BEFD84B8B8830F77FACA935 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF823FE4F1CE75DEEFF668E /* DesignSystem.swift */; };
-		5F6E922AB1EDD8CFEBCF547D /* HaluowodeCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5907EB2D191B3EDF59FA04F6 /* HaluowodeCore */; };
 		68E58538F7A521DBC3F71347 /* NearbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5078E2519B699EA645128E45 /* NearbyView.swift */; };
 		6AD063EFE4F0B93ADB4FD1DD /* HaluowodeCore in Frameworks */ = {isa = PBXBuildFile; productRef = 72E659E330CB04E0008BF5CB /* HaluowodeCore */; };
 		6DC5FC026C391956AF0B039D /* SwiftUI+Compat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887EACF5B1EB7240A73F287B /* SwiftUI+Compat.swift */; };
@@ -22,6 +22,7 @@
 		BBC73A56F7E4404EFFFE0718 /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0304A32E0107CF6B8A492D7D /* ProgressView.swift */; };
 		C45D7F8CC71C5A2D6A7A41FC /* PublishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36817BBF7BFAE2B25DC4921 /* PublishView.swift */; };
 		CAD3CBDF052E3278F37B64F9 /* WishListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39746411CA509AF28B647F06 /* WishListViewModel.swift */; };
+		CC6A17E91A882A2B1B7CBB23 /* PublishWishViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A56C00CAFD853D0C4203FB9E /* PublishWishViewModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,8 @@
 		8336A40B8AC7F8E866C78B1A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		85E6FA3C2DA32FF3D6C537A7 /* HaluowodeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HaluowodeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		887EACF5B1EB7240A73F287B /* SwiftUI+Compat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SwiftUI+Compat.swift"; sourceTree = "<group>"; };
+		A56C00CAFD853D0C4203FB9E /* PublishWishViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishWishViewModelTests.swift; sourceTree = "<group>"; };
+		B0FD3ED9D702DFF7121D610C /* PublishWishViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishWishViewModel.swift; sourceTree = "<group>"; };
 		B36817BBF7BFAE2B25DC4921 /* PublishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishView.swift; sourceTree = "<group>"; };
 		B6F1F74F9C44F97F74E8D4A7 /* HaluowodeCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = HaluowodeCore; path = Packages/HaluowodeCore; sourceTree = SOURCE_ROOT; };
 		BDF823FE4F1CE75DEEFF668E /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
@@ -55,14 +58,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		41DEB94741635E50B9CC30AC /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				5F6E922AB1EDD8CFEBCF547D /* HaluowodeCore in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		7B38E84D64C75E6BE12A2F14 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -88,6 +83,7 @@
 				2A2F81EECC54084008EC49A7 /* ProfileView.swift */,
 				0304A32E0107CF6B8A492D7D /* ProgressView.swift */,
 				B36817BBF7BFAE2B25DC4921 /* PublishView.swift */,
+				B0FD3ED9D702DFF7121D610C /* PublishWishViewModel.swift */,
 				887EACF5B1EB7240A73F287B /* SwiftUI+Compat.swift */,
 				39746411CA509AF28B647F06 /* WishListViewModel.swift */,
 			);
@@ -97,6 +93,7 @@
 		2F8873EF49AC78F9AE38D04D /* HaluowodeTests */ = {
 			isa = PBXGroup;
 			children = (
+				A56C00CAFD853D0C4203FB9E /* PublishWishViewModelTests.swift */,
 				752469DF790458D7FEB895A8 /* WishListViewModelTests.swift */,
 			);
 			path = HaluowodeTests;
@@ -157,7 +154,6 @@
 			buildConfigurationList = B405131A41370E0F1CE9F855 /* Build configuration list for PBXNativeTarget "HaluowodeTests" */;
 			buildPhases = (
 				BBF723AFB4FC9E1DE04A00E8 /* Sources */,
-				41DEB94741635E50B9CC30AC /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -166,7 +162,6 @@
 			);
 			name = HaluowodeTests;
 			packageProductDependencies = (
-				5907EB2D191B3EDF59FA04F6 /* HaluowodeCore */,
 			);
 			productName = HaluowodeTests;
 			productReference = 85E6FA3C2DA32FF3D6C537A7 /* HaluowodeTests.xctest */;
@@ -231,6 +226,7 @@
 				45156BB63F587FC5E663A120 /* ProfileView.swift in Sources */,
 				BBC73A56F7E4404EFFFE0718 /* ProgressView.swift in Sources */,
 				C45D7F8CC71C5A2D6A7A41FC /* PublishView.swift in Sources */,
+				41E3B30923E7F9F433042C42 /* PublishWishViewModel.swift in Sources */,
 				6DC5FC026C391956AF0B039D /* SwiftUI+Compat.swift in Sources */,
 				CAD3CBDF052E3278F37B64F9 /* WishListViewModel.swift in Sources */,
 			);
@@ -240,6 +236,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC6A17E91A882A2B1B7CBB23 /* PublishWishViewModelTests.swift in Sources */,
 				AFAC82574ADD0D5EB99BEE7D /* WishListViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -488,10 +485,6 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		5907EB2D191B3EDF59FA04F6 /* HaluowodeCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = HaluowodeCore;
-		};
 		72E659E330CB04E0008BF5CB /* HaluowodeCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HaluowodeCore;

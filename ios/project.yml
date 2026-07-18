@@ -30,7 +30,6 @@ targets:
       - path: HaluowodeTests
     dependencies:
       - target: Haluowode
-      - package: HaluowodeCore
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
