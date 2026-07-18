@@ -1,8 +1,16 @@
 import SwiftUI
+import HaluowodeCore
 
 struct ContentView: View {
     @State private var selectedTab = 0
-    @StateObject private var viewModel = WishListViewModel()
+    @StateObject private var viewModel: WishListViewModel
+    @StateObject private var publishViewModel: PublishWishViewModel
+
+    init() {
+        let client = WishAPIClient()
+        _viewModel = StateObject(wrappedValue: WishListViewModel(apiClient: client))
+        _publishViewModel = StateObject(wrappedValue: PublishWishViewModel(apiClient: client))
+    }
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -18,7 +26,7 @@ struct ContentView: View {
                 }
                 .tag(1)
 
-            PublishView(selectedTab: $selectedTab)
+            PublishView(viewModel: publishViewModel, selectedTab: $selectedTab)
                 .tabItem {
                     Label("发布", systemImage: "plus.circle.fill")
                 }
