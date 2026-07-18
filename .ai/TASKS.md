@@ -14,6 +14,7 @@
 | AG-002 | Antigravity | ACCEPTED | 已机械整理现有后端与 Swift 候选模型的 API 映射和差距 | 仅 `.ai/handoffs/AG-002-api-map.md` | 交接已完成；Codex 已在 `docs/ios-api-contract.md` 纠正边界并冻结 v1 |
 | AG-003 | Antigravity | ACCEPTED | R5 已删除 R4 测试中残留的 `@unchecked Sendable`/锁包装；真实取消与竞态证据独立复验通过，等待 Codex 选择性集成 | 仅本任务 R3/R4/R5 明列的隔离 worktree路径与交接文件 | 已验收；不得自动继续或领取新任务 |
 | AG-004 | Antigravity | ACCEPTED | 真实发布心愿纵向切片已通过独立质量门，等待 Codex 隔离集成到本地主分支 | 仅下文列出的 `codex/ag-004-real-publish` worktree 路径 | 已验收；不得自动领取响应、追踪、交付或视觉重画 |
+| AG-005 | Antigravity | IN_PROGRESS | 真实提交响应纵向切片：将心愿详情响应表单接入现有 API，完成校验、重复提交/错误/取消状态与单元测试 | 仅下文列出的 `codex/ag-005-real-response` worktree 路径 | 提交、交接、STATUS 后立即停止；不得领取追踪、交付或视觉重画 |
 | CL-001 | Claude | ACCEPTED | 已产出首轮 UI 设计：优先 8 组页面、Design System、文案和状态覆盖 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 已评审并冻结到 `docs/ios-design-freeze-v1.md` |
 | CL-002 | Claude | SUPERSEDED | 已补齐 v2.1 的响应、交付、Profile、安全页和蓝色 App Icon；信息结构保留，视觉因用户新反馈不进入实现 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 旧稿保留为状态与文案参考，不再继续迭代 |
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
@@ -212,6 +213,51 @@ git diff --check
 ```
 
 交接必须给出实际发现/执行/通过测试数、ViewModel 每个状态的行为、完整改动路径、实际 warning、未验证项和 commit SHA。完成后发 STATUS 并停止。任何异常、接口差异或越界需求先发 `OBJECTION`，不得自行扩展。
+
+## AG-005：真实提交响应（P0-C）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/ag-005-real-response`
+分支：`codex/ag-005-real-response`
+
+前置：`main` 的 `6848cc3`（已集成 P0-A/P0-B）和 `docs/ios-design-freeze-v3.md`。
+
+唯一目标：将 `NearbyView.swift` 中心愿详情的“我刚好在这里，可以帮忙”表单，替换为可注入的真实 `WishAPIProtocol.createWishResponse` 流程。完成后从真实 `PublicWishDTO.id` 提交响应、显示“等待运营确认，不代表已接单”的成功页，并覆盖校验、错误、取消和重复提交；本任务不得对生产 API 发起写请求。
+
+允许修改（仅限下列路径）：
+
+- `ios/Haluowode/NearbyView.swift`
+- 新建 `ios/Haluowode/WishResponseViewModel.swift`
+- `ios/Haluowode/ContentView.swift`（只限依赖注入/详情响应入口的最小改动）
+- 新建 `ios/HaluowodeTests/WishResponseViewModelTests.swift`
+- `ios/project.yml` 与由此生成的 `ios/Haluowode.xcodeproj/**`
+- `.ai/handoffs/AG-005-real-response.md`
+- `.ai/TEAM_CHAT.md`（仅追加 ACK/STATUS）
+
+禁止修改：`HaluowodeCore` Sources、`PublishView`、`PublishWishViewModel`、`ProgressView`、`HomeView`、`ProfileView`、`Models.swift`、视觉资源/DesignSystem、后端/数据库/部署、生产 API、主工作区、任务板/冻结/项目日志、Git 历史、签名、依赖；不得增加 Emoji、渐变、运营入口、账号或支付。
+
+必须交付：
+
+1. `@MainActor` 的 `WishResponseViewModel`，依赖可注入 `WishAPIProtocol`；响应 Sheet/View 不得默认自行构造生产 `WishAPIClient`、拼 URL 或直连 `URLSession`。
+2. 用传入的 `PublicWishDTO.id` 调 `createWishResponse`，不可误用 `publicCode`。请求只包含 `responderName`、`responderContact`、可选 `note`、`contactConsent`；不得传 `website`。
+3. 提交前校验：称呼 1–30、联系方式 3–80、说明 trim 后最多 160、联系同意必须显式为 true；空说明编码为 `nil`。无效时不调 API；提交中去重并禁用输入/提交；401/400/404/409/429/网络/解码失败保留草稿，错误不得泄露联系方式。
+4. 新建 201 和重复 200（`created == false`）均进入成功状态；成功页必须明确“已收到响应，等待运营确认，不代表已经接单”，不显示/保存响应者联系方式。
+5. caller 或 Sheet 消失取消时，真实在途 mock 需观察到取消；ViewModel 退到可重试的非提交状态、草稿保留、不显示失败。删除旧 `ResponseSubmissionState`、View 内默认生产 Client 与不能证明取消的路径。
+6. 为真实 production ViewModel 增加测试，至少覆盖：无效不调用 API、请求字段与 id、201、重复 200、409/429 或 400 后草稿、提交中去重、取消观察/可重试。测试不得访问生产网络。
+7. 遵守 v3 禁止项：不新增 Emoji/渐变；不在此任务重画全局视觉。
+
+验收命令（在本 worktree 执行）：
+
+```bash
+/private/tmp/xcodegen-2.46.0-release/xcodegen/bin/xcodegen generate --spec ios/project.yml
+swift test --package-path ios/Packages/HaluowodeCore --scratch-path /private/tmp/haluowode-core-ag005 --disable-xctest --enable-swift-testing
+xcodebuild -project ios/Haluowode.xcodeproj -scheme Haluowode -destination 'platform=iOS Simulator,id=742A9D34-5F88-4578-BB12-851A00D2C0FE' -derivedDataPath /private/tmp/haluowode-ag005-tests -only-testing:HaluowodeTests test
+swiftc -frontend -parse ios/Haluowode/*.swift
+rg -n 'DispatchQueue\.main\.asyncAfter|Wish\.mockWishes|WishAPIClient\(' ios/Haluowode/NearbyView.swift ios/Haluowode/WishResponseViewModel.swift
+rg -n -i 'admin|x-admin-key|api[_-]?key|cloudflare.*token' ios/Packages/HaluowodeCore ios/Haluowode
+git diff --check
+```
+
+交接必须列实际发现/执行/通过数、每个生产状态、请求 ID/字段断言、取消观察、完整改动路径、warning、未验证项和 commit SHA。完成后 STATUS 并停止；越界或接口疑问先 `OBJECTION`。
 
 ## CL-002 P0 设计补齐
 

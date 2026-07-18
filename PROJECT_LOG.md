@@ -98,6 +98,18 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：P0-B 真实发布已合入本地 main，AG-005 开始真实响应
+
+- Codex 将通过合并后复验的 `45b5206` 以 merge commit `6848cc3` 合入本地 `main`；发布表单不再伪造编号或写 `Wish.mockWishes`，而是经可注入 `PublishWishViewModel` 调现有 Cloudflare 兼容 API。此次仅合并源码和交接，不推送、部署、签名或生产写入。
+- 代码审查发现既有 `NearbyView` 的报名表单虽调用过 API，但在 View 内默认创建 Client、没有 production ViewModel 测试，并且取消时可能遗留 `.submitting`。因此不把它计为 P0-C，而是派发受控 `AG-005`，要求真实可注入状态机、字段/ID 断言、201/重复 200、409/429、可重试取消和成功文案。
+- 接下来三步：创建 AG-005 worktree 并收取 ACK；独立验收后实现 P0-D 追踪/交付；随后在真实测试单范围内做 API 写入、全路径模拟器与 Personal Team 真机验收。
+
+### 2026-07-18：AG-004 合并后复验通过，准备合入本地主分支
+
+- Codex 在独立 `codex/ios-publish-integration` worktree 中以非提交 merge 纳入 AG-004，自动合并无冲突。XcodeGen 再生成、`git diff --check`、Swift parser、发布路径假延时/Mock 扫描和管理凭据扫描均通过。
+- 合并后的实际源码在新临时目录运行：Core Swift Testing 15/15；iPhone 17 Pro iOS 27 Simulator `HaluowodeTests` 9/9、0 failure/skip/runtime warning。此轮没有调用 `POST /api/wishes`、没有写 D1/R2、没有使用运营凭据。
+- 下一步：提交隔离 merge 并合入本地 `main`；随后为 P0-C 响应、P0-D 追踪/交付和 v3 视觉重构建立独立任务，不把已通过发布测试误写成完整手机 MVP。
+
 ### 2026-07-18：AG-004 真实发布通过独立验收，进入 Codex 隔离集成
 
 - Codex 对 Antigravity 的 `2befafc`、`c80c9ad` 和 R2 `3d44039` 完成源码、测试与交接复验。结果：Core 15/15；iPhone 17 Pro iOS 27 Simulator `HaluowodeTests` 9/9、0 failure/skip/runtime warning；parser、无 `DispatchQueue.main.asyncAfter` / `Wish.mockWishes` 发布路径扫描、凭据扫描和最终 `git diff --check main...HEAD` 均通过。
