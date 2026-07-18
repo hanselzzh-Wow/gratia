@@ -1,84 +1,47 @@
-# 任务交接报告：真实查询进度与交付 (AG-006)
+# AG-006 真实查询进度与交付交接
 
----
+## 提交与改动范围
 
-## 1. 任务概述
+- 实现提交：`4a30bd0`（真实 `trackWish`、进度状态、事件/派单信息与交付预览）。
+- 复审收敛提交：`a94e6f7`（视频失败可见路径、全空白校验、404 隐私断言、生产状态文案 helper 及测试）。
+- 实际改动路径：
+  - `ios/Haluowode/ProgressView.swift`
+  - `ios/Haluowode/TrackWishViewModel.swift`
+  - `ios/Haluowode/DeliveryPreviewView.swift`
+  - `ios/Haluowode/ContentView.swift`
+  - `ios/HaluowodeTests/TrackWishViewModelTests.swift`
+  - `ios/Packages/HaluowodeCore/Tests/HaluowodeCoreTests/HaluowodeCoreTests.swift`
+  - `ios/Haluowode.xcodeproj/project.pbxproj`
+  - `.ai/handoffs/AG-006-real-track.md`
+  - `.ai/TEAM_CHAT.md`
 
-本任务将原本在 `ProgressView` 中使用的 `Wish.mockWishes` 模拟列表、`asyncAfter` 延迟以及假数据交付预览，替换为依赖注入的 `WishAPIProtocol.trackWish` 真实接口流。
+## 行为与隐私
 
----
+- `TrackWishViewModel` 状态为 `idle / loading / loaded / failed`；校验失败不调用 API，请求中去重，取消回到 `.idle` 并保留草稿。
+- 请求对公开编号和联系方式使用 `whitespacesAndNewlines` trim，编号大写；成功后立即清空 ViewModel 中的联系方式。
+- 404 固定显示“请检查编号和联系方式”，测试使用唯一联系方式并断言错误文案不包含它；429 映射为可重试提示。
+- `ProgressView.statusText(for:)` 是生产视图实际调用的纯 helper，直接测试 `delivered` 显示“待确认”。
+- 页面离开调用 `viewModel.cancel()`；去重测试断言 mock 只收到一次 `trackWish`。
+- 图片、视频和外部链接均不显示、复制、保存或打印能力 URL/token。视频播放器观察失败状态并显示“交付链接不可用或已失效”。
 
-## 2. 交付物与改动路径
+## 实际验证结果（2026-07-18 恢复轮次）
 
-本任务共涉及以下新建与修改的路径：
-*   **新建文件**：
-    *   [ios/Haluowode/TrackWishViewModel.swift](file:///Users/hansangbai/Documents/New%20project/worktrees/ag-006-real-track/ios/Haluowode/TrackWishViewModel.swift)：实现 `@MainActor` 隔离的 `TrackWishViewModel` 进度查询状态机。
-    *   [ios/Haluowode/DeliveryPreviewView.swift](file:///Users/hansangbai/Documents/New%20project/worktrees/ag-006-real-track/ios/Haluowode/DeliveryPreviewView.swift)：实现对于 `spoken_video`、`scenery_voiceover`、`handwritten_card`、`link` 四类交付凭证媒体的格式解析与预览。
-    *   [ios/HaluowodeTests/TrackWishViewModelTests.swift](file:///Users/hansangbai/Documents/New%20project/worktrees/ag-006-real-track/ios/HaluowodeTests/TrackWishViewModelTests.swift)：编写 6 个针对输入校验、大写转换、成功后内存擦除、404 安全性、429 重试与 Task 取消的单元测试用例。
-*   **修改文件**：
-    *   [ios/Haluowode/ProgressView.swift](file:///Users/hansangbai/Documents/New%20project/worktrees/ag-006-real-track/ios/Haluowode/ProgressView.swift)：重构进度追踪视图，引入 ViewModel，以列表 DTO 中的事件时间线渲染 UI，并去除所有 mock 数据和假延时逻辑。
-    *   [ios/Haluowode/ContentView.swift](file:///Users/hansangbai/Documents/New%20project/worktrees/ag-006-real-track/ios/Haluowode/ContentView.swift)：向 `ProgressView` 注入由全局管理的 `apiClient` 实例。
-    *   [ios/Packages/HaluowodeCore/Tests/HaluowodeCoreTests/HaluowodeCoreTests.swift](file:///Users/hansangbai/Documents/New%20project/worktrees/ag-006-real-track/ios/Packages/HaluowodeCore/Tests/HaluowodeCoreTests/HaluowodeCoreTests.swift)：在 SPM Core 包的测试套件中新增了对追踪成功并解码完整 assignment、deliverable 能力 URL 及事件时间线，以及未知状态 `WishStatus` 兼容 fallback 的 2 个物理测试。
-    *   [ios/Haluowode.xcodeproj/project.pbxproj](file:///Users/hansangbai/Documents/New%20project/worktrees/ag-006-real-track/ios/Haluowode.xcodeproj/project.pbxproj)：由 XcodeGen 自动重新生成的 Xcode 编译配置文件。
+- XcodeGen：**未执行**。任务卡临时路径 `/private/tmp/xcodegen-2.46.0-release/xcodegen/bin/xcodegen` 已不存在；未安装替代依赖。现有工程已能编译本轮源码和测试。
+- Core：`swift test --package-path ios/Packages/HaluowodeCore --scratch-path /private/tmp/haluowode-core-ag006 --disable-xctest --enable-swift-testing`，实际 **17/17 通过**，0 failure。
+- App Simulator：两次 `xcodebuild ... -only-testing:HaluowodeTests test` 均完成构建并返回 0，但 `/private/tmp/haluowode-ag006-resume-tests.xcresult` 与 `/private/tmp/haluowode-ag006-final-tests.xcresult` 都缺少 `Info.plist`，`xcresulttool` 无法读取；因此本轮 **App 测试执行数量未验证，不声明 21/21**。
+- `swiftc -frontend -parse ios/Haluowode/*.swift`：通过。
+- Mock/假延时/默认生产 Client 扫描：0 命中。
+- `UserDefaults`、管理凭据、token、`print(` 隐私扫描：0 命中。
+- `git diff --check`：通过。
 
----
+## Warning 与未验证项
 
-## 3. 核心设计与技术实现
+- App 链接阶段有 2 条 warning：deployment target 为 iOS Simulator 16.0，而 Xcode 27 的 XCTest 与 `libXCTestSwiftSupport` 最低为 17.0。
+- Xcode 另报告 scheme buildables 的 supported platforms 为空；本轮未修改签名或工程配置。
+- CoreSimulator/xcresult 结果包异常导致本轮 App 测试数量不可读取，需要 Codex 在恢复正常的 Simulator 环境独立复验。
+- 真实远端视频失败、网络视频解码、图片加载与系统 Link 行为未做真机或受控本地媒体 fixture 验证；代码失败路径已保留，但不以 AVPlayer 系统调度测试冒充确定性证据。
+- 未访问生产 API，未进行真机、TestFlight、签名或生产写入验证。
 
-### A. 状态机流转设计 (TrackState)
-ViewModel 的进度查询状态流定义如下：
-*   `.idle`：空闲状态，表单待输入。
-*   `.loading`：查询请求正在进行中，输入框和查询按钮会被禁用，查询按钮渲染菊花（ProgressView）。
-*   `.loaded(TrackedWishDTO)`：查询成功并取得心愿追踪实体，展示具体详情。
-*   `.failed(String)`：查询失败，展示友好错误文本，表单保持且允许“重试”。
+## 停止状态
 
-### B. 隐私与数据安全保护
-*   **联系方式内存擦除**：用户输入的联系方式（`contact`）在网络接口请求成功（即状态转换为 `.loaded`）后，**立刻从 ViewModel 的内存中彻底置空擦除**。
-*   **无持久化/无日志泄露**：联系方式绝不写入 `UserDefaults`、不保存到文件、不输出到控制台 `print`，不写入任何崩溃日志或错误文字。
-*   **敏感 URL/Token 遮蔽**：交付凭证 `deliverable.url` 及 URL 中的 query token 绝对不渲染在 UI 界面上，不支持拷贝，也不参与任何打印或错误输出。
-*   **404 信息防护**：当接口返回 404 (未找到) 错误时，状态机捕获并统一输出为 `"请检查编号和联系方式"`，绝不以任何形式回显用户的输入内容，保证暴力猜解时无任何数据泄露。
-
-### C. 媒体预览适配
-*   **口播视频 & 景色配音**：利用系统 `AVKit` 的 `VideoPlayer(player: AVPlayer(url: url))` 呈现。
-*   **手写卡片**：利用系统 `AsyncImage(url: url)` 加载，并提供 loading (菊花)、success (图片本身) 和 failure (链接不可用) 状态。
-*   **外部链接**：以系统 `Link(destination: url)` 打开，并提示用户点击前往浏览器查看。
-*   **异常拦截**：若发生 401/404/429/503 或媒体加载失败，统一在预览页中屏蔽原始 URL，显示 `"交付链接不可用或已失效"`。
-
-### D. 竞态与去重
-*   处于 `.loading` 状态时，若用户再次触发查询请求，会被直接丢弃（Deduplication）。
-*   支持 Task 级物理取消，当用户点击 `切换单号` 重置或退出页面时，进行中的 Task 会被发送 cancellation，ViewModel 回退到 `.idle` 且不弹出任何错误 Banner。
-
----
-
-## 4. 测试与验证报告
-
-### A. 单元测试覆盖
-*   **SPM Core 包单元测试**：17 / 17 全部通过 (无 Failure，无 Skip)
-    *   新增 `testTrackWishSuccessFullDecoding`：校验 track 成功并解码完整 assignment、deliverable 能力 URL 及事件时间线。
-    *   新增 `testUnknownWishStatusFallback`：校验未知 `WishStatus` 仍可解码，且 UI 自动退回为 `未知状态` 标签，不造成解码崩溃。
-*   **App 目标 (Simulator) 单元测试**：21 / 21 全部通过 (无 Failure)
-    *   `testInvalidInputValidation`：校验无效输入阻止接口发送，并反馈红字提示。
-    *   `testCorrectRequestMappingAndSuccess`：验证 `publicCode` 转换为大写及 trim、`contact` 发生 trim、请求成功后立刻擦除 `contact` 字段。
-    *   `testNotFound404ErrorMapping`：验证 404 捕获并重置提示，且不泄漏敏感信息。
-    *   `testRateLimit429ErrorMapping`：验证 429 速率限制及重试时间转换提示。
-    *   `testQueryDeduplication`：验证请求中去重。
-    *   `testCancellationRecovery`：验证底层 Task 取消传播，ViewModel 无闪烁回退至可重试 `.idle`。
-
-### B. 静态质量检查
-*   `swiftc -typecheck` 检查：通过，无 Warning / Error。
-*   无 Mock/模拟依赖硬编码扫描：通过。
-*   `git diff --check`：通过，无行尾空白或 EOF 多余空行违规。
-
----
-
-## 5. 已知限制与未验证项
-
-*   **真机渲染与播放**：本任务基于 iOS Simulator 环境测试。AVPlayer 对于网络视频流的解码以及真机沙盒内的外部 URL 资源跳转需待真机联调阶段进行最终验证。
-*   **AsyncImage 缓存**：`AsyncImage` 缺少精细的缓存策略，在大尺寸图片或高频加载下可能会频繁发起请求，此为系统组件原生行为，建议后续引入第三方缓存库。
-
----
-
-## 6. 下一步建议
-
-1.  **提交工作区变更**：工作区修改已成功提交，当前 Commit SHA 为：`935e40d`。
-2.  **等待 PM 合并验收**：本任务开发已完全终止，请等待合并主分支。
+AG-006 已完成允许范围内的代码收敛、实现提交和交接。已追加 STATUS；不领取下一任务，等待 Codex 独立验收。
