@@ -1,23 +1,27 @@
 import SwiftUI
+import HaluowodeCore
 
 struct NearbyView: View {
+    @EnvironmentObject var viewModel: WishListViewModel
     @State private var searchKeywords = ""
     @State private var selectedDeliveryFilter = "全部"
     @State private var showFilterSheet = false
-    @State private var selectedCity = "全部"
-    @State private var wishes = Wish.mockWishes
+    @State private var localCity = "全国"
 
     let deliveryTypes = ["全部", "口播视频", "景色配音", "手写卡片"]
 
-    var filteredWishes: [Wish] {
-        wishes.filter { wish in
-            let matchSearch = searchKeywords.isEmpty ||
-                              wish.landmark.localizedCaseInsensitiveContains(searchKeywords) ||
-                              wish.content.localizedCaseInsensitiveContains(searchKeywords)
-            let matchDelivery = selectedDeliveryFilter == "全部" || wish.deliveryType == selectedDeliveryFilter
-            let matchCity = selectedCity == "全部" || wish.city == selectedCity
-            return matchSearch && matchDelivery && matchCity
+    var filteredWishes: [PublicWishDTO] {
+        if case .loaded(let wishes) = viewModel.state {
+            return wishes.filter { wish in
+                let matchSearch = searchKeywords.isEmpty ||
+                                  wish.landmark.localizedCaseInsensitiveContains(searchKeywords) ||
+                                  wish.message.localizedCaseInsensitiveContains(searchKeywords)
+                let matchDelivery = selectedDeliveryFilter == "全部" ||
+                                    wish.deliveryType.label == selectedDeliveryFilter
+                return matchSearch && matchDelivery
+            }
         }
+        return []
     }
 
     var body: some View {
@@ -39,6 +43,7 @@ struct NearbyView: View {
                     .shadow(color: Color.black.opacity(0.01), radius: 3, x: 0, y: 1)
 
                     Button(action: {
+                        localCity = viewModel.selectedCity
                         showFilterSheet = true
                     }) {
                         Image(systemName: "slider.horizontal.3")
@@ -75,17 +80,33 @@ struct NearbyView: View {
                 }
                 .padding(.bottom, DesignSystem.spacing12)
 
-                // 3. Result Count & List
-                HStack {
-                    Text("共找到 \(filteredWishes.count) 个心愿")
-                        .font(.system(size: 13))
-                        .foregroundColor(DesignSystem.textSecondary)
+                // 3. Status View / Result List
+                switch viewModel.state {
+                case .idle, .loading:
                     Spacer()
-                }
-                .padding(.horizontal, DesignSystem.spacing20)
-                .padding(.vertical, DesignSystem.spacing8)
-
-                if filteredWishes.isEmpty {
+                    SwiftUI.ProgressView("正在加载心愿...")
+                    Spacer()
+                case .failed(let error):
+                    Spacer()
+                    VStack(spacing: DesignSystem.spacing16) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 48))
+                            .foregroundColor(.red.opacity(0.7))
+                        Text(error)
+                            .font(.system(size: 14))
+                            .foregroundColor(DesignSystem.textSecondary)
+                        Button(action: {
+                            Task {
+                                await viewModel.fetchWishes()
+                            }
+                        }) {
+                            Text("重试")
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
+                        .frame(width: 120)
+                    }
+                    Spacer()
+                case .empty:
                     Spacer()
                     VStack(spacing: DesignSystem.spacing12) {
                         Image(systemName: "square.stack.3d.up.slash")
@@ -96,29 +117,63 @@ struct NearbyView: View {
                             .foregroundColor(DesignSystem.textNavy)
                     }
                     Spacer()
-                } else {
-                    List(filteredWishes) { wish in
-                        ZStack {
-                            NavigationLink(destination: WishDetailView(wish: wish)) {
-                                EmptyView()
-                            }
-                            .opacity(0)
-
-                            WishRowView(wish: wish)
-                        }
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                        .padding(.horizontal, DesignSystem.spacing20)
-                        .padding(.vertical, 6)
+                case .loaded:
+                    // Result Count Header
+                    HStack {
+                        Text("共找到 \(filteredWishes.count) 个心愿")
+                            .font(.system(size: 13))
+                            .foregroundColor(DesignSystem.textSecondary)
+                        Spacer()
                     }
-                    .listStyle(.plain)
+                    .padding(.horizontal, DesignSystem.spacing20)
+                    .padding(.vertical, DesignSystem.spacing8)
+
+                    if filteredWishes.isEmpty {
+                        Spacer()
+                        VStack(spacing: DesignSystem.spacing12) {
+                            Image(systemName: "square.stack.3d.up.slash")
+                                .font(.system(size: 48))
+                                .foregroundColor(DesignSystem.textSecondary.opacity(0.5))
+                            Text("没有找到符合条件的心愿")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(DesignSystem.textNavy)
+                        }
+                        Spacer()
+                    } else {
+                        List(filteredWishes) { wish in
+                            ZStack {
+                                NavigationLink(destination: WishDetailView(wish: wish)) {
+                                    EmptyView()
+                                }
+                                .opacity(0)
+
+                                WishRowView(wish: wish)
+                            }
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .padding(.horizontal, DesignSystem.spacing20)
+                            .padding(.vertical, 6)
+                        }
+                        .listStyle(.plain)
+                        .refreshable {
+                            await viewModel.fetchWishes()
+                        }
+                    }
                 }
             }
             .navigationTitle("附近的心愿")
             .warmBackground()
             .sheet(isPresented: $showFilterSheet) {
-                FilterSheetView(selectedCity: $selectedCity, isPresented: $showFilterSheet)
+                FilterSheetView(selectedCity: $localCity, isPresented: $showFilterSheet) { newCity in
+                    viewModel.selectedCity = newCity
+                    Task {
+                        await viewModel.fetchWishes()
+                    }
+                }
+            }
+            .task {
+                await viewModel.fetchWishes()
             }
         }
     }
@@ -126,7 +181,7 @@ struct NearbyView: View {
 
 // Wish Card Row
 struct WishRowView: View {
-    let wish: Wish
+    let wish: PublicWishDTO
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
@@ -135,19 +190,19 @@ struct WishRowView: View {
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(DesignSystem.textNavy)
                 Spacer()
-                Text("¥\(wish.reward)")
+                Text("¥\(Int(wish.rewardYuan))")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(DesignSystem.highlightGold)
             }
 
-            Text(wish.content)
+            Text(wish.message)
                 .font(.system(size: 14))
                 .foregroundColor(DesignSystem.textSecondary)
                 .lineLimit(3)
                 .lineSpacing(3)
 
             HStack {
-                Text(wish.deliveryType)
+                Text(wish.deliveryType.label)
                     .font(.system(size: 11, weight: .semibold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -157,7 +212,7 @@ struct WishRowView: View {
 
                 Spacer()
 
-                Text("期望时间: \(wish.date)")
+                Text("期望时间: \(wish.deadlineText)")
                     .font(.system(size: 12))
                     .foregroundColor(DesignSystem.textSecondary)
             }
@@ -174,8 +229,9 @@ struct WishRowView: View {
 struct FilterSheetView: View {
     @Binding var selectedCity: String
     @Binding var isPresented: Bool
+    var onConfirm: (String) -> Void
 
-    let cities = ["全部", "杭州", "上海", "北京", "深圳", "广州"]
+    let cities = ["全国", "杭州", "上海", "北京", "深圳", "广州"]
 
     var body: some View {
         NavigationStack {
@@ -205,6 +261,7 @@ struct FilterSheetView: View {
                 Spacer()
 
                 Button("确定") {
+                    onConfirm(selectedCity)
                     isPresented = false
                 }
                 .buttonStyle(PrimaryButtonStyle())
@@ -215,7 +272,7 @@ struct FilterSheetView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("重置") {
-                        selectedCity = "全部"
+                        selectedCity = "全国"
                     }
                     .foregroundColor(DesignSystem.primaryBlue)
                 }
@@ -233,18 +290,18 @@ struct FilterSheetView: View {
 
 // Wish Detail View
 struct WishDetailView: View {
-    let wish: Wish
+    let wish: PublicWishDTO
     @State private var showApplySheet = false
     @State private var showSuccess = false
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
                     // Header Card
                     VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
                         HStack {
-                            Text(wish.deliveryType)
+                            Text(wish.deliveryType.label)
                                 .font(.system(size: 12, weight: .bold))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
@@ -254,7 +311,7 @@ struct WishDetailView: View {
 
                             Spacer()
 
-                            Text("待匹配")
+                            Text(wish.status.label)
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(DesignSystem.primaryBlue)
                         }
@@ -267,7 +324,7 @@ struct WishDetailView: View {
                             Text("感谢金：")
                                 .font(.system(size: 14))
                                 .foregroundColor(DesignSystem.textSecondary)
-                            Text("¥\(wish.reward)")
+                            Text("¥\(Int(wish.rewardYuan))")
                                 .font(.system(size: 24, weight: .bold))
                                 .foregroundColor(DesignSystem.highlightGold)
                         }
@@ -283,7 +340,7 @@ struct WishDetailView: View {
                             .font(.system(size: 15, weight: .bold))
                             .foregroundColor(DesignSystem.textNavy)
 
-                        Text(wish.content)
+                        Text(wish.message)
                             .font(.system(size: 15))
                             .foregroundColor(DesignSystem.textNavy.opacity(0.9))
                             .lineSpacing(5)
@@ -296,7 +353,7 @@ struct WishDetailView: View {
                                 .font(.system(size: 13))
                                 .foregroundColor(DesignSystem.textSecondary)
                             Spacer()
-                            Text(wish.date)
+                            Text(wish.deadlineText)
                                 .font(.system(size: 13, weight: .semibold))
                                 .foregroundColor(DesignSystem.textNavy)
                         }
@@ -360,9 +417,17 @@ struct WishDetailView: View {
     }
 }
 
+// Unified sheet submission state
+enum ResponseSubmissionState {
+    case idle
+    case submitting
+    case succeeded
+    case failed(String)
+}
+
 // Apply Response Sheet
 struct ApplyResponseSheet: View {
-    let wish: Wish
+    let wish: PublicWishDTO
     @Binding var isPresented: Bool
     @Binding var showSuccess: Bool
 
@@ -371,15 +436,35 @@ struct ApplyResponseSheet: View {
     @State private var note = ""
     @State private var agreeContact = false
 
+    @State private var submissionState: ResponseSubmissionState = .idle
+    @State private var activeTask: Task<Void, Never>? = nil
+
+    private let apiClient: WishAPIProtocol
+
+    // Dependencies injected through initializer, defaulting to production client
+    init(wish: PublicWishDTO, isPresented: Binding<Bool>, showSuccess: Binding<Bool>, apiClient: WishAPIProtocol = WishAPIClient()) {
+        self.wish = wish
+        self._isPresented = isPresented
+        self._showSuccess = showSuccess
+        self.apiClient = apiClient
+    }
+
     var isFormValid: Bool {
-        !name.trimmingCharacters(in: .whitespaces).isEmpty &&
-        !contact.trimmingCharacters(in: .whitespaces).isEmpty &&
-        agreeContact
+        let isNotSubmitting: Bool
+        if case .submitting = submissionState {
+            isNotSubmitting = false
+        } else {
+            isNotSubmitting = true
+        }
+        return !name.trimmingCharacters(in: .whitespaces).isEmpty &&
+               !contact.trimmingCharacters(in: .whitespaces).isEmpty &&
+               agreeContact &&
+               isNotSubmitting
     }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
                     // Summary info
                     HStack {
@@ -387,13 +472,20 @@ struct ApplyResponseSheet: View {
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(DesignSystem.textNavy)
                         Spacer()
-                        Text("感谢金: ¥\(wish.reward)")
+                        Text("感谢金: ¥\(Int(wish.rewardYuan))")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(DesignSystem.highlightGold)
                     }
                     .padding(DesignSystem.spacing16)
                     .background(DesignSystem.primaryBlue.opacity(0.05))
                     .cornerRadius(DesignSystem.radiusSmall)
+
+                    if case .failed(let err) = submissionState {
+                        Text(err)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.red)
+                            .padding(.horizontal, 4)
+                    }
 
                     // Name Field
                     VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
@@ -404,6 +496,7 @@ struct ApplyResponseSheet: View {
                             .padding()
                             .background(Color.gray.opacity(0.05))
                             .cornerRadius(DesignSystem.radiusSmall)
+                            .disabled(isSubmitting)
                     }
 
                     // Contact Field
@@ -415,6 +508,7 @@ struct ApplyResponseSheet: View {
                             .padding()
                             .background(Color.gray.opacity(0.05))
                             .cornerRadius(DesignSystem.radiusSmall)
+                            .disabled(isSubmitting)
                     }
 
                     // Note Field
@@ -427,6 +521,7 @@ struct ApplyResponseSheet: View {
                             .padding(8)
                             .background(Color.gray.opacity(0.05))
                             .cornerRadius(DesignSystem.radiusSmall)
+                            .disabled(isSubmitting)
                     }
 
                     // Consent checkbox
@@ -436,17 +531,17 @@ struct ApplyResponseSheet: View {
                             .foregroundColor(DesignSystem.textSecondary)
                     }
                     .toggleStyle(CheckboxToggleStyle())
+                    .disabled(isSubmitting)
 
                     Spacer()
 
-                    Button(action: {
-                        isPresented = false
-                        // Trigger Success Navigation
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            showSuccess = true
+                    Button(action: submitResponse) {
+                        if isSubmitting {
+                            SwiftUI.ProgressView()
+                                .tint(.white)
+                        } else {
+                            Text("提交响应")
                         }
-                    }) {
-                        Text("提交响应")
                     }
                     .buttonStyle(PrimaryButtonStyle(isDisabled: !isFormValid))
                     .disabled(!isFormValid)
@@ -458,10 +553,59 @@ struct ApplyResponseSheet: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("取消") {
+                        cancelActiveTask()
                         isPresented = false
                     }
                     .foregroundColor(DesignSystem.primaryBlue)
+                    .disabled(isSubmitting)
                 }
+            }
+            .onDisappear {
+                cancelActiveTask()
+            }
+        }
+    }
+
+    private var isSubmitting: Bool {
+        if case .submitting = submissionState { true } else { false }
+    }
+
+    private func cancelActiveTask() {
+        activeTask?.cancel()
+        activeTask = nil
+    }
+
+    private func submitResponse() {
+        guard isFormValid else { return }
+        submissionState = .submitting
+
+        cancelActiveTask()
+
+        activeTask = Task {
+            do {
+                let req = CreateWishResponseRequest(
+                    responderName: name,
+                    responderContact: contact,
+                    note: note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : note,
+                    contactConsent: agreeContact
+                )
+                _ = try await apiClient.createWishResponse(wishId: wish.id, request: req)
+
+                guard !Task.isCancelled else { return }
+
+                submissionState = .succeeded
+                isPresented = false
+                showSuccess = true
+            } catch {
+                guard !Task.isCancelled else { return }
+
+                let errText: String
+                if let apiErr = error as? HaluowodeAPIError {
+                    errText = apiErr.errorDescription ?? "提交失败，请重试。"
+                } else {
+                    errText = "提交失败，请重试。"
+                }
+                submissionState = .failed(errText)
             }
         }
     }
@@ -469,7 +613,7 @@ struct ApplyResponseSheet: View {
 
 // Apply Success View
 struct ApplySuccessView: View {
-    let wish: Wish
+    let wish: PublicWishDTO
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -497,7 +641,7 @@ struct ApplySuccessView: View {
                 Text("\(wish.city) · \(wish.landmark)")
                     .font(.system(size: 15, weight: .bold))
                     .foregroundColor(DesignSystem.textNavy)
-                Text(wish.content)
+                Text(wish.message)
                     .font(.system(size: 13))
                     .foregroundColor(DesignSystem.textSecondary)
                     .lineLimit(2)
@@ -511,7 +655,6 @@ struct ApplySuccessView: View {
             Spacer()
 
             Button(action: {
-                // Navigate back to the root of Nearby
                 dismiss()
             }) {
                 Text("我知道了")
