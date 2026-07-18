@@ -2,23 +2,23 @@ import SwiftUI
 import HaluowodeCore
 
 struct ProgressView: View {
+    private enum Field: Hashable { case publicCode, contact }
+
     @StateObject private var viewModel: TrackWishViewModel
     @State private var showDeliveryPreview = false
+    @FocusState private var focusedField: Field?
 
     init(apiClient: WishAPIProtocol) {
         self._viewModel = StateObject(wrappedValue: TrackWishViewModel(apiClient: apiClient))
     }
 
     var isFormValid: Bool {
-        let isNotLoading = viewModel.state != .loading
-        return !viewModel.publicCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-               !viewModel.contact.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-               isNotLoading
+        viewModel.state != .loading &&
+        !viewModel.publicCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !viewModel.contact.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    var isSearching: Bool {
-        viewModel.state == .loading
-    }
+    var isSearching: Bool { viewModel.state == .loading }
 
     static func statusText(for status: WishStatus) -> String {
         status == .delivered ? "待确认" : status.label
@@ -26,280 +26,291 @@ struct ProgressView: View {
 
     var body: some View {
         NavigationStack {
-            VStack {
-                switch viewModel.state {
-                case .loaded(let wish):
-                    // Detailed Wish Status Tracking Page
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
-
-                            // Status Header Card
-                            VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
-                                HStack {
-                                    Text("当前状态：\(Self.statusText(for: wish.status))")
-                                        .font(.system(size: 18, weight: .bold))
-                                        .foregroundColor(DesignSystem.primaryBlue)
-                                    Spacer()
-                                    Button("切换单号") {
-                                        withAnimation {
-                                            viewModel.resetQuery()
-                                        }
-                                    }
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(DesignSystem.primaryBlue)
-                                }
-
-                                Text("\(wish.city) · \(wish.landmark)")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(DesignSystem.textNavy)
-
-                                Text("查询编号: \(wish.publicCode)")
-                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                    .foregroundColor(DesignSystem.textSecondary)
-                            }
-                            .padding(DesignSystem.spacing16)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(DesignSystem.cardBg)
-                            .cornerRadius(DesignSystem.radiusMedium)
-                            .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
-
-                            // Delivery File (if available)
-                            if let deliverable = wish.deliverable {
-                                VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
-                                    Text("已收到交付文件")
-                                        .font(.system(size: 14, weight: .bold))
-                                        .foregroundColor(DesignSystem.textNavy)
-
-                                    Button(action: {
-                                        showDeliveryPreview = true
-                                    }) {
-                                        HStack(spacing: DesignSystem.spacing12) {
-                                            Image(systemName: deliverable.kind == .spokenVideo ? "video.circle.fill" : "photo.circle.fill")
-                                                .font(.largeTitle)
-                                                .foregroundColor(DesignSystem.primaryBlue)
-
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                Text("点击预览交付的现场媒体文件")
-                                                    .font(.system(size: 14, weight: .semibold))
-
-                                                let providerName = wish.assignment?.providerName ?? "在场好心人"
-                                                Text("响应者：\(providerName)")
-                                                    .font(.system(size: 12))
-                                                    .foregroundColor(DesignSystem.textSecondary)
-                                            }
-                                            Spacer()
-                                            Image(systemName: "chevron.right")
-                                                .foregroundColor(DesignSystem.textSecondary)
-                                        }
-                                        .padding()
-                                        .background(DesignSystem.primaryBlue.opacity(0.05))
-                                        .cornerRadius(DesignSystem.radiusSmall)
-                                    }
-                                }
-                                .padding(DesignSystem.spacing16)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(DesignSystem.cardBg)
-                                .cornerRadius(DesignSystem.radiusMedium)
-                                .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
-                                .fullScreenCover(isPresented: $showDeliveryPreview) {
-                                    DeliveryPreviewView(deliverable: deliverable, isPresented: $showDeliveryPreview)
-                                }
-                            }
-
-                            // Wish Details Card
-                            VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
-                                Text("心愿概要")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(DesignSystem.textNavy)
-                                Divider()
-                                Text("心愿描述: \(wish.message)")
-                                Text("交付形式: \(wish.deliveryType.label)")
-                                Text("感谢金: ¥\(Int(wish.rewardYuan))")
-                            }
-                            .font(.system(size: 13))
-                            .foregroundColor(DesignSystem.textSecondary)
-                            .padding(DesignSystem.spacing16)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(DesignSystem.cardBg)
-                            .cornerRadius(DesignSystem.radiusMedium)
-                            .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
-
-                            // Vertical Timeline
-                            VStack(alignment: .leading, spacing: DesignSystem.spacing16) {
-                                Text("流转时间线")
-                                    .font(.system(size: 15, weight: .bold))
-                                    .foregroundColor(DesignSystem.textNavy)
-                                    .padding(.bottom, 4)
-
-                                ForEach(Array(wish.events.enumerated()), id: \.offset) { index, event in
-                                    let isLast = index == wish.events.count - 1
-                                    let timeString = formatTimestamp(event.createdAt)
-                                    let statusLabel = event.toStatus?.label ?? "未知"
-                                    timelineRow(
-                                        title: event.eventType,
-                                        desc: "变更至 [\(statusLabel)] · \(timeString)",
-                                        isCompleted: true,
-                                        isLast: isLast
-                                    )
-                                }
-
-                                if wish.events.isEmpty {
-                                    Text("暂无流转记录")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(DesignSystem.textSecondary)
-                                }
-                            }
-                            .padding(DesignSystem.spacing20)
-                            .background(DesignSystem.cardBg)
-                            .cornerRadius(DesignSystem.radiusLarge)
-                            .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
-                        }
-                        .padding(DesignSystem.spacing20)
-                    }
-
-                default:
-                    // Query Form Page (Default, Loading or Failed states)
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("查询心愿进度")
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(DesignSystem.textNavy)
-                                Text("输入发布心愿时获取的公开编号与联系方式。")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(DesignSystem.textSecondary)
-                            }
-                            .padding(.vertical, 8)
-
-                            if case .failed(let errorMsg) = viewModel.state {
-                                HStack(spacing: DesignSystem.spacing8) {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .foregroundColor(.red)
-                                    Text(errorMsg)
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundColor(.red)
-                                    Spacer()
-                                    Button("重试") {
-                                        queryWishProgress()
-                                    }
-                                    .font(.system(size: 13, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 4)
-                                    .background(DesignSystem.primaryBlue)
-                                    .cornerRadius(DesignSystem.radiusSmall)
-                                }
-                                .padding()
-                                .background(Color.red.opacity(0.1))
-                                .cornerRadius(DesignSystem.radiusSmall)
-                            }
-
-                            // Input fields card
-                            VStack(spacing: DesignSystem.spacing16) {
-                                VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
-                                    Text("公开查询编号")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(DesignSystem.textNavy)
-                                    TextField("HWyyMMdd-XXXXX", text: $viewModel.publicCode)
-                                        .padding()
-                                        .background(DesignSystem.bgWarmWhite)
-                                        .cornerRadius(DesignSystem.radiusSmall)
-                                        .disabled(isSearching)
-
-                                    if let error = viewModel.validationErrors["publicCode"] {
-                                        Text(error)
-                                            .font(.caption)
-                                            .foregroundColor(.red)
-                                    }
-                                }
-
-                                VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
-                                    Text("联系方式 (手机或微信)")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(DesignSystem.textNavy)
-                                    TextField("发布时填写的微信号/手机号", text: $viewModel.contact)
-                                        .padding()
-                                        .background(DesignSystem.bgWarmWhite)
-                                        .cornerRadius(DesignSystem.radiusSmall)
-                                        .disabled(isSearching)
-
-                                    if let error = viewModel.validationErrors["contact"] {
-                                        Text(error)
-                                            .font(.caption)
-                                            .foregroundColor(.red)
-                                    }
-                                }
-                            }
-                            .padding(DesignSystem.spacing20)
-                            .background(DesignSystem.cardBg)
-                            .cornerRadius(DesignSystem.radiusLarge)
-                            .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
-
-                            Button(action: queryWishProgress) {
-                                if isSearching {
-                                    SwiftUI.ProgressView()
-                                        .tint(.white)
-                                } else {
-                                    Text("立即查询")
-                                }
-                            }
-                            .buttonStyle(PrimaryButtonStyle(isDisabled: !isFormValid))
-                            .disabled(!isFormValid || isSearching)
-                        }
-                        .padding(DesignSystem.spacing20)
-                    }
+            Group {
+                if case .loaded(let wish) = viewModel.state {
+                    loadedContent(wish)
+                } else {
+                    queryContent
                 }
             }
-            .navigationTitle("进度追踪")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("进度")
+            .navigationBarTitleDisplayMode(.large)
             .warmBackground()
-            .onDisappear {
-                viewModel.cancel()
+            .onDisappear { viewModel.cancel() }
+        }
+    }
+
+    private var queryContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DesignSystem.spacing24) {
+                VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
+                    Text("查询心愿进度")
+                        .font(DesignSystem.titleFont)
+                        .foregroundStyle(DesignSystem.ink900)
+                    Text("使用发布时获得的公开编号和联系方式。联系方式只用于本次查询。")
+                        .font(DesignSystem.bodyFont)
+                        .foregroundStyle(DesignSystem.ink700)
+                        .lineSpacing(3)
+                }
+
+                if case .failed(let message) = viewModel.state {
+                    errorBanner(message)
+                }
+
+                VStack(spacing: DesignSystem.spacing20) {
+                    inputField(
+                        title: "公开查询编号",
+                        prompt: "例如 HW260718-A001B",
+                        text: $viewModel.publicCode,
+                        field: .publicCode,
+                        error: viewModel.validationErrors["publicCode"],
+                        contentType: nil
+                    )
+                    inputField(
+                        title: "发布时的联系方式",
+                        prompt: "手机号或微信号",
+                        text: $viewModel.contact,
+                        field: .contact,
+                        error: viewModel.validationErrors["contact"],
+                        contentType: .telephoneNumber
+                    )
+                }
+                .padding(DesignSystem.spacing20)
+                .v3Card(radius: DesignSystem.radiusLarge)
+
+                Button(action: queryWishProgress) {
+                    HStack(spacing: DesignSystem.spacing8) {
+                        if isSearching {
+                            SwiftUI.ProgressView().tint(.white)
+                            Text("正在查询")
+                        } else {
+                            Text("立即查询")
+                            Image(systemName: "arrow.right")
+                                .accessibilityHidden(true)
+                        }
+                    }
+                }
+                .buttonStyle(PrimaryButtonStyle(isDisabled: !isFormValid))
+                .disabled(!isFormValid)
+
+                Label("查询成功后，联系方式会立即从当前页面清除。", systemImage: "lock")
+                    .font(DesignSystem.metadataFont)
+                    .foregroundStyle(DesignSystem.ink500)
+            }
+            .padding(.horizontal, DesignSystem.spacing20)
+            .padding(.vertical, DesignSystem.spacing24)
+        }
+        .scrollDismissesKeyboard(.interactively)
+    }
+
+    private func inputField(
+        title: String,
+        prompt: String,
+        text: Binding<String>,
+        field: Field,
+        error: String?,
+        contentType: UITextContentType?
+    ) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
+            Text(title)
+                .font(DesignSystem.headlineFont)
+                .foregroundStyle(DesignSystem.ink900)
+
+            TextField(prompt, text: text)
+                .font(DesignSystem.bodyFont)
+                .textContentType(contentType)
+                .textInputAutocapitalization(field == .publicCode ? .characters : .never)
+                .autocorrectionDisabled()
+                .padding(.horizontal, DesignSystem.spacing16)
+                .frame(minHeight: 52)
+                .background(
+                    RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                        .fill(DesignSystem.canvasSunk)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                                .stroke(
+                                    error == nil ? (focusedField == field ? DesignSystem.accent : DesignSystem.hairlineStrong) : DesignSystem.danger,
+                                    lineWidth: focusedField == field || error != nil ? 2 : 1
+                                )
+                        )
+                )
+                .focused($focusedField, equals: field)
+                .disabled(isSearching)
+
+            if let error {
+                Label(error, systemImage: "exclamationmark.circle")
+                    .font(DesignSystem.metadataFont)
+                    .foregroundStyle(DesignSystem.danger)
             }
         }
     }
 
-    // MARK: - Timeline Helper row
-    func timelineRow(title: String, desc: String, isCompleted: Bool, isLast: Bool) -> some View {
-        HStack(alignment: .top, spacing: DesignSystem.spacing16) {
-            VStack {
-                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(isCompleted ? DesignSystem.primaryBlue : Color.gray.opacity(0.3))
-                    .font(.system(size: 16))
-                    .background(Color.white)
+    private func errorBanner(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
+            Label(message, systemImage: "exclamationmark.triangle")
+                .font(DesignSystem.headlineFont)
+                .foregroundStyle(DesignSystem.danger)
+            Button("重试") { queryWishProgress() }
+                .font(DesignSystem.headlineFont)
+                .foregroundStyle(DesignSystem.accent)
+                .frame(minHeight: 44)
+        }
+        .padding(DesignSystem.spacing16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                .fill(DesignSystem.canvas)
+                .overlay(
+                    RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                        .stroke(DesignSystem.danger, lineWidth: 1)
+                )
+        )
+    }
 
-                if !isLast {
-                    Rectangle()
-                        .fill(isCompleted ? DesignSystem.primaryBlue : Color.gray.opacity(0.2))
-                        .frame(width: 2, height: 40)
+    private func loadedContent(_ wish: TrackedWishDTO) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
+                statusCard(wish)
+                if let deliverable = wish.deliverable { deliveryCard(deliverable, wish: wish) }
+                summaryCard(wish)
+                timelineCard(wish)
+            }
+            .padding(.horizontal, DesignSystem.spacing20)
+            .padding(.vertical, DesignSystem.spacing24)
+        }
+    }
+
+    private func statusCard(_ wish: TrackedWishDTO) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing16) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
+                    Text("当前状态")
+                        .font(DesignSystem.metadataFont)
+                        .foregroundStyle(DesignSystem.ink500)
+                    Text(Self.statusText(for: wish.status))
+                        .font(DesignSystem.displayFont)
+                        .foregroundStyle(DesignSystem.ink900)
+                }
+                Spacer()
+                Button("切换单号") { withAnimation { viewModel.resetQuery() } }
+                    .font(DesignSystem.metadataFont.weight(.semibold))
+                    .foregroundStyle(DesignSystem.accent)
+                    .frame(minHeight: 44)
+            }
+            Divider().overlay(DesignSystem.hairline)
+            Label("\(wish.city) · \(wish.landmark)", systemImage: "mappin.and.ellipse")
+                .font(DesignSystem.headlineFont)
+                .foregroundStyle(DesignSystem.ink700)
+            Text(wish.publicCode)
+                .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                .foregroundStyle(DesignSystem.ink500)
+                .accessibilityLabel("公开查询编号 \(wish.publicCode)")
+        }
+        .padding(DesignSystem.spacing20)
+        .v3Card(radius: DesignSystem.radiusLarge)
+    }
+
+    private func deliveryCard(_ deliverable: WishDeliverableDTO, wish: TrackedWishDTO) -> some View {
+        Button { showDeliveryPreview = true } label: {
+            HStack(spacing: DesignSystem.spacing16) {
+                Image(systemName: deliverySymbol(deliverable.kind))
+                    .font(.title2.weight(.regular))
+                    .foregroundStyle(DesignSystem.accent)
+                    .frame(width: 44, height: 44)
+                    .background(Circle().fill(DesignSystem.canvasSunk))
+                VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
+                    Text("查看交付")
+                        .font(DesignSystem.headlineFont)
+                        .foregroundStyle(DesignSystem.ink900)
+                    Text("由 \(wish.assignment?.providerName ?? "在场响应者") 完成")
+                        .font(DesignSystem.metadataFont)
+                        .foregroundStyle(DesignSystem.ink700)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(DesignSystem.ink500)
+            }
+            .padding(DesignSystem.spacing16)
+            .v3Card(radius: DesignSystem.radiusLarge)
+        }
+        .buttonStyle(.plain)
+        .fullScreenCover(isPresented: $showDeliveryPreview) {
+            DeliveryPreviewView(deliverable: deliverable, isPresented: $showDeliveryPreview)
+        }
+    }
+
+    private func summaryCard(_ wish: TrackedWishDTO) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
+            Text("心愿概要").font(DesignSystem.titleFont).foregroundStyle(DesignSystem.ink900)
+            Text(wish.message).font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.ink700)
+            Divider().overlay(DesignSystem.hairline)
+            HStack {
+                Label(wish.deliveryType.label, systemImage: "shippingbox")
+                Spacer()
+                Text("¥\(Int(wish.rewardYuan))")
+            }
+            .font(DesignSystem.metadataFont.weight(.semibold))
+            .foregroundStyle(DesignSystem.ink700)
+        }
+        .padding(DesignSystem.spacing20)
+        .v3Card(radius: DesignSystem.radiusLarge)
+    }
+
+    private func timelineCard(_ wish: TrackedWishDTO) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing16) {
+            Text("流转时间线").font(DesignSystem.titleFont).foregroundStyle(DesignSystem.ink900)
+            if wish.events.isEmpty {
+                Label("暂无流转记录", systemImage: "clock")
+                    .font(DesignSystem.bodyFont)
+                    .foregroundStyle(DesignSystem.ink500)
+                    .frame(minHeight: 44)
+            } else {
+                ForEach(Array(wish.events.enumerated()), id: \.offset) { index, event in
+                    timelineRow(
+                        title: event.eventType,
+                        detail: "变更至 \(event.toStatus?.label ?? "未知") · \(formatTimestamp(event.createdAt))",
+                        isLast: index == wish.events.count - 1
+                    )
                 }
             }
+        }
+        .padding(DesignSystem.spacing20)
+        .v3Card(radius: DesignSystem.radiusLarge)
+    }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(isCompleted ? DesignSystem.textNavy : DesignSystem.textSecondary)
-                Text(desc)
-                    .font(.system(size: 12))
-                    .foregroundColor(DesignSystem.textSecondary)
-                    .lineLimit(2)
+    private func timelineRow(title: String, detail: String, isLast: Bool) -> some View {
+        HStack(alignment: .top, spacing: DesignSystem.spacing12) {
+            VStack(spacing: 0) {
+                Image(systemName: "checkmark.circle")
+                    .font(.body.weight(.regular))
+                    .foregroundStyle(DesignSystem.success)
+                if !isLast { Rectangle().fill(DesignSystem.hairlineStrong).frame(width: 1, height: 40) }
             }
-            Spacer()
+            VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
+                Text(title).font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.ink900)
+                Text(detail).font(DesignSystem.metadataFont).foregroundStyle(DesignSystem.ink700)
+            }
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func deliverySymbol(_ kind: DeliveryKind) -> String {
+        switch kind {
+        case .spokenVideo, .sceneryVoiceover: return "play.rectangle"
+        case .handwrittenCard: return "photo"
+        case .link: return "link"
+        default: return "doc"
         }
     }
 
-    // MARK: - Actions
-    func queryWishProgress() {
-        Task {
-            await viewModel.trackWish()
-        }
+    private func queryWishProgress() {
+        focusedField = nil
+        Task { await viewModel.trackWish() }
     }
 
     private func formatTimestamp(_ timestamp: Int64) -> String {
-        let date = Date(timeIntervalSince1970: TimeInterval(timestamp) / 1000.0)
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        return formatter.string(from: date)
+        let date = Date(timeIntervalSince1970: TimeInterval(timestamp) / 1000)
+        return date.formatted(date: .abbreviated, time: .shortened)
     }
 }
