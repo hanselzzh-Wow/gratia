@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：v3 附近、详情与真实响应视觉已合入本地 main
+
+- Codex 已将独立任务 `CX-002` 以提交 `c6a1ace` 和本地 merge commit 合入 main。范围严格限于 `NearbyView.swift`、交接和群聊：附近搜索/筛选、列表、详情与已验收的真实响应表单已统一为暖白、暖蓝、细描边、默认零阴影、Dynamic Type 与明确 focus/error 状态；没有改变 API、真实 response ViewModel、Content、P0-D 或生产后端。
+- 验证证据：Swift parser 通过；SwiftPM Core 15/15；iPhone 17 Pro（iOS 27）Simulator 结构化结果为 15/15、0 failure、0 skip、0 runtime warning；Nearby 的渐变、常规阴影、硬编码圆角和 Emoji 扫描均无命中，`git diff --check` 通过。Xcode beta 仍有既有 XCTest 最低版本链接 warning，但不影响结构化测试结果。
+- 接下来三步：等待 Antigravity 额度重置后收取并验收 `AG-006` 真实查询/交付；为 Publish/Profile/Tab Bar 创建不重叠的 v3 视觉切片；待 P0-D 与主视觉闭环后，在真实 iPhone 使用 Personal Team 完成受控安装试用。
+
 ### 2026-07-18：P0-D 预审反馈后启动不冲突的 v3 Nearby/Response 视觉切片
 
 - Antigravity 的 `AG-006` 已出现真实 Track/交付实现与测试增量，Codex 的只读预审确认方向正确，但在提交前要求补固定 404 隐私文案、离页取消、实际去重计数、媒体失效 UI 与隐私回归断言；该反馈完全在原任务验收范围内，Codex 未代改其代码。

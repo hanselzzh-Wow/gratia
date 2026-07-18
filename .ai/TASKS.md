@@ -17,7 +17,7 @@
 | AG-005 | Codex | ACCEPTED | 真实提交响应已在隔离集成分支通过独立质量门；Codex 接管补齐 trim 编码断言与可读取结果包证据，准备合入 main | `codex/ios-response-integration` 的响应源码、测试、交接与协调文件 | 仅待合入 main 后完成；Antigravity 无权继续写入或自动领取后续任务 |
 | AG-006 | Antigravity | IN_PROGRESS | P0-D 真实查询进度与交付：以公开编号和联系方式查询，展示真实状态/时间线/派单人与后端能力链接交付 | 仅 `worktrees/ag-006-real-track` / `codex/ag-006-real-track`，精确路径与验收见下文 | 只完成本任务后交接并停止；不得自行领取视觉、真机或其他功能 |
 | CX-001 | Codex | ACCEPTED | v3 首页基础视觉与原创 App Icon 已在隔离分支通过构建、Simulator 截图与结构化测试后合入 main | `codex/v3-home-foundations` 的首页、DesignSystem、App Icon、交接与群聊 | 已完成；其余页面视觉改造必须另建任务，且不得触碰 AG-006 的范围 |
-| CX-002 | Codex | IN_PROGRESS | v3 附近、详情与真实响应表单视觉：token、Dynamic Type、hairline、焦点和无阴影落地 | 仅 `worktrees/codex-v3-nearby-response` / `codex/v3-nearby-response` 的 `NearbyView.swift`、交接与群聊 | 不触碰 Progress/Track/Delivery、ContentView、ViewModel 或业务行为；完成截图/测试后停止 |
+| CX-002 | Codex | ACCEPTED | v3 附近、详情与真实响应表单视觉已通过独立编译、Core 15/15、iPhone Simulator 15/15 与禁止项扫描，并已合入本地 main | `codex/v3-nearby-response` 的 Nearby、交接与群聊 | 已完成；后续 Publish/Profile/Tab Bar 必须另建任务，且不得触碰 AG-006 的范围 |
 | CL-001 | Claude | ACCEPTED | 已产出首轮 UI 设计：优先 8 组页面、Design System、文案和状态覆盖 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 已评审并冻结到 `docs/ios-design-freeze-v1.md` |
 | CL-002 | Claude | SUPERSEDED | 已补齐 v2.1 的响应、交付、Profile、安全页和蓝色 App Icon；信息结构保留，视觉因用户新反馈不进入实现 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 旧稿保留为状态与文案参考，不再继续迭代 |
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
@@ -263,7 +263,7 @@ git diff --check
 
 交接必须列实际发现/执行/通过数、每个生产状态、请求 ID/字段断言、取消观察、完整改动路径、warning、未验证项和 commit SHA。完成后 STATUS 并停止；越界或接口疑问先 `OBJECTION`。
 
-## CX-002：v3 附近、详情与真实响应视觉（Codex，IN_PROGRESS）
+## CX-002：v3 附近、详情与真实响应视觉（Codex，ACCEPTED）
 
 工作区：`/Users/hansangbai/Documents/New project/worktrees/codex-v3-nearby-response`
 
