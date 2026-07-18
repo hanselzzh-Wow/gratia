@@ -23,6 +23,7 @@
 | CL-002 | Claude | SUPERSEDED | 已补齐 v2.1 的响应、交付、Profile、安全页和蓝色 App Icon；信息结构保留，视觉因用户新反馈不进入实现 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 旧稿保留为状态与文案参考，不再继续迭代 |
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
 | CL-004 | Claude | ACCEPTED | 已交付 v3 SwiftUI 实施审计：冻结视觉的精确落地、差异与截图验收清单已可直接约束后续实现 | `.ai/handoffs/CL-004-swiftui-audit.md` | 已验收；Claude 停止，待视觉实现后再做截图审阅，不得自动重画或改源码 |
+| CL-005 | Claude | IN_PROGRESS | 首页内容社区设计检查点：把首页从第二个心愿列表重构为已完成、已授权故事的内容入口；只出设计交接，不写产品代码 | `worktrees/claude-cl-005-home-community` 内的 `.ai/handoffs/CL-005-*/**` 与群聊 | 完成交接、STATUS 后立即停止；不得自行实现、改冻结或领取其它页面 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -457,6 +458,39 @@ git diff --check
 5. 列出后续视觉代码任务建议的最小切片、依赖与停止条件，但不得自行创建或领取该代码任务。
 
 完成后在群聊发 STATUS，报告路径、未确定项与建议优先级，然后立即停止等待 Codex 验收。发现冻结设计与现有业务状态冲突时只发 OBJECTION，不自行更改设计。
+
+## CL-005：首页内容社区设计检查点（Claude，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/claude-cl-005-home-community`
+分支：`codex/cl-005-home-community-design`
+
+唯一目标：将首页重新设计为内容优先的“已完成心愿故事”入口，服务于“看见完成感 → 我也想发布／我也想帮忙”的转化；它不是第二个“附近”市场，也不是好友、关注、私信或评论网络。
+
+权威输入：
+
+- `docs/home-community-direction.md`
+- `docs/ios-design-freeze-v3.md`（仍是现行视觉 token 与五栏导航冻结）
+- `docs/reviews/v31-candidate-review.md`
+- `.ai/handoffs/CL-003-claude-design.md`（只作为已有 token/交付格式参考）
+
+允许修改（仅限当前独立 worktree）：
+
+- 新建 `.ai/handoffs/CL-005-home-community-design.md`
+- 新建 `.ai/handoffs/CL-005-assets/**`（HTML、SVG、1x/3x PNG 等设计交付）
+- `.ai/TEAM_CHAT.md`（只可末尾追加 ACK/STATUS/OBJECTION）
+
+禁止修改：所有 `ios/**`、`worker/**`、`lib/**`、数据库/迁移/部署、`docs/ios-design-freeze-v3.md`、`docs/home-community-direction.md`、既有 Claude 资产或交接、`.ai/TASKS.md`、`.ai/WRITE_FREEZE.md`、`PROJECT_LOG.md`、主分支、Git 历史、签名、依赖。不得创建点赞 API、账号、好友、关注、私信、评论、假互动计数或任何产品代码。
+
+必须交付：
+
+1. 393×852 的首页正常态、首页无可公开故事空态、故事详情/沉浸阅读态；每页输出可编辑 HTML/SVG 和 1x/3x PNG。正常态须清楚表现“心愿正文 → 如何完成 → 交付片段/感谢”的故事顺序，以及“我也想发布／去附近看看能帮什么”两个行动。
+2. 在交接中给出首页与附近/发布/进度/我的的明确职责图，列出故事卡最小字段、缺失媒体/无授权内容/加载/错误状态与转化路径；不得把活跃待匹配心愿伪装为完成案例。
+3. 所有案例素材必须是明确标注的示意内容，不得包含可识别真实人物、联系方式、精确地点、时限、内部响应者身份、能力 URL/token 或未经单独授权的图像/视频。
+4. 保持 v3 的暖白/暖蓝、SF Symbols、零 Emoji、零渐变、默认零阴影、原生五栏且五项都有文字标签；浮动毛玻璃 Dock 明确不在范围内。
+5. 点赞只可作为未来轻反馈的设计注记：不显示伪造数字或“已生效”的互动状态；交接需说明上线前依赖账户、可信计数、限流、撤回、审核与举报。
+6. 提供设计自检：画板尺寸、零 Emoji、零渐变、无浮动 Dock、所有卡片/按钮文本是否符合隐私边界；完成后准确写交接、发 STATUS 并立即停止。
+
+Codex 验收方式：逐页查看 HTML/1x/3x、对照上述职责与隐私清单、扫描 Emoji/渐变/浮动 Dock，确认不含任何 SwiftUI/后端/冻结文件改动；在 Codex 接受前不得进入实现或修改设计冻结。
 
 ## 新任务创建要求
 
