@@ -20,6 +20,7 @@
 
 ## 当前事实（每次续接先验证）
 
+- **运行状态：产品负责人已要求暂停。** Codex、Claude、Antigravity 均不得继续当前实现、提交、验收、合入或派发新任务；只有产品负责人明确“恢复工作”后，才按“用户控制方式”读取并续接。
 - `main` 已有真实公开列表、发布、响应与 v3 基线（P0-A/B/C）；P0-D 真实查询进度/交付尚未合入。
 - `AG-006`：`worktrees/ag-006-real-track`，HEAD `4a30bd0`，仍有未提交修订。必须先：生产 `ProgressView` 的状态文案 helper 并直接测试、删除依赖 AVPlayer 系统行为的测试、如实更新交接/测试证据，再提交/STATUS。Codex 已在该 worktree `TEAM_CHAT` 留下 `CHAT-20260718-201500-CODEX-062`。
 - `CL-005`：`worktrees/claude-cl-005-home-community`，尚无新资产。应交 393×852 首页正常/空/故事详情的 HTML/SVG/1x/3x 和职责/隐私/无障碍交接；不得写 SwiftUI。

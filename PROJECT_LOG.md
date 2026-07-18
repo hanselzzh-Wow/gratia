@@ -98,6 +98,14 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：产品负责人要求全团队暂停，现场已冻结并可短上下文续接
+
+- 产品负责人指示“先暂停，不要再安排新任务”。Codex 已停止主线回归、验收、集成和任务派发；Claude 与 Antigravity 均已在主群聊和各自 worktree 群聊收到立即停止、STATUS 后等待的指令。
+- `PROJECT_MEMORY.md` 已将运行状态明确标为暂停：任何成员不得继续实现、提交、验收或领取任务，只有产品负责人明确要求恢复后才可按接班卡读取/核对/续接。
+- 暂停瞬间的主线 SwiftPM 回归未实际启动：Xcode 27 的 SwiftPM manifest 被本机 sandbox 拒绝（`sandbox-exec: sandbox_apply: Operation not permitted`）；这不是代码测试失败，不能替代此前已记录的 Core 验收。
+- 当前可恢复现场：P0-D AG-006 仍为未提交修订；CL-005 尚无资产；Simulator 的 `launchd_sim` 系统问题仍需 Mac 重启后再验证；主线协调文件已提交，未混入用户/Claude 的既有脏文件。
+- 恢复时的第一步：读取 `PROJECT_MEMORY.md`，确认产品负责人已明确恢复，然后只复查各 worktree STATUS 与系统重启后的 Simulator 状态，不自动新建任务。
+
 ### 2026-07-18：把多 AI 任务完成与快速接班卡同步设为硬门槛
 
 - 产品负责人要求接班卡能直接约束 Claude 与 Antigravity 的交接，而非只提供 Codex 个人摘要。`PROJECT_MEMORY.md` 现明确：Antigravity 必交 commit/路径/实际验证/隐私/未验证项，Claude 必交资产/状态/token/无障碍/授权边界；两者交接后立即 STATUS 并停止。
