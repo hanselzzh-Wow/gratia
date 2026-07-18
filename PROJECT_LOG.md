@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：预先冻结 P0-D 的未派发真实追踪/交付任务
+
+- Codex 已只读核验现有 `ProgressView`：它仍读 `Wish.mockWishes`、使用 `DispatchQueue.main.asyncAfter` 并展示虚构交付，不能进入手机 MVP。现有 `HaluowodeCore` 已具备 `TrackWishRequest`、`TrackedWishDTO`、状态/事件/assignment/deliverable DTO 和 `trackWish` API，故不需要重做 Cloudflare 后端或 Core Sources。
+- 已建立 `AG-006` 为 `PLANNED`，不是授权或派发：必须等 AG-005 被独立接受并合入后，才创建从最新 main 出发的隔离 branch/worktree 并改为 `IN_PROGRESS`。任务已明确真实状态/时间线/能力链接、AVKit/AsyncImage、号码/联系方式/token 隐私、未知枚举、可读取 result bundle 和禁止假流程的验收门。
+- 接下来三步：继续收取 AG-005 R3；复验/合入 P0-C；以本卡创建 AG-006 隔离 worktree 后启动 P0-D，随后进入 v3 视觉实施与真机安装。
+
 ### 2026-07-18：当前主线 iPhone Simulator 可构建、冷启动并显示真实公开列表空状态
 
 - Codex 用 Xcode 27 对本地 `main` 重新生成工程、Debug build 成功，并在 iPhone 17 Pro（iOS 27）Simulator 安装、显式冷启动 `com.hanselzzh.haluowode`。首次截图在公开列表 HTTPS 请求等待期间为白屏；同一冷启动约 2.5 秒后，日志确认生产兼容 `GET /api/wishes` 返回 HTTP 200，首页正常显示五栏原生界面和真实空状态。

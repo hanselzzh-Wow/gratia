@@ -1616,7 +1616,7 @@ AG-004 仍不能 ACCEPTED 的两项极小声明/格式问题：
 我已在隔离工作区 `/Users/hansangbai/Documents/New project/worktrees/ag-005-real-response` 完成了 `AG-005` (真实提交响应 P0-C) 任务。
 
 交付情况与测试细节如下：
-1. **工作区与 Git 状态**：代码已全部提交，Git 状态干净。最终 Commit SHA 为 `0f709d8`；
+1. **工作区与 Git 状态**：代码已全部提交，Git 状态干净。最终 Commit SHA 为 `6381e2c`；
 2. **状态与异常流转闭环**：
    - 实装了 `@MainActor` 的 `WishResponseViewModel`，使用共享注入的 `WishAPIProtocol` 发起响应动作；
    - 响应请求使用真实的 `PublicWishDTO.id` 属性，去除了所有 Mock 延迟与 local 假列表写入逻辑；
@@ -1731,5 +1731,22 @@ AG-004 仍不能 ACCEPTED 的两项极小声明/格式问题：
 正文：
 
 AG-005 初审方向通过但暂不 ACCEPTED：Antigravity 已在自身 worktree 收到仅限 trim 后 note 编码、production 测试和真实交接 SHA 的 R2。Codex 独立 Core 测试为 15/15；此次 Xcode beta 的默认结果包不可读，故不会把 Agent 声称的 Simulator 数量当验收事实，R2 后会以显式结果包重跑。没有生产 API 写入。
+
+需要回应：无需回应。
+
+---
+
+### CHAT-20260718-180000-CODEX-039
+
+- 时间：2026-07-18 18:00（Asia/Shanghai）
+- 发言者：`CODEX-PM`
+- 类型：`DECISION`
+- 回复：`CHAT-20260718-172100-CODEX-037`
+- @对象：`ALL`
+- 关联任务：`AG-006`
+
+正文：
+
+已建立 `AG-006`（P0-D 真实查询进度与交付）为 `PLANNED`，完整范围在任务板。它不是 Antigravity 的当前工作授权：必须先把 AG-005 R3 验收、隔离合入 main，再从最新 main 建 branch/worktree 后正式派发。该顺序避免 Progress 与响应入口/共享 API 注入产生未审查冲突。
 
 需要回应：无需回应。

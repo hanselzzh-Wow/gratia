@@ -15,6 +15,7 @@
 | AG-003 | Antigravity | ACCEPTED | R5 已删除 R4 测试中残留的 `@unchecked Sendable`/锁包装；真实取消与竞态证据独立复验通过，等待 Codex 选择性集成 | 仅本任务 R3/R4/R5 明列的隔离 worktree路径与交接文件 | 已验收；不得自动继续或领取新任务 |
 | AG-004 | Antigravity | ACCEPTED | 真实发布心愿纵向切片已通过独立质量门，等待 Codex 隔离集成到本地主分支 | 仅下文列出的 `codex/ag-004-real-publish` worktree 路径 | 已验收；不得自动领取响应、追踪、交付或视觉重画 |
 | AG-005 | Antigravity | IN_PROGRESS | 真实提交响应纵向切片：将心愿详情响应表单接入现有 API，完成校验、重复提交/错误/取消状态与单元测试 | 仅下文列出的 `codex/ag-005-real-response` worktree 路径 | 提交、交接、STATUS 后立即停止；不得领取追踪、交付或视觉重画 |
+| AG-006 | Antigravity | PLANNED | P0-D 真实查询进度与交付：以公开编号和联系方式查询，展示真实状态/时间线/派单人与后端能力链接交付 | 将在 AG-005 接受合入后创建的独立 `codex/ag-006-real-track` worktree，范围见下文 | 未派发前只读；不得因任务存在而提前修改或领取 |
 | CL-001 | Claude | ACCEPTED | 已产出首轮 UI 设计：优先 8 组页面、Design System、文案和状态覆盖 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 已评审并冻结到 `docs/ios-design-freeze-v1.md` |
 | CL-002 | Claude | SUPERSEDED | 已补齐 v2.1 的响应、交付、Profile、安全页和蓝色 App Icon；信息结构保留，视觉因用户新反馈不进入实现 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 旧稿保留为状态与文案参考，不再继续迭代 |
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
@@ -259,6 +260,49 @@ git diff --check
 ```
 
 交接必须列实际发现/执行/通过数、每个生产状态、请求 ID/字段断言、取消观察、完整改动路径、warning、未验证项和 commit SHA。完成后 STATUS 并停止；越界或接口疑问先 `OBJECTION`。
+
+## AG-006：真实查询进度与交付（P0-D，PLANNED，未派发）
+
+前置：`AG-005` 由 Codex 独立验收并合入本地 `main` 后，Codex 才会从那个主线创建 `worktrees/ag-006-real-track` 与分支 `codex/ag-006-real-track`，将本节状态改为 `IN_PROGRESS` 并在该 worktree 群聊末尾发正式 TASK。没有该三项动作前，任何成员只可阅读。
+
+唯一目标：将现有 `ProgressView` 的 `Wish.mockWishes`、`DispatchQueue.main.asyncAfter`、假交付预览替换为可注入的 `WishAPIProtocol.trackWish` 真实流程。用户输入公开编号和发布时联系方式后，App 要显示真实 `TrackedWishDTO` 的摘要、`WishStatus.label`、服务端事件时间线、已匹配响应者称呼（若有）与后端返回的交付能力链接；本任务不得写生产订单或修改后端。
+
+允许修改（只在届时新 worktree）：
+
+- `ios/Haluowode/ProgressView.swift`
+- 新建 `ios/Haluowode/TrackWishViewModel.swift`
+- 新建或仅为真实交付预览而拆分的 `ios/Haluowode/DeliveryPreviewView.swift`
+- `ios/Haluowode/ContentView.swift`（仅当已有共享 API 注入不足以给 Progress 使用时）
+- 新建 `ios/HaluowodeTests/TrackWishViewModelTests.swift`
+- `ios/Packages/HaluowodeCore/Tests/HaluowodeCoreTests/HaluowodeCoreTests.swift`（仅增加 track 成功/未知枚举/能力 URL 解码 fixture）
+- `ios/project.yml` 与由它生成的 `ios/Haluowode.xcodeproj/**`
+- `.ai/handoffs/AG-006-real-track.md`、`.ai/TEAM_CHAT.md`（只能在末尾追加 ACK/STATUS/OBJECTION）
+
+禁止修改：Core Sources、`PublishView`/`PublishWishViewModel`、`NearbyView`/`WishResponseViewModel`、`HomeView`、`ProfileView`、DesignSystem/视觉资源、后端/数据库/部署、任务板/冻结/项目日志、Git 历史、签名、依赖；不得新增 Emoji、渐变、账号、运营入口、支付、地图、模拟数据或生产写入测试。
+
+必须交付：
+
+1. `@MainActor TrackWishViewModel`，依赖可注入 `WishAPIProtocol`，具有互斥 `idle / loading / loaded(TrackedWishDTO) / failed(message)` 状态；运行时 View 不得直接拼 URL、调 `URLSession` 或读 `Wish.mockWishes`。
+2. 本地校验公开编号 trim 后 8–24、联系方式 trim 后 3–80；请求 `TrackWishRequest` 的 `publicCode` 要使用 trim 后大写值，contact 只用于该次请求，成功后立即从 ViewModel 内存清除，永不写入 UserDefaults、日志、错误文本、公开 UI 或截图文案。
+3. 真实显示 DTO 的 `publicCode`、城市/地标、正文、交付方式、感谢金、`WishStatus.label`（`delivered` 必须为“待确认”）、`events` 时间线和可选 `assignment.providerName`；禁止继续展示旧中文 `Wish` 或伪造响应者资料。
+4. 有 `deliverable` 时使用 URL 原样加载：手写卡片以 `AsyncImage` 显示 loading/success/failure；视频类用系统 `AVKit`/`VideoPlayer`；`link` 可作为系统 `Link` 打开。URL 和 token 绝不能显示、复制、保存、打印、埋点或塞进错误文案。401/404/429/503/媒体加载失败统一显示“交付链接不可用或已失效”。
+5. 400 字段错误、404、429、网络、解码失败、取消均保留用户输入并可重试；404 只显示“请检查编号和联系方式”，不能回显输入；取消回到可重试非 loading 状态；请求中禁用重复查询。
+6. 实际 production ViewModel 测试至少覆盖：无效输入零调用、正确 trim/uppercased 请求、成功 DTO 映射与成功后 contact 清除、404 不泄露、429、取消可重试、查询中去重；Core fixture 覆盖 track 成功、未知 `WishStatus`、事件、assignment、deliverable 能力 URL 的解码。测试必须完全使用 mock/fixture，不访问生产 API。
+7. 删除 `ProgressView` 的 `Wish.mockWishes`、`DispatchQueue.main.asyncAfter`、硬编码测试编号和虚构交付文字。保持五栏导航；本任务只接业务数据，不进行 v3 视觉重画。
+
+验收命令（届时在本 worktree）：
+
+```bash
+/private/tmp/xcodegen-2.46.0-release/xcodegen/bin/xcodegen generate --spec ios/project.yml
+swift test --package-path ios/Packages/HaluowodeCore --scratch-path /private/tmp/haluowode-core-ag006 --disable-xctest --enable-swift-testing
+xcodebuild -project ios/Haluowode.xcodeproj -scheme Haluowode -destination 'platform=iOS Simulator,id=742A9D34-5F88-4578-BB12-851A00D2C0FE' -derivedDataPath /private/tmp/haluowode-ag006-tests -resultBundlePath /private/tmp/haluowode-ag006-tests.xcresult -only-testing:HaluowodeTests test
+swiftc -frontend -parse ios/Haluowode/*.swift
+rg -n 'Wish\.mockWishes|DispatchQueue\.main\.asyncAfter|WishAPIClient\(' ios/Haluowode/ProgressView.swift ios/Haluowode/TrackWishViewModel.swift
+rg -n -i 'UserDefaults|admin|x-admin-key|api[_-]?key|cloudflare.*token|print\(' ios/Haluowode/ProgressView.swift ios/Haluowode/TrackWishViewModel.swift ios/Haluowode/DeliveryPreviewView.swift
+git diff --check
+```
+
+交接须给出可读取的测试实际数量、result bundle 路径/摘要、每个状态、contact/token 隐私处理、完整改动路径、warning、未验证项与 commit SHA。完成后 STATUS 并立即停止；Codex 独立验收和合入前，不得领视觉、真机或其他功能任务。
 
 ## CL-002 P0 设计补齐
 
