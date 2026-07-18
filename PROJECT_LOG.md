@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：AG-005 真实响应在 Codex 隔离集成分支验收通过，准备合入 main
+
+- Codex 在 `codex/ios-response-integration` 纳入外部实现后，仅补充“非空说明 trim 后编码”的 production ViewModel 断言，并把交接改为可核验事实；没有扩展 P0-D、视觉、后端或生产 API 写入。
+- 独立验证：Foundation Core 15/15 通过；iPhone 17 Pro（iOS 27）Simulator 的 `HaluowodeTests` 结果包显示 15/15、0 failure、0 skip、0 runtime warning；Swift parser、假流程扫描、管理凭据/本地联系人持久化扫描与 `git diff --check` 均通过。真实响应使用 `PublicWishDTO.id`、201/重复 200 成功、草稿保留、取消可重试和隐私边界均有测试覆盖。
+- 接下来三步：提交并合入 P0-C 到本地 main；从最新 main 正式创建/派发 P0-D 真实查询与交付；按冻结 v3 实施视觉基线、图标和模拟器截图，再进入 Personal Team 真机闭环。
+
 ### 2026-07-18：AG-005 外部交接超时，Codex 在隔离集成分支接管
 
 - R2/R3 已给 Antigravity 充分且逐项可执行的修订机会；连续复查仍无 ACK、无测试、无交接修正，P0-C 不应无限期停在外部会话。依据“先训练、再接管”的协作原则，Codex 已正式收回 AG-005 的外部写权限。

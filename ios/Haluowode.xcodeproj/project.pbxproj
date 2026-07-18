@@ -7,11 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		06C8ED42AD29280F96867FA4 /* WishResponseViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46D02287F43252F22279E63 /* WishResponseViewModelTests.swift */; };
 		20B3F5482F1D4D8776B4E424 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D8C38BCFAD380951D6D5BB7 /* HomeView.swift */; };
 		28BD8396213BF32C2A5C6DEA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8336A40B8AC7F8E866C78B1A /* ContentView.swift */; };
 		41E3B30923E7F9F433042C42 /* PublishWishViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0FD3ED9D702DFF7121D610C /* PublishWishViewModel.swift */; };
 		45156BB63F587FC5E663A120 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F81EECC54084008EC49A7 /* ProfileView.swift */; };
 		4BEFD84B8B8830F77FACA935 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF823FE4F1CE75DEEFF668E /* DesignSystem.swift */; };
+		665973EACCE6CE5E0E809F1F /* WishResponseViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112E28D798A28379D6A78006 /* WishResponseViewModel.swift */; };
 		68E58538F7A521DBC3F71347 /* NearbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5078E2519B699EA645128E45 /* NearbyView.swift */; };
 		6AD063EFE4F0B93ADB4FD1DD /* HaluowodeCore in Frameworks */ = {isa = PBXBuildFile; productRef = 72E659E330CB04E0008BF5CB /* HaluowodeCore */; };
 		6DC5FC026C391956AF0B039D /* SwiftUI+Compat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887EACF5B1EB7240A73F287B /* SwiftUI+Compat.swift */; };
@@ -38,6 +40,7 @@
 /* Begin PBXFileReference section */
 		0304A32E0107CF6B8A492D7D /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
 		0D8C38BCFAD380951D6D5BB7 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		112E28D798A28379D6A78006 /* WishResponseViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishResponseViewModel.swift; sourceTree = "<group>"; };
 		2A2F81EECC54084008EC49A7 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		2BE37E2ADCE38B19D4870DF4 /* Haluowode.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Haluowode.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		39746411CA509AF28B647F06 /* WishListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishListViewModel.swift; sourceTree = "<group>"; };
@@ -53,6 +56,7 @@
 		B6F1F74F9C44F97F74E8D4A7 /* HaluowodeCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = HaluowodeCore; path = Packages/HaluowodeCore; sourceTree = SOURCE_ROOT; };
 		BDF823FE4F1CE75DEEFF668E /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		D2BDE1F988AF9D63EFC6C5EA /* HaluowodeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HaluowodeApp.swift; sourceTree = "<group>"; };
+		D46D02287F43252F22279E63 /* WishResponseViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishResponseViewModelTests.swift; sourceTree = "<group>"; };
 		D6F94CC4301EC09CF07378A7 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		DA3BFEE80FC06CF97769DF0F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -86,6 +90,7 @@
 				B0FD3ED9D702DFF7121D610C /* PublishWishViewModel.swift */,
 				887EACF5B1EB7240A73F287B /* SwiftUI+Compat.swift */,
 				39746411CA509AF28B647F06 /* WishListViewModel.swift */,
+				112E28D798A28379D6A78006 /* WishResponseViewModel.swift */,
 			);
 			path = Haluowode;
 			sourceTree = "<group>";
@@ -95,6 +100,7 @@
 			children = (
 				A56C00CAFD853D0C4203FB9E /* PublishWishViewModelTests.swift */,
 				752469DF790458D7FEB895A8 /* WishListViewModelTests.swift */,
+				D46D02287F43252F22279E63 /* WishResponseViewModelTests.swift */,
 			);
 			path = HaluowodeTests;
 			sourceTree = "<group>";
@@ -229,6 +235,7 @@
 				41E3B30923E7F9F433042C42 /* PublishWishViewModel.swift in Sources */,
 				6DC5FC026C391956AF0B039D /* SwiftUI+Compat.swift in Sources */,
 				CAD3CBDF052E3278F37B64F9 /* WishListViewModel.swift in Sources */,
+				665973EACCE6CE5E0E809F1F /* WishResponseViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -238,6 +245,7 @@
 			files = (
 				CC6A17E91A882A2B1B7CBB23 /* PublishWishViewModelTests.swift in Sources */,
 				AFAC82574ADD0D5EB99BEE7D /* WishListViewModelTests.swift in Sources */,
+				06C8ED42AD29280F96867FA4 /* WishResponseViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
