@@ -40,9 +40,7 @@ public struct DeliveryPreviewView: View {
                 // Content Area based on deliverable kind
                 Group {
                     if deliverable.kind == .spokenVideo || deliverable.kind == .sceneryVoiceover {
-                        VideoPlayer(player: AVPlayer(url: deliverable.url))
-                            .aspectRatio(9/16, contentMode: .fit)
-                            .cornerRadius(12)
+                        CustomVideoPlayer(url: deliverable.url)
                     } else if deliverable.kind == .handwrittenCard {
                         AsyncImage(url: deliverable.url) { phase in
                             switch phase {
@@ -65,7 +63,7 @@ public struct DeliveryPreviewView: View {
                             Image(systemName: "link.circle.fill")
                                 .font(.system(size: 64))
                                 .foregroundColor(.white)
-                            
+
                             Text("这是一个外部交付链接")
                                 .font(.system(size: 15, weight: .semibold))
                                 .foregroundColor(.white)
@@ -109,6 +107,56 @@ public struct DeliveryPreviewView: View {
                     .padding(.bottom, 40)
                 }
             }
+        }
+    }
+
+    private var errorView: some View {
+        VStack(spacing: DesignSystem.spacing12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 48))
+                .foregroundColor(.red.opacity(0.8))
+            Text("交付链接不可用或已失效")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white)
+        }
+    }
+}
+
+struct CustomVideoPlayer: View {
+    let url: URL
+    @State private var player: AVPlayer? = nil
+    @State private var playbackFailed = false
+    @State private var statusObservation: NSKeyValueObservation? = nil
+
+    var body: some View {
+        Group {
+            if playbackFailed {
+                errorView
+            } else if let player = player {
+                VideoPlayer(player: player)
+                    .aspectRatio(9/16, contentMode: .fit)
+                    .cornerRadius(12)
+            } else {
+                SwiftUI.ProgressView()
+                    .tint(.white)
+            }
+        }
+        .onAppear {
+            let playerItem = AVPlayerItem(url: url)
+            let newPlayer = AVPlayer(playerItem: playerItem)
+            self.player = newPlayer
+
+            statusObservation = playerItem.observe(\.status, options: [.new, .initial]) { item, _ in
+                if item.status == .failed {
+                    DispatchQueue.main.async {
+                        self.playbackFailed = true
+                    }
+                }
+            }
+        }
+        .onDisappear {
+            statusObservation?.invalidate()
+            statusObservation = nil
         }
     }
 

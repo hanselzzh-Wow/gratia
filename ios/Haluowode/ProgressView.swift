@@ -11,13 +11,17 @@ struct ProgressView: View {
 
     var isFormValid: Bool {
         let isNotLoading = viewModel.state != .loading
-        return !viewModel.publicCode.trimmingCharacters(in: .whitespaces).isEmpty &&
-               !viewModel.contact.trimmingCharacters(in: .whitespaces).isEmpty &&
+        return !viewModel.publicCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               !viewModel.contact.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
                isNotLoading
     }
 
     var isSearching: Bool {
         viewModel.state == .loading
+    }
+
+    static func statusText(for status: WishStatus) -> String {
+        status == .delivered ? "待确认" : status.label
     }
 
     var body: some View {
@@ -32,8 +36,7 @@ struct ProgressView: View {
                             // Status Header Card
                             VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
                                 HStack {
-                                    let statusText = wish.status == .delivered ? "待确认" : wish.status.label
-                                    Text("当前状态：\(statusText)")
+                                    Text("当前状态：\(Self.statusText(for: wish.status))")
                                         .font(.system(size: 18, weight: .bold))
                                         .foregroundColor(DesignSystem.primaryBlue)
                                     Spacer()

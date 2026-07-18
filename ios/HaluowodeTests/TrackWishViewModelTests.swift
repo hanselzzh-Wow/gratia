@@ -90,7 +90,7 @@ final class TrackWishViewModelTests: XCTestCase {
         let viewModel = TrackWishViewModel(apiClient: mockAPI)
 
         viewModel.publicCode = "HW260718-A001B"
-        viewModel.contact = "13800000000"
+        viewModel.contact = "unique_secret_contact_12345"
 
         let task = Task {
             await viewModel.trackWish()
@@ -103,8 +103,12 @@ final class TrackWishViewModelTests: XCTestCase {
         await task.value
 
         XCTAssertEqual(viewModel.state, .failed("请检查编号和联系方式"))
+        if case .failed(let errMsg) = viewModel.state {
+            XCTAssertFalse(errMsg.contains("unique_secret_contact_12345"), "Error message must not leak contact info")
+        }
+
         // Check contact not cleared (to allow editing and retrying)
-        XCTAssertEqual(viewModel.contact, "13800000000")
+        XCTAssertEqual(viewModel.contact, "unique_secret_contact_12345")
     }
 
     // Test 4: 429 rate limit mapping
@@ -210,6 +214,17 @@ final class TrackWishViewModelTests: XCTestCase {
         // Reverts to .idle
         XCTAssertEqual(viewModel.state, .idle)
         XCTAssertEqual(viewModel.contact, "13800000000") // Form values preserved
+    }
+
+    // Test 7: Verify that delivered status maps to "待确认"
+    func testDeliveredStatusMapping() {
+        let status = WishStatus.delivered
+        XCTAssertEqual(status.label, "待确认")
+    }
+
+    // Test 8: Verify the production UI helper renders delivered as "待确认"
+    func testDeliveredStatusProductionText() {
+        XCTAssertEqual(ProgressView.statusText(for: .delivered), "待确认")
     }
 }
 
