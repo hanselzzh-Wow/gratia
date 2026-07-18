@@ -98,6 +98,12 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：正式派发 AG-006，进入 P0-D 真实查询进度与交付
+
+- P0-C 已合入并通过主线 Simulator 复验，故 Codex 从当前 main 正式建立 `codex/ag-006-real-track` 隔离工作区并将 `AG-006` 改为 `IN_PROGRESS`。Antigravity 的授权严格限定在任务卡列出的 Progress/Track ViewModel/交付预览/测试/交接路径，禁止改 Core Sources、其它页面、视觉、后端、签名、部署和生产数据。
+- P0-D 的验收重点是：编号/联系方式只用于该次查询且不持久化；真实 DTO 状态、时间线、匹配称呼和能力 URL 按类型安全预览；404/429/取消可重试且不泄露输入；无 `Wish.mockWishes`/假延时/假交付。实现者完成后立即停止，由 Codex 独立复验和合入。
+- 接下来三步：收取 AG-006 ACK；独立验收并合入真实追踪/交付；实施 v3 视觉、图标与动态字体并出模拟器截图，随后进行 Personal Team 真机端到端试用。
+
 ### 2026-07-18：P0-C 已合入本地 main，主线 Simulator 复验通过
 
 - Codex 将已验收的隔离提交以 merge commit `e8caa45` 合入本地 `main`。此次只包含真实提交响应的 SwiftUI、可注入 ViewModel、测试和交接/协调记录；用户已有的网页文件、Claude 资产及其他未跟踪修改均未触碰。没有推送、部署、签名或生产 API 写入。

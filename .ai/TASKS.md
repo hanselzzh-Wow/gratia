@@ -15,7 +15,7 @@
 | AG-003 | Antigravity | ACCEPTED | R5 已删除 R4 测试中残留的 `@unchecked Sendable`/锁包装；真实取消与竞态证据独立复验通过，等待 Codex 选择性集成 | 仅本任务 R3/R4/R5 明列的隔离 worktree路径与交接文件 | 已验收；不得自动继续或领取新任务 |
 | AG-004 | Antigravity | ACCEPTED | 真实发布心愿纵向切片已通过独立质量门，等待 Codex 隔离集成到本地主分支 | 仅下文列出的 `codex/ag-004-real-publish` worktree 路径 | 已验收；不得自动领取响应、追踪、交付或视觉重画 |
 | AG-005 | Codex | ACCEPTED | 真实提交响应已在隔离集成分支通过独立质量门；Codex 接管补齐 trim 编码断言与可读取结果包证据，准备合入 main | `codex/ios-response-integration` 的响应源码、测试、交接与协调文件 | 仅待合入 main 后完成；Antigravity 无权继续写入或自动领取后续任务 |
-| AG-006 | Antigravity | PLANNED | P0-D 真实查询进度与交付：以公开编号和联系方式查询，展示真实状态/时间线/派单人与后端能力链接交付 | 将在 AG-005 接受合入后创建的独立 `codex/ag-006-real-track` worktree，范围见下文 | 未派发前只读；不得因任务存在而提前修改或领取 |
+| AG-006 | Antigravity | IN_PROGRESS | P0-D 真实查询进度与交付：以公开编号和联系方式查询，展示真实状态/时间线/派单人与后端能力链接交付 | 仅 `worktrees/ag-006-real-track` / `codex/ag-006-real-track`，精确路径与验收见下文 | 只完成本任务后交接并停止；不得自行领取视觉、真机或其他功能 |
 | CL-001 | Claude | ACCEPTED | 已产出首轮 UI 设计：优先 8 组页面、Design System、文案和状态覆盖 | `.ai/handoffs/CL-001-claude-design.md`、`.ai/handoffs/CL-001-assets/**` | 已评审并冻结到 `docs/ios-design-freeze-v1.md` |
 | CL-002 | Claude | SUPERSEDED | 已补齐 v2.1 的响应、交付、Profile、安全页和蓝色 App Icon；信息结构保留，视觉因用户新反馈不进入实现 | `.ai/handoffs/CL-002-claude-design.md`、`.ai/handoffs/CL-002-assets/**` | 旧稿保留为状态与文案参考，不再继续迭代 |
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
@@ -261,9 +261,9 @@ git diff --check
 
 交接必须列实际发现/执行/通过数、每个生产状态、请求 ID/字段断言、取消观察、完整改动路径、warning、未验证项和 commit SHA。完成后 STATUS 并停止；越界或接口疑问先 `OBJECTION`。
 
-## AG-006：真实查询进度与交付（P0-D，PLANNED，未派发）
+## AG-006：真实查询进度与交付（P0-D，IN_PROGRESS，已派发）
 
-前置：`AG-005` 由 Codex 独立验收并合入本地 `main` 后，Codex 才会从那个主线创建 `worktrees/ag-006-real-track` 与分支 `codex/ag-006-real-track`，将本节状态改为 `IN_PROGRESS` 并在该 worktree 群聊末尾发正式 TASK。没有该三项动作前，任何成员只可阅读。
+前置已满足：`AG-005` 已由 Codex 独立验收并以 `e8caa45` 合入本地 `main`。本任务只可在 `worktrees/ag-006-real-track` 与分支 `codex/ag-006-real-track` 执行；本节和群聊正式 TASK 是唯一写入授权。完成交付后立即停止，等待 Codex 验收。
 
 唯一目标：将现有 `ProgressView` 的 `Wish.mockWishes`、`DispatchQueue.main.asyncAfter`、假交付预览替换为可注入的 `WishAPIProtocol.trackWish` 真实流程。用户输入公开编号和发布时联系方式后，App 要显示真实 `TrackedWishDTO` 的摘要、`WishStatus.label`、服务端事件时间线、已匹配响应者称呼（若有）与后端返回的交付能力链接；本任务不得写生产订单或修改后端。
 
