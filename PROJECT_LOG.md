@@ -98,6 +98,15 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：main 首次完成 iOS 27 安装启动与系统 Liquid Glass 截图
+
+- Codex 从 main 构建 Simulator App，成功启动 iPhone 17 Pro iOS 27、安装 `Haluowode.app` 并以前台 PID 启动 `com.hanselzzh.haluowode`；不再把 bundle 生成或测试通过当作运行证据。
+- 首次截图为纯白屏；运行日志无崩溃，显示首次网络请求经本机 `127.0.0.1:7890` 代理完成 TLS 并返回 200，约 27 秒后首页与 Tab Bar 正常渲染。
+- 终止进程后暖启动实测 `simctl launch` 0.640 秒，立即截图确认首页、五个系统目的地和 iOS 27 原生浮动 Liquid Glass Tab Bar 均可见；因此此前 CoreSimulator 启动/安装阻塞已解除。
+- 截图证据位于 Codex 可视化目录的 `main-home-ios27-loaded.png` 与 `main-home-ios27-warm.png`；未提交到产品仓库。首次冷启动白屏保留为观察项，尚不能归因于 App 代码或稳定复现。
+- 未验证：真实 iPhone、Personal Team 签名、触摸交互完整闭环、弱网/无网冷启动、Reduce Transparency/Reduce Motion 和 iOS 16–25 系统 Tab Bar 回退。
+- 下一步：等待 AG-007 ACK/交付并独立验收；正式化 AG-008 前冻结公开故事数据边界；视觉收口后进行真机安装。
+
 ### 2026-07-18：验收 CL-005 并登记首页实现接力
 
 - Claude 在 `8a98bf7` 交付首页正常、无授权故事空态、故事详情三页 HTML 与 1x/3x PNG；Codex 实测尺寸分别为 393×852 与 1179×2556，逐页查看视觉并确认首页/附近职责分离。
