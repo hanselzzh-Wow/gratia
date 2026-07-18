@@ -293,6 +293,7 @@ struct WishDetailView: View {
     let wish: PublicWishDTO
     @State private var showApplySheet = false
     @State private var showSuccess = false
+    @Environment(\.wishAPIClient) var apiClient
 
     var body: some View {
         VStack(spacing: 0) {
@@ -409,20 +410,12 @@ struct WishDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .warmBackground()
         .sheet(isPresented: $showApplySheet) {
-            ApplyResponseSheet(wish: wish, isPresented: $showApplySheet, showSuccess: $showSuccess)
+            ApplyResponseSheet(wish: wish, isPresented: $showApplySheet, showSuccess: $showSuccess, apiClient: apiClient)
         }
         .navigationDestination(isPresented: $showSuccess) {
             ApplySuccessView(wish: wish)
         }
     }
-}
-
-// Unified sheet submission state
-enum ResponseSubmissionState {
-    case idle
-    case submitting
-    case succeeded
-    case failed(String)
 }
 
 // Apply Response Sheet
@@ -431,35 +424,25 @@ struct ApplyResponseSheet: View {
     @Binding var isPresented: Bool
     @Binding var showSuccess: Bool
 
-    @State private var name = ""
-    @State private var contact = ""
-    @State private var note = ""
-    @State private var agreeContact = false
+    @StateObject private var viewModel: WishResponseViewModel
 
-    @State private var submissionState: ResponseSubmissionState = .idle
-    @State private var activeTask: Task<Void, Never>? = nil
-
-    private let apiClient: WishAPIProtocol
-
-    // Dependencies injected through initializer, defaulting to production client
-    init(wish: PublicWishDTO, isPresented: Binding<Bool>, showSuccess: Binding<Bool>, apiClient: WishAPIProtocol = WishAPIClient()) {
+    init(wish: PublicWishDTO, isPresented: Binding<Bool>, showSuccess: Binding<Bool>, apiClient: WishAPIProtocol) {
         self.wish = wish
         self._isPresented = isPresented
         self._showSuccess = showSuccess
-        self.apiClient = apiClient
+        self._viewModel = StateObject(wrappedValue: WishResponseViewModel(wishId: wish.id, apiClient: apiClient))
     }
 
     var isFormValid: Bool {
-        let isNotSubmitting: Bool
-        if case .submitting = submissionState {
-            isNotSubmitting = false
-        } else {
-            isNotSubmitting = true
-        }
-        return !name.trimmingCharacters(in: .whitespaces).isEmpty &&
-               !contact.trimmingCharacters(in: .whitespaces).isEmpty &&
-               agreeContact &&
+        let isNotSubmitting = viewModel.state != .submitting
+        return !viewModel.name.trimmingCharacters(in: .whitespaces).isEmpty &&
+               !viewModel.contact.trimmingCharacters(in: .whitespaces).isEmpty &&
+               viewModel.agreeContact &&
                isNotSubmitting
+    }
+
+    var isSubmitting: Bool {
+        viewModel.state == .submitting
     }
 
     var body: some View {
@@ -480,11 +463,29 @@ struct ApplyResponseSheet: View {
                     .background(DesignSystem.primaryBlue.opacity(0.05))
                     .cornerRadius(DesignSystem.radiusSmall)
 
-                    if case .failed(let err) = submissionState {
-                        Text(err)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.red)
-                            .padding(.horizontal, 4)
+                    if case .failed(let err) = viewModel.state {
+                        HStack(spacing: DesignSystem.spacing8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.red)
+                            Text(err)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.red)
+                            Spacer()
+                            Button(action: {
+                                submitResponse()
+                            }) {
+                                Text("重试")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4)
+                                    .background(DesignSystem.primaryBlue)
+                                    .cornerRadius(DesignSystem.radiusSmall)
+                            }
+                        }
+                        .padding()
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(DesignSystem.radiusSmall)
                     }
 
                     // Name Field
@@ -492,11 +493,17 @@ struct ApplyResponseSheet: View {
                         Text("您的称呼")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(DesignSystem.textNavy)
-                        TextField("如：小张", text: $name)
+                        TextField("如：小张", text: $viewModel.name)
                             .padding()
                             .background(Color.gray.opacity(0.05))
                             .cornerRadius(DesignSystem.radiusSmall)
                             .disabled(isSubmitting)
+
+                        if let error = viewModel.validationErrors["responderName"] {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
                     }
 
                     // Contact Field
@@ -504,11 +511,17 @@ struct ApplyResponseSheet: View {
                         Text("联系方式 (仅运营可见)")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(DesignSystem.textNavy)
-                        TextField("微信号或手机号", text: $contact)
+                        TextField("微信号或手机号", text: $viewModel.contact)
                             .padding()
                             .background(Color.gray.opacity(0.05))
                             .cornerRadius(DesignSystem.radiusSmall)
                             .disabled(isSubmitting)
+
+                        if let error = viewModel.validationErrors["responderContact"] {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
                     }
 
                     // Note Field
@@ -516,22 +529,34 @@ struct ApplyResponseSheet: View {
                         Text("补充说明 (选填)")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(DesignSystem.textNavy)
-                        TextEditor(text: $note)
+                        TextEditor(text: $viewModel.note)
                             .frame(height: 100)
                             .padding(8)
                             .background(Color.gray.opacity(0.05))
                             .cornerRadius(DesignSystem.radiusSmall)
                             .disabled(isSubmitting)
+
+                        if let error = viewModel.validationErrors["note"] {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
                     }
 
                     // Consent checkbox
-                    Toggle(isOn: $agreeContact) {
+                    Toggle(isOn: $viewModel.agreeContact) {
                         Text("同意平台运营人员与我联系确认匹配事宜。")
                             .font(.system(size: 12))
                             .foregroundColor(DesignSystem.textSecondary)
                     }
                     .toggleStyle(CheckboxToggleStyle())
                     .disabled(isSubmitting)
+
+                    if let error = viewModel.validationErrors["contactConsent"] {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
 
                     Spacer()
 
@@ -544,7 +569,7 @@ struct ApplyResponseSheet: View {
                         }
                     }
                     .buttonStyle(PrimaryButtonStyle(isDisabled: !isFormValid))
-                    .disabled(!isFormValid)
+                    .disabled(!isFormValid || isSubmitting)
                 }
                 .padding(DesignSystem.spacing20)
             }
@@ -553,7 +578,7 @@ struct ApplyResponseSheet: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("取消") {
-                        cancelActiveTask()
+                        viewModel.cancel()
                         isPresented = false
                     }
                     .foregroundColor(DesignSystem.primaryBlue)
@@ -561,51 +586,17 @@ struct ApplyResponseSheet: View {
                 }
             }
             .onDisappear {
-                cancelActiveTask()
+                viewModel.cancel()
             }
         }
     }
 
-    private var isSubmitting: Bool {
-        if case .submitting = submissionState { true } else { false }
-    }
-
-    private func cancelActiveTask() {
-        activeTask?.cancel()
-        activeTask = nil
-    }
-
     private func submitResponse() {
-        guard isFormValid else { return }
-        submissionState = .submitting
-
-        cancelActiveTask()
-
-        activeTask = Task {
-            do {
-                let req = CreateWishResponseRequest(
-                    responderName: name,
-                    responderContact: contact,
-                    note: note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : note,
-                    contactConsent: agreeContact
-                )
-                _ = try await apiClient.createWishResponse(wishId: wish.id, request: req)
-
-                guard !Task.isCancelled else { return }
-
-                submissionState = .succeeded
+        Task {
+            await viewModel.submitResponse()
+            if viewModel.state == .success {
                 isPresented = false
                 showSuccess = true
-            } catch {
-                guard !Task.isCancelled else { return }
-
-                let errText: String
-                if let apiErr = error as? HaluowodeAPIError {
-                    errText = apiErr.errorDescription ?? "提交失败，请重试。"
-                } else {
-                    errText = "提交失败，请重试。"
-                }
-                submissionState = .failed(errText)
             }
         }
     }
@@ -629,7 +620,7 @@ struct ApplySuccessView: View {
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(DesignSystem.textNavy)
 
-                Text("运营人员确认后会联系您，这还不代表已经接单。")
+                Text("已收到响应，等待运营确认，不代表已经接单。")
                     .font(.system(size: 14))
                     .foregroundColor(DesignSystem.textSecondary)
                     .multilineTextAlignment(.center)
