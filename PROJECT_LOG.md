@@ -98,6 +98,13 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：v3 发布与我的视觉已合入本地 main
+
+- Codex 已将独立任务 `CX-003` 以提交 `01568a2` 和本地 merge commit 合入 main。范围严格限于 `PublishView.swift`、`ProfileView.swift`、交接和群聊：真实发布三步、表单、确认、成功编号与“我的”帮助／隐私入口均对齐 v3 的暖白、暖蓝、细描边、Dynamic Type 与默认零阴影；没有修改真实发布 ViewModel、API、P0-D、后端或部署。
+- 为避免原型误导，“我的”不再提供本地假登录／注册切换，而是明确呈现访客模式与当前隐私查询方式；这不是账户系统的替代品，真正账号体系仍是 TestFlight 前的后续目标。
+- 验证证据：Swift parser 通过；SwiftPM Core 15/15；iPhone 17 Pro（iOS 27）Simulator 结构化结果为 15/15、0 failure、0 skip、0 runtime warning；Publish/Profile 的渐变、常规阴影、硬编码圆角和 Emoji 扫描均无命中，`git diff --check` 通过。冷启动截图为 `/private/tmp/haluowode-cx003-running.png`；当前 Tab Bar 仍是旧样式，因 `ContentView` 在 AG-006 禁止交集内，已明确留待 P0-D 收口后单独处理。
+- 接下来三步：等待 Antigravity 额度重置后收取并验收 `AG-006` 真实查询/交付；P0-D 合入后创建 Tab Bar/Progress 余项 v3 任务；在主视觉与业务闭环后，以 Personal Team 在真实 iPhone 完成受控安装试用。
+
 ### 2026-07-18：v3 附近、详情与真实响应视觉已合入本地 main
 
 - Codex 已将独立任务 `CX-002` 以提交 `c6a1ace` 和本地 merge commit 合入 main。范围严格限于 `NearbyView.swift`、交接和群聊：附近搜索/筛选、列表、详情与已验收的真实响应表单已统一为暖白、暖蓝、细描边、默认零阴影、Dynamic Type 与明确 focus/error 状态；没有改变 API、真实 response ViewModel、Content、P0-D 或生产后端。
