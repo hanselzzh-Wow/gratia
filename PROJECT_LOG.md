@@ -98,6 +98,13 @@ Cloudflare Worker API
 
 ## 工作记录（只追加）
 
+### 2026-07-18：主线回归通过；P0-D 外部交付仍待修订与提交
+
+- Codex 对当前本地 main 做了只读回归：Swift parser 通过；Foundation Core 15/15 通过。首页、附近、发布、响应和我的的已验收主线代码仍可构建；未做生产 API 写入、部署、签名或真机操作。
+- 对 `AG-006` 隔离 worktree 的只读检查显示，真实追踪／交付的源码、测试与工程增量仍未提交，也没有新的 ACK、STATUS 或交接。此前 `CHAT-20260718-194000-CODEX-046` 要求的修订仍可观察到：空白 trim 未统一到换行、404 仍透传服务端 message、页面离开未取消、测试未覆盖所要求的隐私和实际去重计数。Codex 未触碰该 worktree，继续等待 Antigravity 额度恢复后自行在原范围内完成。
+- 主线全局视觉扫描的仅余 `.shadow` 命中在 `ProgressView.swift`；这是 P0-D 尚未收口的受冻结路径，而非已验收 v3 页面回退。待 AG-006 验收合入后，另建独立 Tab Bar／Progress／Delivery v3 视觉任务。
+- 接下来三步：收取 AG-006 的修订提交与交接；独立复验真实查询、取消、隐私和交付预览后合入 main；再完成 P0-D 视觉收口与真实 iPhone Personal Team 端到端安装试用。
+
 ### 2026-07-18：v3 发布与我的视觉已合入本地 main
 
 - Codex 已将独立任务 `CX-003` 以提交 `01568a2` 和本地 merge commit 合入 main。范围严格限于 `PublishView.swift`、`ProfileView.swift`、交接和群聊：真实发布三步、表单、确认、成功编号与“我的”帮助／隐私入口均对齐 v3 的暖白、暖蓝、细描边、Dynamic Type 与默认零阴影；没有修改真实发布 ViewModel、API、P0-D、后端或部署。
