@@ -75,7 +75,7 @@ struct PublishView: View {
     private var progressIndicator: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
             HStack {
-                Text("第 (currentStep) 步，共 3 步")
+                Text(Self.stepIndicatorText(step: currentStep))
                     .font(DesignSystem.metadataFont)
                     .foregroundStyle(DesignSystem.inkMuted)
                 Spacer()
@@ -414,4 +414,8 @@ struct PublishView: View {
     }
 
     private func submitWish() { Task { await viewModel.submitWish() } }
+
+    static func stepIndicatorText(step: Int) -> String {
+        "第 \(step) 步，共 3 步"
+    }
 }
