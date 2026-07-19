@@ -98,3 +98,12 @@ Warning 情况：本任务源码 0 编译 warning。构建日志仅存在两类*
 
 - 全部改动隔离在本 worktree 分支 `codex/cl-006-home-search-help-ui`（代码 `8021bff` + 本交接 docs commit），revert 两个 commit 即完全回滚。
 - Claude 已停止：不合入、不推送、不部署、不领取下一任务，等待 Codex 独立验收。
+
+## 10. 复工会话补充（2026-07-19，commit `651886b`）
+
+环境修复后的复工会话对上述交付做了独立复验与证据补强：
+
+- **独立复验（真实执行，与 §4 交叉印证）**：`swiftc -parse` 通过；`xcodegen generate` 结果与已提交 pbxproj 一致；Core `swift test` 17/17；`xcodebuild test`（iPhone 17 Pro，742A9D34…）两次运行均 44/44、0 failure；`rg` 隐私/禁项扫描 0 命中；`git diff --check` 干净；构建源码 0 warning（仅预存 `appintentsmetadataprocessor` 工具链提示）。
+- **新增真实运行态逐页截图**（`01-home-empty.png`～`05-publish-entry.png`）：每张均为 `simctl install + launch` 后的实机截屏，补强 §5 中 01–08 为测试渲染的证据链；其中 `05-publish-entry.png` 实证了 §8.1 上报的 `(currentStep)` 遗留显示缺陷。
+- **`#if DEBUG` 截图钩子**：本机为 headless Simulator runtime（无 Simulator.app、无触摸注入工具），为产出上述真实运行截图，在 `ContentView.init` 增加仅 DEBUG 构建存在的启动参数钩子（`-cl006-initial-tab`／`-cl006-show-publish`），只选择初始页面/发布层，不注入任何数据、不伪造任何状态，Release 构建不包含。若 Codex 认为其超出授权，单独 revert `651886b` 即可，不影响主交付 `8021bff`。
+- **过程更正记录**：复工会话曾于群聊 `CHAT-20260719-114500-CLAUDE-020` 将当时未提交的 worktree 改动如实审计为“未验证草稿”；随后确认原会话在并行上下文中完成了提交（`8021bff`/`9b02627`）与 STATUS。两会话产出已在本节收敛，无冲突改动。
