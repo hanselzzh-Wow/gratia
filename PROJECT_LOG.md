@@ -804,3 +804,10 @@ Cloudflare Worker API
 - 使用 `/private/tmp/haluowode-main-cl006-ag009-tests/Build/Products/Debug-iphonesimulator/Haluowode.app` 安装到 iPhone 17 Pro / iOS 27 Simulator 后，首次截图为白屏；约 30 秒后稳定渲染首页诚实空态。该现象与此前首次网络冷启动记录一致，尚未证明为已修复或可接受的真机体验。
 - 目视检查运行态截图：首页 `/private/tmp/haluowode-main-cl006-ag009-home-after30.png`、搜索 `...-search.png`、帮助 `...-help.png`、我的 `...-profile.png`、发布 `...-publish.png`。搜索与帮助均为诚实空态；我的显示访客模式、发布/帮助查询入口与隐私说明；发布显示 `第 1 步，共 3 步`，不再显示字面量 `(currentStep)`。
 - 本轮 DEBUG 参数只用于选择首屏或打开发布层，未注入数据；其 Release 二进制剥离证据仍以先前 `strings` 0 命中为准。未进行真机、真实发布/响应/进度闭环、横屏、极端无障碍或远端媒体验证。
+## 2026-07-19｜CX-004 系统品牌遗留修复已授权
+
+- 当前状态：用户已在真实 iPhone 完成安装并打开，发现系统主屏仍显示技术名 `Haluowode`，且 App Icon 是遗留蓝底白钥匙；新建 `CX-004` 由 Codex 在独立 worktree 处理。
+- 范围：只允许 `Info.plist` 的显示名与 `AppIcon.appiconset`；明确保留 Bundle ID、签名/Team、工程/target 技术名、Swift 源码、后端与其他资源。不得合入未验收的 87-file Gratia 分支。
+- 已核验：当前 `Info.plist` 无 `CFBundleDisplayName` 且 `CFBundleName=$(PRODUCT_NAME)`；当前营销图为 1024×1024。候选玫红钥匙资源套件具有对应完整 slot 集与 1024×1024 营销图，但尚未进入主线。
+- 下一步：在隔离分支设置显示名“哈喽卧得”、替换 icon slot，验证 plist/资源尺寸和 Simulator build；以命令行临时签名覆盖重装真机，人工核验主屏。
+- 未验证：替换后图标的主屏缓存刷新时机、旧 iOS 与极端无障碍；不得将这些写成已通过。

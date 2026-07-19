@@ -28,6 +28,7 @@
 | CL-005 | Claude | ACCEPTED | 首页内容社区设计检查点已验收：正常/空/故事详情资产、职责、隐私和无障碍交接完整 | 历史 worktree `worktrees/claude-cl-005-home-community`；写权限已收回 | 已验收合入；不得继续重画或自行实现 |
 | CL-006 | Claude | ACCEPTED | 玫红首页/搜索/中央发布/帮助/我的已由 `03fcb7e` 合入 main；AG-009 修复步骤文案、收口 DEBUG/Release 边界与生成工程差异后，main 独立复验 App 49/49、Core 17/17 | 历史 worktree `worktrees/claude-cl-006-home-search-help-ui`；Claude 已停止 | 已验收合入；不得自行继续修改或领取任务 |
 | AG-009 | Antigravity | ACCEPTED | CL-006 集成硬化已以 `55ef6f9`/`3804eb4`/`a0ec5a4`/`7c959a2` 交付并由 `03fcb7e` 合入 main：步骤回归、DEBUG/Release 审计、生成工程归零均通过 | 历史 worktree `worktrees/ag-009-cl006-hardening`；Antigravity 已停止 | 已验收合入；不得自行继续修改或领取任务 |
+| CX-004 | Codex | IN_PROGRESS | iOS 系统显示名与 App Icon 收口：主屏显示“哈喽卧得”，替换遗留蓝底白钥匙资源；以真机重新安装和人工主屏核验闭环 | 仅 `worktrees/codex-cx-004-system-branding` 中的 `ios/Haluowode/Info.plist`、`ios/Haluowode/Assets.xcassets/AppIcon.appiconset/**`、`.ai/handoffs/CX-004-system-branding.md`、`.ai/TEAM_CHAT.md`（只追加） | 真机重新安装、系统显示名和图标人工核验、交接/STATUS/提交完成后停止，等待 Codex PM 验收 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -643,6 +644,27 @@ git diff --check
 ```
 
 验收结论：Antigravity 已按允许范围提交 `55ef6f9`（修复/测试）、`3804eb4`（交接）、`a0ec5a4`（交接勘误）、`7c959a2`（提交级 whitespace 修复）；Codex 独立复验 Core 17/17、main App 49/49、0 failure/skip/runtime warning，Release 二进制对两个 DEBUG 参数 0 命中，且 `project.pbxproj` 与 `fb86b84` 0 差异。两条 iOS 16/XCTest linker warning 为既有工具链警告，未掩盖。`03fcb7e` 已合入 main，权限收回。
+
+## CX-004：iOS 系统显示名与 App Icon 收口（Codex，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/codex-cx-004-system-branding`
+
+分支：`codex/cx-004-system-branding`
+
+唯一目标：修复用户已在真机发现的系统层品牌遗留：主屏显示名必须为“哈喽卧得”，App Icon 不得再是蓝底白钥匙。保留现有 `Haluowode` 技术 target、`com.hanselzzh.haluowode` Bundle ID、自动签名和后端契约。
+
+允许修改（仅限任务 worktree）：
+
+- `ios/Haluowode/Info.plist`（只新增/修改显示名键）
+- `ios/Haluowode/Assets.xcassets/AppIcon.appiconset/**`
+- `.ai/handoffs/CX-004-system-branding.md`
+- `.ai/TEAM_CHAT.md`（仅追加 STATUS）
+
+禁止修改：`ios/project.yml`、`ios/Haluowode.xcodeproj/**`、Bundle ID、签名/证书/Team、任何 Swift/测试/Core/后端/部署、其他资产、任务板、冻结、项目记忆、项目日志、主分支或 Git 历史；不得借此重命名 target/module 或合入 Claude 的 87-file Gratia 分支。
+
+验收：`plutil` 明确显示 `CFBundleDisplayName = 哈喽卧得`；全部 AppIcon slot 的 JSON 与像素尺寸有效；Simulator Debug build 成功；以现有 Personal Team 的命令行临时覆盖构建并重新安装到已连接真机，由用户/PM 人工确认主屏显示名和图标。不得把命令行 Team 覆盖写回工程文件。
+
+停止条件：写完交接与 STATUS，报告 commit、实际命令/结果、真机人工核验和未验证项后立即停止，等待 Codex PM 验收。
 
 ## 新任务创建要求
 
