@@ -26,4 +26,4 @@ XcodeGen 只为本轮构建临时生成工程；随后已恢复 `ios/Haluowode.x
 
 ## 提交
 
-提交 SHA：待提交后补充。
+实现提交 SHA：`b58e9b4`。
