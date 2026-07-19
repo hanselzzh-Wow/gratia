@@ -17,6 +17,18 @@ struct DesignSystem {
     static let danger = Color(red: 179.0 / 255.0, green: 69.0 / 255.0, blue: 47.0 / 255.0) // #B3452F
     static let success = Color(red: 76.0 / 255.0, green: 122.0 / 255.0, blue: 82.0 / 255.0) // #4C7A52
 
+    // MARK: - CL-006 rose palette (product-owner approved Claude direction)
+    // Scope: home / search / centre publish / help / profile and the dock only.
+    // AG-007 progress & delivery pages keep the v3 accent above untouched.
+
+    static let rose = Color(red: 154.0 / 255.0, green: 83.0 / 255.0, blue: 109.0 / 255.0) // #9A536D
+    static let roseDeep = Color(red: 127.0 / 255.0, green: 64.0 / 255.0, blue: 88.0 / 255.0) // #7F4058
+    static let roseSoft = Color(red: 228.0 / 255.0, green: 198.0 / 255.0, blue: 208.0 / 255.0) // #E4C6D0
+    static let roseCanvas = Color(red: 250.0 / 255.0, green: 244.0 / 255.0, blue: 246.0 / 255.0) // #FAF4F6
+    static let roseHairline = Color(red: 236.0 / 255.0, green: 217.0 / 255.0, blue: 225.0 / 255.0) // #ECD9E1
+    static let inkPrimary = Color(red: 25.0 / 255.0, green: 23.0 / 255.0, blue: 25.0 / 255.0) // #191719
+    static let inkMuted = Color(red: 109.0 / 255.0, green: 102.0 / 255.0, blue: 106.0 / 255.0) // #6D666A
+
     // Compatibility names deliberately map to v3 roles so untouched business pages
     // cannot reintroduce the old sky-blue, gold or navy palette.
     static let primaryBlue = accent
@@ -95,9 +107,57 @@ struct SecondaryButtonStyle: ButtonStyle {
     }
 }
 
+/// Rose variants for CL-006 pages; the v3 accent styles above stay untouched
+/// for the AG-007 progress/delivery pages.
+struct RosePrimaryButtonStyle: ButtonStyle {
+    var isDisabled: Bool = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(DesignSystem.headlineFont)
+            .foregroundStyle(.white)
+            .padding(.vertical, DesignSystem.spacing12)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                    .fill(isDisabled ? DesignSystem.rose.opacity(0.45) : DesignSystem.rose)
+            )
+            .opacity(configuration.isPressed ? 0.9 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+struct RoseSecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(DesignSystem.headlineFont)
+            .foregroundStyle(DesignSystem.rose)
+            .padding(.vertical, DesignSystem.spacing12)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                    .fill(DesignSystem.canvas)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                            .stroke(DesignSystem.rose, lineWidth: 1)
+                    )
+            )
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
 struct WarmBackgroundModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.background(DesignSystem.canvasWarm.ignoresSafeArea())
+    }
+}
+
+struct WhiteCanvasModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content.background(DesignSystem.canvas.ignoresSafeArea())
     }
 }
 
@@ -106,6 +166,113 @@ extension View {
         modifier(WarmBackgroundModifier())
     }
 
+    func whiteCanvas() -> some View {
+        modifier(WhiteCanvasModifier())
+    }
+
+    func roseCard(radius: CGFloat = DesignSystem.radiusLarge) -> some View {
+        background(
+            RoundedRectangle(cornerRadius: radius)
+                .fill(DesignSystem.canvas)
+                .overlay(
+                    RoundedRectangle(cornerRadius: radius)
+                        .stroke(DesignSystem.roseHairline, lineWidth: 1)
+                )
+        )
+    }
+}
+
+/// Original "two hands clasped" mark for the Help tab.
+/// Hand-drawn bezier outline; deliberately not an SF Symbol so the dock
+/// keeps the product's own vocabulary for mutual help.
+struct HandsClaspedIcon: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width
+        let h = rect.height
+        var p = Path()
+
+        // Left forearm sweeping in from the lower left.
+        p.move(to: CGPoint(x: 0.02 * w, y: 0.86 * h))
+        p.addCurve(
+            to: CGPoint(x: 0.34 * w, y: 0.44 * h),
+            control1: CGPoint(x: 0.08 * w, y: 0.66 * h),
+            control2: CGPoint(x: 0.18 * w, y: 0.50 * h)
+        )
+        // Left hand rises to grasp.
+        p.addCurve(
+            to: CGPoint(x: 0.52 * w, y: 0.40 * h),
+            control1: CGPoint(x: 0.42 * w, y: 0.41 * h),
+            control2: CGPoint(x: 0.47 * w, y: 0.38 * h)
+        )
+        // Clasp knuckles: gentle interlocked bumps across the centre.
+        p.addCurve(
+            to: CGPoint(x: 0.66 * w, y: 0.44 * h),
+            control1: CGPoint(x: 0.57 * w, y: 0.42 * h),
+            control2: CGPoint(x: 0.61 * w, y: 0.40 * h)
+        )
+        // Right hand and forearm sweeping out to the lower right.
+        p.addCurve(
+            to: CGPoint(x: 0.98 * w, y: 0.86 * h),
+            control1: CGPoint(x: 0.82 * w, y: 0.50 * h),
+            control2: CGPoint(x: 0.92 * w, y: 0.66 * h)
+        )
+        // Inner return line to suggest the wrist/thumb of the right hand.
+        p.move(to: CGPoint(x: 0.80 * w, y: 0.70 * h))
+        p.addCurve(
+            to: CGPoint(x: 0.60 * w, y: 0.56 * h),
+            control1: CGPoint(x: 0.74 * w, y: 0.61 * h),
+            control2: CGPoint(x: 0.68 * w, y: 0.57 * h)
+        )
+        // Inner return line for the left thumb crossing over.
+        p.move(to: CGPoint(x: 0.20 * w, y: 0.70 * h))
+        p.addCurve(
+            to: CGPoint(x: 0.44 * w, y: 0.54 * h),
+            control1: CGPoint(x: 0.26 * w, y: 0.61 * h),
+            control2: CGPoint(x: 0.34 * w, y: 0.55 * h)
+        )
+        // Small heart rising above the clasp, completing "help with heart".
+        let hc = CGPoint(x: 0.50 * w, y: 0.20 * h)
+        let r = 0.085 * w
+        p.move(to: CGPoint(x: hc.x, y: hc.y + 1.35 * r))
+        p.addCurve(
+            to: CGPoint(x: hc.x - 1.5 * r, y: hc.y - 0.4 * r),
+            control1: CGPoint(x: hc.x - 1.1 * r, y: hc.y + 0.7 * r),
+            control2: CGPoint(x: hc.x - 1.5 * r, y: hc.y + 0.3 * r)
+        )
+        p.addArc(
+            center: CGPoint(x: hc.x - 0.75 * r, y: hc.y - 0.4 * r),
+            radius: 0.75 * r,
+            startAngle: .degrees(180),
+            endAngle: .degrees(0),
+            clockwise: false
+        )
+        p.addArc(
+            center: CGPoint(x: hc.x + 0.75 * r, y: hc.y - 0.4 * r),
+            radius: 0.75 * r,
+            startAngle: .degrees(180),
+            endAngle: .degrees(0),
+            clockwise: false
+        )
+        p.addCurve(
+            to: CGPoint(x: hc.x, y: hc.y + 1.35 * r),
+            control1: CGPoint(x: hc.x + 1.5 * r, y: hc.y + 0.3 * r),
+            control2: CGPoint(x: hc.x + 1.1 * r, y: hc.y + 0.7 * r)
+        )
+        return p
+    }
+}
+
+/// Renders the clasped-hands mark at SF-symbol-like stroke weight.
+struct HandsClaspedGlyph: View {
+    var lineWidth: CGFloat = 1.8
+
+    var body: some View {
+        HandsClaspedIcon()
+            .stroke(style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round))
+    }
+}
+
+extension View {
     func v3Card(radius: CGFloat = DesignSystem.radiusMedium) -> some View {
         background(
             RoundedRectangle(cornerRadius: radius)
