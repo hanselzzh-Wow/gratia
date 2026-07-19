@@ -3,7 +3,7 @@
 ## 1. 基础信息
 
 - **任务 ID**: AG-009
-- **负责人**: Antigravity (`GEMINI-EXEC`)
+- **负责人**: Antigravity
 - **分支**: `codex/ag-009-cl006-hardening`
 - **提交 Commit SHA**: `55ef6f932f37ca4e19212eb20ab17954317f8e5e`
 - **工作区**: `/Users/hansangbai/Documents/New project/worktrees/ag-009-cl006-hardening`
@@ -28,7 +28,7 @@
 - **涉及代码段**: `ContentView.swift` 第 94–110 行。
 - **参数范围**: 仅支持 `-cl006-initial-tab`（可指定 `search`/`help`/`profile`）与 `-cl006-show-publish`。
 - **数据与状态安全性**: 该钩子仅控制首屏 Tab 切换和发布弹层的拉起，未注入任何假故事、API 模拟数据、联系方式、单号或非法状态。
-- **Release 构建安全**: 钩子由标准 Swift 预处理指令 `#if DEBUG` 限制。已在 Generic iOS Simulator 平台成功执行 Release build，证明在 Release 模式下无任何该调试分支。
+- **Release 构建安全**: 钩子由标准 Swift 预处理指令 `#if DEBUG` 限制。经 Release Simulator 模式打包成功，并对 Release 模式下的 App 二进制文件执行参数扫描，确认对 `-cl006-initial-tab` 与 `-cl006-show-publish` 两个启动参数的硬编码字符串匹配结果为 **0 命中**，证明该调试分支在 Release 构建中已由预处理器完全物理剥离，不依赖运行时过滤。
 
 ---
 
@@ -41,8 +41,8 @@
    - 结果：**17 / 17 Tests Passed**。
 3. **App 模拟器单元测试**:
    - `xcodebuild -project ios/Haluowode.xcodeproj -scheme Haluowode -destination 'platform=iOS Simulator,id=742A9D34-5F88-4578-BB12-851A00D2C0FE' -derivedDataPath /private/tmp/haluowode-ag009-tests -resultBundlePath /private/tmp/haluowode-ag009.xcresult -only-testing:HaluowodeTests test` 执行成功。
-   - 结果：**45 / 45 Tests Passed**（包含新增的步骤锁定测试），**0 Failures / 0 Warnings**。
-   - Result Bundle 路径：`/tmp/haluowode-ag009.xcresult`
+   - 结果：**45 / 45 Tests Passed**（包含新增的步骤锁定测试），**0 failures / 0 runtime warning，另有 2 条既有 linker warning**（由于部署目标为 iOS 16.0，而测试库最低要求为 iOS 17.0，导致编译链接阶段报告 target 警告，属于工具链正常已知现象，且在 main 分支同样存在）。
+   - Result Bundle 路径：`/private/tmp/haluowode-ag009.xcresult`
 4. **Release 构建校验**:
    - `xcodebuild -project ios/Haluowode.xcodeproj -scheme Haluowode -configuration Release -destination 'generic/platform=iOS Simulator' -derivedDataPath /private/tmp/haluowode-ag009-release build` 执行成功，无任何 DEBUG 残留。
 5. **语法解析 check**:
