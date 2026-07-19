@@ -861,3 +861,11 @@ Cloudflare Worker API
 - 派发 `CL-008`：只读审计产品/交互闭环、生产首页内容策略、P0/P1 断点和首个实现切片规格；只写 handoff/群聊。
 - 派发 `AG-011`：独立运行 Core/App 全套测试与 parser/扫描，建立 UI→ViewModel→Core→endpoint 可达图和工程断点；只写 handoff/群聊及 `/private/tmp` 结果包，不改产品代码。
 - 下一步：创建两个从 1.0 起点分出的隔离 worktree；收到 ACK/交付后 Codex 独立验收并冻结第一张实现任务。未验证项包括当前测试实际数、Simulator 构建、真实 API 运行态、真机闭环与无障碍。
+
+## 2026-07-19｜AG-011 验收与新增账号/细节产品裁决
+
+- AG-011 交付 `b42337e`，只修改 handoff/群聊。Codex 官方读取 `/private/tmp/gratia-ag011.xcresult`：App 23/23 passed、0 failure/skip/runtime warning；独立重跑 GratiaCore 17/17 passed。四条编译/链接 warning 为 AppIntents 元数据与 iOS 16/XCTest 17 链接警告，不是 runtime warning。
+- 工程事实：发布、帮助页公开待匹配列表、响应、发布者编号+联系方式查询、交付预览都接到生产 API；首页/搜索只使用本地故事域且生产故事为空；“我帮助的”没有响应者侧查询 endpoint；不存在账号、设备身份或跨设备用户归属。
+- 产品负责人明确：发布进度区仅删除右侧“地点”文字，保留“第 N 步，共 3 步”和进度条；不得改成 `1/3`。通知设置静态行必须改为按钮，直达本 App 系统通知设置。
+- 产品负责人询问并认可直接做登录。Codex 选择 MVP 首版只做原生 Apple 登录：浏览免登录，发布/响应与个人真实记录纳入账号；后端验证 Apple token、签发会话并归属数据，旧编号+联系方式保留兼容找回。账户创建同时必须实现 App 内账户删除、Apple token 撤销与关联数据删除。
+- 官方依据：Apple 提供 SwiftUI `SignInWithAppleButton` 与服务端 token 验证/公钥接口；App Store Review Guidelines 要求无重要账号功能时允许免登录，支持创建账户时必须 App 内发起删除。尚未创建登录实现任务，未修改签名/capability、Worker 或 D1。

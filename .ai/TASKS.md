@@ -34,7 +34,7 @@
 | AG-010 | Antigravity | SUPERSEDED | 首次交付 `1887b30` 含运行时虚构故事且未通过验收；产品负责人改为直接在真机运行 Claude 原始设计分支 | 任务 worktree 权限已收回 | 不得修复、合入、推送或继续修改；若未来要将原版迁移回主线，必须另建任务 |
 | VERSION-1.0 | Codex PM | FROZEN | 产品负责人指定 Claude 原始玫粉白/Lucide 客户端为唯一 1.0：`463a420`（设计 `8e95b0b`） | 仅 `release/1.0` 分支与 `v1.0-claude-rose` 标签作为基线 | 后续任务只能从 1.0 分出；不得以 main、CL-006 或 AG-010 取代、混入或回滚 1.0 |
 | CL-008 | Claude | IN_PROGRESS | 审计 Gratia 1.0 从首页到真实发布、帮助响应、进度/交付的产品与交互闭环，冻结最小 MVP 页面职责和状态 | 仅独立 worktree 的 `.ai/handoffs/CL-008-gratia-mvp-flow-audit.md` 与 `.ai/TEAM_CHAT.md` 末尾追加 | 交付审计、STATUS、commit 后立即停止；不得改产品代码或领取实现 |
-| AG-011 | Antigravity | IN_PROGRESS | 对 Gratia 1.0 做工程基线审计：真实构建/测试、API/导航可达性、运行时虚构数据与闭环断点 | 仅独立 worktree 的 `.ai/handoffs/AG-011-gratia-mvp-engineering-audit.md` 与 `.ai/TEAM_CHAT.md` 末尾追加 | 交付真实测试证据、STATUS、commit 后立即停止；不得改产品代码或领取实现 |
+| AG-011 | Antigravity | ACCEPTED | Gratia 1.0 工程基线审计已交付 `b42337e`：Core 17/17、App 23/23，真实 API 四链路已接线，首页/搜索为本地故事域且生产诚实空态 | 历史审计 worktree；写权限已收回 | 已验收；不得继续修改或领取实现，等待新任务 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -835,6 +835,22 @@ git diff --check
 ```
 
 两任务停止条件：各自交付 handoff、真实证据、commit 和 STATUS 后立即停止，等待 Codex PM 独立验收；任何 CLI/登录/权限/沙箱/配额问题立即报告产品负责人，Codex 不得代做其任务。
+
+### 产品负责人新增 P0 裁决（2026-07-19）
+
+1. 发布页进度区域**只删除右侧“地点”两字**；左侧“第 N 步，共 3 步”和三段进度条保持原样，不改成 `1/3` 或新增同义标签。
+2. 运营审核仍是独立后台职责，但 App 必须准确说明“提交→待审核→审核通过后进入帮助页”；运营入口与操作文档必须可被产品负责人直接找到，消费者 App 不内置 PIN。
+3. “访客模式”当前不能识别每个用户，账号体系升为 MVP P0。首选原生“通过 Apple 登录”并建立服务端用户/会话/数据归属；浏览可免登录，发布/响应与“我的”真实记录需要账号。必须保留旧编号+联系方式兼容找回，并覆盖 App 内注销/删除账户、Apple token 撤销与关联个人数据删除。
+4. “消息通知设置”必须是可点击按钮，使用系统 `UIApplication.openNotificationSettingsURLString` 直接打开本 App 通知设置；不可继续渲染为无动作静态行。
+
+`CL-008` 交接必须按以上最新裁决评审；任何较早结论冲突时以本段为准。登录是后续独立跨 iOS/Worker/D1 纵向任务，不得擅自在只读审计中实现。
+
+### AG-011 独立验收结论（2026-07-19）
+
+- 交付 commit：`b42337ee4c8462524be06ea1eff0d2c9100b8877`；仅 handoff 与群聊有差异，产品源码 0 修改。
+- Codex 使用 Xcode 官方 `xcresulttool` 读取 `/private/tmp/gratia-ag011.xcresult`：发现/执行/通过 23/23，0 失败、0 跳过、0 runtime warning；设备 iPhone 17 Pro / iOS Simulator 27.0。
+- Codex 另在冻结 `release/1.0` 独立重跑 GratiaCore：17/17 通过。交接列出的 4 条构建/链接 warning 与结果包 runtime warning 是不同维度，不得表述为运行时 warning。
+- 审计准确确认真实发布、待匹配列表、响应、发布者查询/交付预览均已接线；“我帮助的”没有响应者查询 API，访客也没有用户身份或跨设备记录，不能称为已闭环。
 
 ## 新任务创建要求
 
