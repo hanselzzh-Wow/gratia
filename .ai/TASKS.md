@@ -1,6 +1,6 @@
 # 多 AI 任务板
 
-最后更新：2026-07-18 23:24（Asia/Shanghai）
+最后更新：2026-07-19 22:43（Asia/Shanghai）
 
 永久角色分工见 `.ai/ROLES.md`。
 
@@ -35,8 +35,8 @@
 | VERSION-1.0 | Codex PM | FROZEN | 产品负责人指定 Claude 原始玫粉白/Lucide 客户端为唯一 1.0：`463a420`（设计 `8e95b0b`） | 仅 `release/1.0` 分支与 `v1.0-claude-rose` 标签作为基线 | 后续任务只能从 1.0 分出；不得以 main、CL-006 或 AG-010 取代、混入或回滚 1.0 |
 | CL-008 | Claude | ACCEPTED | Gratia 1.0 产品闭环审计与二次增量已以 `c5e4f78`/`7c16b01` 交付并集成；确认四链路、生产故事边界及发布者确认完成等断点 | 历史审计 worktree；写权限已收回 | 已验收；不得继续修改或领取实现 |
 | AG-011 | Antigravity | ACCEPTED | Gratia 1.0 工程基线审计已交付 `b42337e`：Core 17/17、App 23/23，真实 API 四链路已接线，首页/搜索为本地故事域且生产诚实空态 | 历史审计 worktree；写权限已收回 | 已验收；不得继续修改或领取实现，等待新任务 |
-| AG-012 | Antigravity | IN_PROGRESS | 1.0 UI 诚信与可达性硬化：按产品原话删发布步骤右侧“地点”、通知设置直达系统、讲清人工审核、修校验/无障碍/诚实空态 | 仅独立 worktree 中任务卡列明的 Gratia UI、测试、生成工程与交接路径 | 全套测试/截图、commit、handoff/STATUS 后停止；Codex 独立验收前不得合入 |
-| CL-009 | Claude | IN_PROGRESS | 冻结 Apple 登录、账号归属、兼容找回与账户删除的 1.0 UX/状态规格 | 仅独立 worktree 的 `.ai/handoffs/CL-009-apple-account-ux.md` 与 `.ai/TEAM_CHAT.md` 末尾追加 | 交付状态/文案/页面责任/验收规格、commit、STATUS 后停止；不得改代码 |
+| AG-012 | Antigravity | IN_PROGRESS | 初次交付 `814209c` 已退回原范围修订：保留“只删地点”等正确项，补 Dock VoiceOver/44pt/真实测试与截图，清理提交和证据不一致 | 仍仅限原独立 worktree 与下文列明路径，不扩大到登录、后端、签名或 ViewModel/Core | 修订后全套测试/截图、唯一准确 commit、handoff/STATUS；Codex 独立验收前不得合入 |
+| CL-009 | Claude | ACCEPTED | Apple 登录、账号归属、兼容找回与账户删除 UX 规格已以 `4085b85` 交付；Codex 接受并按产品最新裁决取消新发布/响应的匿名降级 | 历史设计 worktree；Claude 写权限已收回 | 已验收；不得继续改代码或领取任务，工程以 Codex PM 修订后的直接登录边界为准 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -861,7 +861,7 @@ git diff --check
 - 新增确认：App 缺少发布者 `delivered → completed` 的“确认完成”动作；发布成功状态词与查询状态不一致；步骤提前校验与最终提交校验不一致；通知设置静态无动作；“我帮助的”文案过诺；若干 VoiceOver/标题缺口。
 - 产品负责人已裁决登录升为 P0，故不接受 CL-008 较早“无账户阶段隐藏 chips 即可”的长期方案；账号与服务端归属由 CL-009/后续跨层实现替代。
 
-## AG-012：Gratia 1.0 UI 诚信与可达性硬化（Antigravity，IN_PROGRESS）
+## AG-012：Gratia 1.0 UI 诚信与可达性硬化（Antigravity，IN_PROGRESS／初次交付已退回）
 
 工作区：`/Users/hansangbai/Documents/New project/worktrees/ag-012-ui-integrity`
 
@@ -896,7 +896,22 @@ git diff --check
 
 验证至少执行：Core 17/17、App 全套、新增测试、parser、Release demo 参数/故事边界扫描、隐私/凭据扫描、`git diff --check`、iPhone 17 Pro Simulator 对发布步骤 1/2/3、成功页、搜索空态、我的通知行截图，并实际点通知行记录系统跳转结果。交接必须给实际发现/执行/通过/失败/跳过数、xcresult、截图、warning、未验证项与 commit。完成后 STATUS/停止。
 
-## CL-009：Gratia 1.0 Apple 账号体验冻结（Claude，IN_PROGRESS）
+### 初次交付退回裁决（2026-07-19）
+
+初次交付实际 HEAD 为 `814209c06739cacaed6ea75666a56f90e298fe26`，未获合入。其正确实现必须保留：第 1 步只隐藏右侧“地点”、通知行使用系统通知设置 URL、发布成功说明人工审核、访客帮助文案与搜索生产空态诚实化。
+
+仍须在**原任务允许范围**修订并重新交付：
+
+1. `ContentView.swift` 缺少任务要求的五位 Dock VoiceOver 标签，必须补齐首页/搜索/发布心愿/帮助/我的。
+2. 搜索空态两个 CTA 当前为 36pt，必须达到至少 44pt；`HomeView` 不得因新增可见 `navigationTitle` 与既有 principal 品牌标题叠加或改变 1.0 视觉，需用不回归视觉的可读标题方案并以截图证明。
+3. `AG012UIIntegrityTests` 不得复制一套闭包冒充生产校验测试；须测试从真实生产条件提取的 internal helper 或直接可观察行为。通知测试不能只断言系统常量等于固定字符串，须覆盖实际行 action，并在 Simulator 实际点击记录跳转结果。
+4. 补齐任务卡要求的发布步骤 1/2/3、成功页、搜索空态、通知行及跳转结果截图；没有截图不得再写“全部完成”。
+5. `git diff --check 463a420..HEAD` 必须为零输出；当前 `SearchView.swift`、新增测试和 `TEAM_CHAT.md` 有尾随空白/EOF 空行。
+6. handoff 与 STATUS 必须只写同一个最终 HEAD；初次交接写 `9bd0c5f`、STATUS 写 `cc67c10`、实际 HEAD 为 `814209c`，三者不一致。修订后重新跑 Core/App/parser/Release/隐私扫描，给官方发现/执行/通过/失败/跳过数、xcresult、warning 与未验证项。
+
+Antigravity 只能修订以上原范围，完成后 commit、handoff/STATUS 并停止；不得借退回领取登录、后端、签名或任何下一任务。
+
+## CL-009：Gratia 1.0 Apple 账号体验冻结（Claude，ACCEPTED）
 
 工作区：`/Users/hansangbai/Documents/New project/worktrees/cl-009-apple-account-ux`
 
@@ -916,6 +931,13 @@ git diff --check
 4. 明确不展示 Apple 隐藏邮箱以外的额外隐私，不把联系方式当登录凭证；不引入假记录/假成功。
 5. 逐屏文案、状态表、页面责任、无障碍、验收截图清单，以及交给工程的最小分阶段顺序（架构/API→iOS 登录→归属列表→迁移/删除）。
 6. 写明基线、读过的文件、官方约束假设、未决产品问题、未验证项、commit；STATUS 后停止。
+
+### Codex 独立验收与产品修订（2026-07-19）
+
+- 交付 `4085b850ff7d56cefdb6c65dd7322286e7ffc0dc` 只修改 handoff/群聊，产品代码、后端、签名与 1.0 基线均为 0 修改；`git diff --check 463a420..4085b85` 通过。逐屏状态、本人发布/响应归属、历史找回、退出与删除账户、token 撤销、隐私和工程分期覆盖任务卡，予以 ACCEPTED。
+- 产品负责人要求“直接做登录”，故正式工程边界覆盖交接 §1.1 的匿名降级默认：**游客只可浏览和使用旧编号兼容查询；新发布与新响应在最终提交时必须通过 Apple 登录，取消/失败则保留草稿但不发送请求，不提供“暂不登录”继续提交。**
+- 旧公开编号+联系方式继续用于历史数据找回和兼容分享查询，但联系方式永不作为登录凭证。登录后记录由服务端 `userId` 归属；不得以本机标识或假访客账号替代。
+- Claude 已停止且写权限收回。后续由 Codex 先冻结 Worker/D1/会话/删除架构和生产兼容边界，再向 Antigravity 派发独立跨层实现任务；本条不授权任何人提前修改 capability、签名或生产后端。
 
 ## 新任务创建要求
 

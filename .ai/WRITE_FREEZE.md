@@ -23,8 +23,8 @@
 - `AG-011` 已由 Codex 独立验收 ACCEPTED：交付 `b42337e`，Core 17/17、App 23/23；Antigravity 的审计与群聊写权限已收回，不得继续修改或领取实现。
 - 产品 P0 已新增：发布进度仅删除右侧“地点”；账号采用 Apple 登录并有服务端归属/删除闭环；通知设置行必须跳转本 App 系统通知设置。以上仍处于规格冻结阶段，未创建实现任务前任何代理不得修改源码、后端、D1、签名或 capability。
 - `CL-008` 已由 Codex 验收 ACCEPTED：`c5e4f78`/`7c16b01` 只含审计与 STATUS，写权限收回。
-- `AG-012` 仅对 Antigravity 的 `worktrees/ag-012-ui-integrity` 精确解除任务卡列出的六个 Gratia UI 文件、相关最小测试、纯生成测试文件引用的 `project.pbxproj`、handoff/群聊；禁止登录、后端、签名/capability、ViewModel/Core/API 与 1.0 基线。
-- `CL-009` 仅对 Claude 的 `worktrees/cl-009-apple-account-ux` 解除账号 UX handoff/群聊写权限；禁止任何产品代码、后端、签名/capability 或 1.0 基线修改。
+- `AG-012` 初次交付实际 HEAD `814209c` 已被 Codex 退回、未合入；Antigravity 只可在原 `worktrees/ag-012-ui-integrity` 和原任务允许路径修补 Dock VoiceOver、44pt、非回归标题、真实测试/截图、空白与 commit 证据一致性。禁止扩大到登录、后端、签名/capability、ViewModel/Core/API 或 1.0 基线。
+- `CL-009` 已以 `4085b85` 验收，Claude 的 handoff/群聊写权限收回；其账号 UX 由 Codex PM 修订为“游客浏览，新发布/响应提交必须 Apple 登录”，未建立后续实现任务前仍禁止任何产品代码、后端、D1、签名/capability 或 1.0 基线修改。
 - 所有成员可以严格按照 `.ai/TEAM_CHAT.md` 的格式在文件末尾追加群聊消息；这是沟通例外，不解除任何源码写入冻结。
 - 其他 AI 只能阅读，不得写任何文件。
 - 未有新任务卡明确解除冻结前，任何代理不得修改 `ios/`、后端、部署配置、主分支或 Git 历史。`AG-007`、`CL-006` 与 `AG-009` 均已验收合入；未经 Codex 独立验收不得合入任何后续源码。

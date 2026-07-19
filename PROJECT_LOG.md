@@ -877,3 +877,11 @@ Cloudflare Worker API
 - 派发 AG-012 给 Antigravity：纯客户端 UI 诚信/可达性硬化，精确落实只隐藏第 1 步右侧“地点”、通知设置系统跳转、人工审核说明、校验一致性、搜索诚实空态和无障碍；禁止登录/后端/签名/ViewModel/Core。
 - 派发 CL-009 给 Claude：只读冻结 Apple 登录、登录前后“我的”、旧记录兼容找回、账号删除/token 撤销的逐屏 UX 与状态；禁止任何代码或 capability 修改。
 - 下一步：并行验收 AG-012 与 CL-009；随后由 Codex 冻结 Apple 登录的跨层架构/接口和 Antigravity 实现任务。发布者确认完成作为账号归属之后的独立闭环切片。
+
+## 2026-07-19｜CL-009 验收、直接登录裁决与 AG-012 初次退回
+
+- Claude 的 `CL-009` 交付为 `4085b850ff7d56cefdb6c65dd7322286e7ffc0dc`，只含账号 UX handoff 与 worktree 群聊；产品代码、后端、签名和 1.0 基线均未改，`git diff --check 463a420..4085b85` 通过。交付覆盖登录结果、我的登录前后、本人记录、旧编号找回、退出/删除/token 撤销、隐私、逐屏状态和四阶段工程顺序，Codex 裁决 ACCEPTED。
+- 产品负责人要求直接做登录。Codex 覆盖 Claude 规格中“暂不登录继续发布/响应”的默认：游客保留首页/搜索/帮助/旧编号查询；新发布与响应在最终提交时必须 Apple 登录，失败/取消保留草稿但不发送；旧编号+联系方式只作历史找回和兼容查询，联系方式不是登录凭证。
+- Antigravity `AG-012` 初次实际 HEAD 为 `814209c06739cacaed6ea75666a56f90e298fe26`。Codex 用官方 `xcresulttool` 读取 `/private/tmp/gratia-ag012.xcresult`：发现/执行/通过 25/25，0 failure、0 skip、0 runtime warning，iPhone 17 Pro / iOS Simulator 27.0；Antigravity 报告 Core 17/17，但本轮 Codex 未重跑 Core。
+- 正确项包括：发布第 1 步只隐藏右侧“地点”、通知行使用 `UIApplication.openNotificationSettingsURLString`、发布成功准确说明人工审核、搜索和访客帮助文案诚实化。初次交付仍被 REJECTED：未修改 `ContentView.swift`，漏五位 Dock VoiceOver；搜索 CTA 为 36pt；首页可见标题可能与 principal 品牌叠加；新增测试复制生产校验闭包且通知测试仅断言常量；未交截图/实际系统跳转；`git diff --check 463a420..HEAD` 报 13 处空白；handoff `9bd0c5f`、STATUS `cc67c10`、实际 HEAD `814209c` 三者不一致。
+- AG-012 仍为原范围修订中的 `IN_PROGRESS`，未合入任何产品线。下一步三项：Antigravity 修订并重新 STATUS；Codex独立复验截图/系统跳转/真实测试/差异；通过后才集成并派发 Apple 登录跨层实现。未验证项：AG-012 Core 独立回归、真实通知设置跳转、VoiceOver、真机；Apple 登录/token 撤销/D1 约束仍为未实现。
