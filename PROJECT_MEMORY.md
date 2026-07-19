@@ -22,7 +22,7 @@
 
 - **运行状态：产品负责人已恢复自主推进。** Codex 继续验收、集成和依赖驱动派发；外部负责人仍只做唯一已派任务，交接后停止。
 - `main` merge commit `296ab12` 已具备真实公开列表、发布、响应、查询进度/交付与 v3 基线（P0-A/B/C/D）。AG-006 独立质量门：Core 17/17、iPhone 17 Pro iOS 27 Simulator 23/23，0 failure/skip/runtime warning。
-- `AG-007`：Codex 接管实现 commit `4db9037`，App 23/23、Core 17/17、parser/扫描通过，状态 REVIEW。当前缺查询/404/delivered/媒体失败四态截图；环境只有 headless Simulator runtime，未加入生产测试后门。截图补齐前不 ACCEPTED；CL-006 与其文件范围隔离，可并行推进但不得集成冲突路径。
+- `AG-007` 已 ACCEPTED 并以 merge `679a371` 合入 main：本地 XCTest fixture 在 iPhone 17 Pro / iOS 27 Simulator 生成查询、404、delivered/待确认、交付失败四态证据；main 独立回归 App 27/27、Core 17/17，0 failure/skip/runtime warning。未访问生产 API，能力 URL/token 未进入画面或测试输出；真实远端媒体、系统 Link、极端无障碍设置、旧系统与真机仍未验证。
 - `CL-005` 已验收并以 `c19ca38` 合入设计资产。产品负责人随后认可 Claude 新版本，并授权其直接实现；`CL-006` 已创建独立 worktree `worktrees/claude-cl-006-home-search-help-ui` / 分支 `codex/cl-006-home-search-help-ui`，状态 IN_PROGRESS。允许范围为首页、搜索、帮助、我的、导航与必要主题 token，明确禁止 AG-007 路径、后端、签名和运行时伪造故事。旧 `AG-008` 已 SUPERSEDED。
 - main 已在 iPhone 17 Pro、iOS 27 Simulator 完成 build/install/launch；系统原生浮动 Liquid Glass Tab Bar 截图可见。首次冷启动曾白屏约 27 秒后恢复，日志显示网络经本机代理成功 200；随后暖启动 0.64 秒并立即渲染，未稳定复现为 App 启动缺陷。真机安装仍未完成。
 
@@ -54,10 +54,9 @@
 
 ## 恢复顺序
 
-1. Claude 在 CL-006 worktree ACK 后只实现任务卡范围；完成代码、截图、测试、commit、交接与 STATUS 后立即停止，Codex 独立验收。
-2. Codex 补齐 AG-007 的四态截图证据；CL-006 不得修改 Progress/Track/Delivery，避免冲突。
-3. 两项均验收后由 Codex 按依赖顺序集成，在 iOS 27 Simulator 复验首页/搜索/发布/帮助/我的与冷暖启动；无公开故事 API 时运行态保持诚实空态。
-4. 用户连接 iPhone，选择 Personal Team 并信任开发者；Codex 构建安装并跑受控真实闭环。
+1. Claude 在 CL-006 worktree 只实现任务卡范围；完成代码、截图、测试、commit、交接与 STATUS 后立即停止，Codex 独立验收。
+2. Codex 验收 CL-006 后在 iOS 27 Simulator 复验首页/搜索/发布/帮助/我的、AG-007 进度/交付入口与冷暖启动；无公开故事 API 时运行态保持诚实空态。
+3. 用户连接 iPhone，选择 Personal Team 并信任开发者；Codex 构建安装并跑受控真实闭环。
 
 ## 快速核验
 

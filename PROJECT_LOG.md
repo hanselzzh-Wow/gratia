@@ -763,3 +763,14 @@ Cloudflare Worker API
 - 旧 `AG-008` 因产品方向更新标记 SUPERSEDED。CL-006 必须完成真实构建/测试/Simulator 截图、commit、交接和 STATUS 后停止，等待 Codex 独立验收。
 - 当前验证：worktree 创建成功；尚未执行 CL-006 源码构建或测试，尚待 Claude ACK 与实现。
 - 接下来三步：Claude ACK 并实现；Codex 保持 AG-007 路径隔离并补证；收到 CL-006 STATUS 后独立复验再决定集成。
+
+### 2026-07-19：AG-007 四态截图补证完成、独立验收并合入 main
+
+- Codex 在 `worktrees/ag-007-v3-progress-delivery` 为 `ProgressView` 增加内部测试注入入口，并新增 `ProgressPresentationTests.swift`；生产初始化、`TrackWishViewModel`、API 状态机和后端均未修改。
+- 本地 XCTest fixture 不访问生产 API：404 返回 `.notFound`，delivered 返回本地 `TrackedWishDTO`，交付失败以未知本地 `DeliveryKind` 直接验证固定失败 UI；能力 URL/token 不进入文字、无障碍、日志或测试输出。
+- iPhone 17 Pro / iOS 27 Simulator 四态证据 4/4 通过并逐张目视检查：查询表单、404、delivered/待确认、交付失败。结果包 `/private/tmp/haluowode-ag007-presentation-r5.xcresult`，导出目录 `/private/tmp/haluowode-ag007-screenshots-r5/`。
+- 分支提交：视觉实现 `4db9037`、截图证据 `d02cdf4`、交接 `f1f7c7e`。Codex 保留 main 既有群聊追加后解决只追加文件冲突，以 merge `679a371` 合入。
+- main 合入后独立回归：`/private/tmp/haluowode-main-ag007.xcresult` App 27/27 passed，0 failure/skip/runtime warning；Core 17/17 passed；parser、禁项/隐私扫描与 `git diff --check` 通过。
+- warning：既有 iOS 16 deployment target 与 Xcode 27 XCTest 最低 iOS 17 的 2 条链接 warning；截图测试宿主原始控制台有 appearance-transition 提示，但结果包 runtime warning 为 0，截图完整。
+- 未验证：真实远端视频/图片失败、系统 Link、极端 Dynamic Type、VoiceOver、Reduce Transparency/Motion、iOS 16–25 回退和真机。
+- 当前状态：AG-007 ACCEPTED，源码权限收回；下一步等待 CL-006 交接并独立验收，然后复验新导航与既有进度/交付入口，最后进行真机闭环。
