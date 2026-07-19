@@ -140,7 +140,7 @@ async function setup({ legacyAssignments = false, legacyDeliverables = false } =
     return worker.fetch(new Request(`http://localhost${path}`, init), env, ctx);
   }
 
-  return { request, database };
+  return { request, database, env };
 }
 
 async function json(response) {
@@ -427,4 +427,120 @@ test("runs the publish, response, matching, and tracking workflow", async () => 
   });
   assert.equal(rateLimited.status, 429);
   assert.ok(Number(rateLimited.headers.get("retry-after")) > 0);
+});
+
+test("binds WeChat identities to account-owned wishes, completion, and deletion", async () => {
+  const { request, database, env } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "test-app-id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "test-app-secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    const parsed = new URL(String(url));
+    assert.equal(parsed.hostname, "api.weixin.qq.com");
+    return Response.json({ openid: `openid-${parsed.searchParams.get("js_code")}` });
+  };
+
+  try {
+    const login = async (code) => {
+      const response = await request("/api/auth/wechat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      assert.equal(response.status, 201);
+      return (await json(response)).token;
+    };
+    const requesterToken = await login("requester-code");
+    const requesterHeaders = { "content-type": "application/json", authorization: `Bearer ${requesterToken}` };
+    const createdResponse = await request("/api/account/wishes", {
+      method: "POST",
+      headers: requesterHeaders,
+      body: JSON.stringify({
+        requesterName: "微信发布者",
+        contact: "wechat-requester-contact",
+        city: "上海",
+        landmark: "外滩",
+        occasion: "远方问候",
+        message: "请替我在江边说一声一切都好。",
+        deliveryType: "spoken_video",
+        deadlineText: "本周内",
+        rewardFen: 0,
+        contactConsent: true,
+      }),
+    });
+    assert.equal(createdResponse.status, 201);
+    const created = await json(createdResponse);
+    const storedWish = database.database.prepare("SELECT user_id FROM wishes WHERE id = ?").get(created.wish.id);
+    assert.ok(storedWish.user_id);
+
+    const accountBeforeReview = await json(await request("/api/account/wishes", { headers: requesterHeaders }));
+    assert.equal(accountBeforeReview.requests.length, 1);
+    assert.equal(accountBeforeReview.requests[0].canConfirmCompletion, false);
+
+    const approved = await request(`/api/admin/wishes/${created.wish.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+      body: JSON.stringify({ action: "approve" }),
+    });
+    assert.equal(approved.status, 200);
+
+    const responderToken = await login("responder-code");
+    const responseResult = await request(`/api/account/wishes/${created.wish.id}/responses`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${responderToken}` },
+      body: JSON.stringify({
+        responderName: "微信响应者",
+        responderContact: "wechat-responder-contact",
+        note: "我周末在附近，可以帮助。",
+        contactConsent: true,
+      }),
+    });
+    assert.equal(responseResult.status, 201);
+    const response = await json(responseResult);
+    assert.ok(database.database.prepare("SELECT user_id FROM wish_responses WHERE id = ?").get(response.response.id).user_id);
+
+    for (const action of [
+      { action: "assign", responseId: response.response.id },
+      { action: "accept" },
+      { action: "mark_delivered", deliveryUrl: "https://example.com/wechat-delivery" },
+    ]) {
+      const result = await request(`/api/admin/wishes/${created.wish.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+        body: JSON.stringify(action),
+      });
+      assert.equal(result.status, 200);
+    }
+
+    const afterDelivery = await json(await request("/api/account/wishes", { headers: requesterHeaders }));
+    assert.equal(afterDelivery.requests[0].canConfirmCompletion, true);
+    assert.equal(afterDelivery.requests[0].hasDeliverable, true);
+    const completion = await request(`/api/account/wishes/${created.wish.id}/complete`, {
+      method: "POST",
+      headers: requesterHeaders,
+    });
+    assert.equal(completion.status, 200);
+    assert.equal((await json(completion)).wish.status, "completed");
+
+    const deleteResponse = await request("/api/me", { method: "DELETE", headers: { authorization: `Bearer ${requesterToken}` } });
+    assert.equal(deleteResponse.status, 200);
+    const expiredSession = await request("/api/me", { headers: { authorization: `Bearer ${requesterToken}` } });
+    assert.equal(expiredSession.status, 401);
+    const anonymized = database.database.prepare("SELECT requester_name, contact FROM wishes WHERE id = ?").get(created.wish.id);
+    assert.equal(anonymized.requester_name, "已注销用户");
+    assert.match(anonymized.contact, /^deleted:/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("does not mint a WeChat account session until server-only credentials are configured", async () => {
+  const { request } = await setup();
+  const response = await request("/api/auth/wechat", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ code: "no-secret-code" }),
+  });
+  assert.equal(response.status, 503);
+  assert.equal((await json(response)).error, "微信登录暂未配置，请稍后重试");
 });

@@ -20,11 +20,19 @@ import {
   listProviders,
   listPublicWishes,
   getStoredDeliverable,
+  getAccountDeliverable,
+  listAccountActivity,
+  completeWishForOwner,
   recordUploadedDeliverable,
   trackWish,
   updateProvider,
   WishWorkflowError,
 } from "../server/wishes-repository";
+import {
+  createWechatSession,
+  deleteAuthenticatedAccount,
+  getAuthenticatedUser,
+} from "../server/accounts-repository";
 import { consumeRateLimit, RateLimitError } from "../server/rate-limit";
 
 interface Env {
@@ -34,6 +42,8 @@ interface Env {
   ADMIN_API_KEY?: string;
   PUBLIC_APP_ORIGIN?: string;
   RATE_LIMIT_SALT?: string;
+  WECHAT_MINI_PROGRAM_APP_ID?: string;
+  WECHAT_MINI_PROGRAM_APP_SECRET?: string;
   IMAGES: {
     input(stream: ReadableStream): {
       transform(options: Record<string, unknown>): {
@@ -69,7 +79,7 @@ function corsHeaders(request: Request, env: Env) {
   return {
     "access-control-allow-origin": origin,
     "access-control-allow-methods": "GET, POST, PATCH, OPTIONS",
-    "access-control-allow-headers": "content-type, x-admin-key",
+    "access-control-allow-headers": "authorization, content-type, x-admin-key, x-client-platform",
     "access-control-max-age": "86400",
     vary: "Origin",
   };
@@ -137,6 +147,35 @@ async function requireAdmin(request: Request, env: Env) {
   }
 }
 
+function bearerToken(request: Request) {
+  const value = request.headers.get("authorization") ?? "";
+  const match = value.match(/^Bearer\s+(.+)$/i);
+  return match?.[1]?.trim() ?? "";
+}
+
+async function requireAccount(request: Request, env: Env) {
+  await enforceRateLimit(request, env, "account", 120, 10 * 60_000);
+  return getAuthenticatedUser(env.DB, bearerToken(request));
+}
+
+async function exchangeWechatCode(env: Env, code: string) {
+  if (!env.WECHAT_MINI_PROGRAM_APP_ID || !env.WECHAT_MINI_PROGRAM_APP_SECRET) {
+    throw new WishWorkflowError("微信登录暂未配置，请稍后重试", 503);
+  }
+  const endpoint = new URL("https://api.weixin.qq.com/sns/jscode2session");
+  endpoint.searchParams.set("appid", env.WECHAT_MINI_PROGRAM_APP_ID);
+  endpoint.searchParams.set("secret", env.WECHAT_MINI_PROGRAM_APP_SECRET);
+  endpoint.searchParams.set("js_code", code);
+  endpoint.searchParams.set("grant_type", "authorization_code");
+  const response = await fetch(endpoint, { headers: { accept: "application/json" } });
+  if (!response.ok) throw new WishWorkflowError("微信登录服务暂时不可用，请稍后重试", 502);
+  const payload = (await response.json()) as { openid?: unknown; errcode?: unknown };
+  if (typeof payload.openid !== "string" || !payload.openid) {
+    throw new WishWorkflowError("微信登录未完成，请重新尝试", 401);
+  }
+  return payload.openid;
+}
+
 async function handleWishApi(request: Request, env: Env) {
   const url = new URL(request.url);
   if (!isAllowedOrigin(request, env)) {
@@ -178,6 +217,89 @@ async function handleWishApi(request: Request, env: Env) {
         service: "haluowode-wishes",
         ...(await getWishHealth(env.DB)),
       });
+    }
+
+    if (url.pathname === "/api/auth/wechat" && request.method === "POST") {
+      await enforceRateLimit(request, env, "wechat_login", 20, 10 * 60_000);
+      const contentType = request.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        return json(request, env, { error: "仅接受 JSON 请求" }, 415);
+      }
+      const payload = (await request.json()) as { code?: unknown };
+      const code = typeof payload.code === "string" ? payload.code.trim() : "";
+      if (code.length < 6 || code.length > 1024) {
+        return json(request, env, { error: "微信登录凭证无效，请重新尝试" }, 400);
+      }
+      const openId = await exchangeWechatCode(env, code);
+      const session = await createWechatSession(env.DB, openId);
+      return json(request, env, {
+        token: session.token,
+        expiresAt: session.expiresAt,
+        user: session.user,
+      }, 201);
+    }
+
+    if (url.pathname === "/api/me" && request.method === "GET") {
+      const user = await requireAccount(request, env);
+      return json(request, env, { user });
+    }
+
+    if (url.pathname === "/api/me" && request.method === "DELETE") {
+      const user = await requireAccount(request, env);
+      const result = await deleteAuthenticatedAccount(env.DB, user.id);
+      return json(request, env, { deletedAt: result.deletedAt });
+    }
+
+    if (url.pathname === "/api/account/wishes" && request.method === "GET") {
+      const user = await requireAccount(request, env);
+      return json(request, env, await listAccountActivity(env.DB, user.id));
+    }
+
+    if (url.pathname === "/api/account/wishes" && request.method === "POST") {
+      const user = await requireAccount(request, env);
+      const contentType = request.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        return json(request, env, { error: "仅接受 JSON 请求" }, 415);
+      }
+      await enforceRateLimit(request, env, "account_publish", 8, 60 * 60_000);
+      const input = normalizeCreateWish(await request.json());
+      const result = await createWish(env.DB, input, user.id);
+      return json(request, env, result, result.created ? 201 : 200);
+    }
+
+    const accountResponseMatch = url.pathname.match(/^\/api\/account\/wishes\/([^/]+)\/responses$/);
+    if (accountResponseMatch && request.method === "POST") {
+      const user = await requireAccount(request, env);
+      const contentType = request.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        return json(request, env, { error: "仅接受 JSON 请求" }, 415);
+      }
+      await enforceRateLimit(request, env, "account_respond", 20, 60 * 60_000);
+      const input = normalizeWishResponse(await request.json());
+      const result = await createWishResponse(env.DB, decodeURIComponent(accountResponseMatch[1]), input, user.id);
+      return json(request, env, result, result.created ? 201 : 200);
+    }
+
+    const accountCompletionMatch = url.pathname.match(/^\/api\/account\/wishes\/([^/]+)\/complete$/);
+    if (accountCompletionMatch && request.method === "POST") {
+      const user = await requireAccount(request, env);
+      const wish = await completeWishForOwner(env.DB, decodeURIComponent(accountCompletionMatch[1]), user.id);
+      return json(request, env, { wish });
+    }
+
+    const accountDeliveryMatch = url.pathname.match(/^\/api\/account\/wishes\/([^/]+)\/deliverable$/);
+    if (accountDeliveryMatch && request.method === "GET") {
+      const user = await requireAccount(request, env);
+      const delivery = await getAccountDeliverable(env.DB, decodeURIComponent(accountDeliveryMatch[1]), user.id);
+      if (delivery.storageKey) {
+        if (!env.UPLOADS) return json(request, env, { error: "文件存储尚未配置" }, 503);
+        const object = await env.UPLOADS.get(delivery.storageKey);
+        if (!object) return json(request, env, { error: "交付文件不存在" }, 404);
+        const headers = new Headers({ "cache-control": "private, no-store", "referrer-policy": "no-referrer" });
+        object.writeHttpMetadata(headers);
+        return new Response(object.body, { headers });
+      }
+      return Response.redirect(delivery.url, 302);
     }
 
     if (url.pathname === "/api/wishes" && request.method === "GET") {

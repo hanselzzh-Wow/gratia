@@ -1,0 +1,18 @@
+page { background: #faf4f6; color: #191719; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif; }
+button::after { border: 0; }
+.page { box-sizing: border-box; min-height: 100vh; padding: 96rpx 32rpx 180rpx; }
+.eyebrow { color: #9a536d; font-size: 24rpx; font-weight: 600; letter-spacing: 2rpx; }
+.title { margin-top: 14rpx; font-size: 56rpx; line-height: 1.14; font-weight: 700; letter-spacing: -1.5rpx; }
+.subtitle { margin-top: 18rpx; color: #6f6569; font-size: 28rpx; line-height: 1.65; }
+.card { margin-top: 32rpx; padding: 30rpx; background: #fff; border-radius: 28rpx; box-shadow: 0 8rpx 28rpx rgba(78, 35, 52, 0.07); }
+.label { display: block; margin: 26rpx 0 12rpx; color: #6f6569; font-size: 24rpx; font-weight: 600; }
+.input, .textarea { box-sizing: border-box; width: 100%; padding: 24rpx; border-radius: 18rpx; background: #faf4f6; color: #191719; font-size: 30rpx; }
+.textarea { min-height: 180rpx; }
+.primary-button, .secondary-button { margin-top: 28rpx; min-height: 92rpx; line-height: 92rpx; border-radius: 46rpx; font-size: 30rpx; font-weight: 600; }
+.primary-button { background: #9a536d; color: #fff; }
+.primary-button[disabled] { background: #e4c6d0; color: #8d7580; }
+.secondary-button { background: #f2e5e9; color: #7f4058; }
+.error { margin-top: 20rpx; color: #a53b4b; font-size: 26rpx; }
+.muted { color: #80757a; font-size: 26rpx; line-height: 1.6; }
+.status { display: inline-block; padding: 8rpx 14rpx; border-radius: 14rpx; background: #faf4f6; color: #7f4058; font-size: 22rpx; }
+.divider { height: 1rpx; margin: 28rpx 0; background: #f0e4e8; }
