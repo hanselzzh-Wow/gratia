@@ -847,3 +847,9 @@ Cloudflare Worker API
 - Codex 将精确提交 `463a420fb2cf77ca9f6ff2a181a09b8fa37ff69b` 固化为 `release/1.0` 分支和 `v1.0-claude-rose` 标签，并保留 main 仅作历史/协调记录。
 - 按产品负责人明确授权，删除除 main 与 1.0 以外的全部本地历史 worktree/分支；不删除主工作区中的未跟踪用户文件、后端或已部署服务。
 - 后续：每个问题从 1.0 单独分支、单任务处理；仍未验证原版真实 API 兼容性、无障碍、横屏和旧 iOS。
+
+### 清理实际结果
+
+- 已创建唯一保留的产品 worktree：`worktrees/release-1.0`，HEAD `463a420fb2cf77ca9f6ff2a181a09b8fa37ff69b`，工作区干净。
+- 已使用精确路径强制移除 20 个历史任务 worktree，并删除 20 个对应本地 `codex/*` 与 `claude/rose-home-redesign` 分支；未删除 `main`、`release/1.0` 或 `v1.0-claude-rose`。
+- 清理后 `git worktree list` 只显示主工作区 `main` 和 `worktrees/release-1.0`；`git branch` 只显示 `main` 和 `release/1.0`。主工作区原有未跟踪用户文件保持原状。
