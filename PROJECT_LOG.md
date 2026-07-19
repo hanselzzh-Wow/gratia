@@ -833,3 +833,10 @@ Cloudflare Worker API
 - 派发：`AG-010` 给 Antigravity，在独立 worktree 仅迁移真源的视觉/Dock/Lucide 资产至现有 Haluowode 真实业务客户端；禁止直接 merge/cherry-pick Gratia 分支、重命名、签名/Bundle ID/后端/进度交付改动。
 - 下一步：Antigravity ACK 后实现/测试/截图/交接；Codex 独立复验、合入 main、真机重新安装并由产品负责人逐页检查。
 - 未验证：AG-010 尚未 ACK；真源对 main 实际 API/状态机的安全移植、全套回归、iOS 旧系统/无障碍、真机视觉均未验证。
+
+## 2026-07-19｜Claude 原始 8e95b0b 版本已直接部署真机
+
+- Antigravity `AG-010` 首次交付实际 HEAD 为 `1887b30dac49f243527df981e6d4f2cbdbb6b065`；Codex 独立审计发现其引入 `StoryFeedSource` 运行时虚构故事，违背生产诚实空态边界，交接 SHA 与实际提交不一致，并由 `git diff --check HEAD^ HEAD` 检出测试尾随空格，故拒绝合入 main。
+- 产品负责人随后明确要求先运行 Claude Code 的原始 `8e95b0b` 版本。Codex 未修改该分支源码；从 `worktrees/claude-rose-redesign` 的 `claude/rose-home-redesign@463a420`（包含 `8e95b0b` 设计和仅 App Icon recolor 修正）以临时 `DEVELOPMENT_TEAM`/Automatic signing 覆盖构建。
+- 真机构建成功；唯一输出 warning 为原分支的“除非要求全屏，否则须支持全部界面方向”。安装与启动均成功：bundle ID `com.hanselzzh.gratia`，安装目录由 `devicectl` 返回，启动命令成功。该 Bundle ID 与主线 `com.hanselzzh.haluowode` 不同，两个 App 并存；未修改主线、签名设置、后端或 Claude 分支源码。
+- `AG-010` 已 SUPERSEDED，权限收回；当前只等待产品负责人对真机原版进行视觉/交互检查。尚未验证原版与主线真实 API、隐私状态机的兼容性、极端无障碍、横屏或旧 iOS，不能据此合入或替换主线。

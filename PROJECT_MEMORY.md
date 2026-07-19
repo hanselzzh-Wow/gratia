@@ -29,7 +29,7 @@
 - `AG-007` 已 ACCEPTED 并以 merge `679a371` 合入 main：本地 XCTest fixture 在 iPhone 17 Pro / iOS 27 Simulator 生成查询、404、delivered/待确认、交付失败四态证据；main 独立回归 App 27/27、Core 17/17，0 failure/skip/runtime warning。未访问生产 API，能力 URL/token 未进入画面或测试输出；真实远端媒体、系统 Link、极端无障碍设置、旧系统与真机仍未验证。
 - `CL-006` 与 `AG-009` 已 ACCEPTED 并以 merge `03fcb7e` 合入 main：玫红首页/搜索/中央发布/帮助/我的、步骤文案回归、DEBUG/Release 边界及生成工程归零均已收口。main 独立复验 Core 17/17、iPhone 17 Pro / iOS 27 Simulator App 49/49，0 failure/skip/runtime warning；Release 二进制对 `-cl006-initial-tab`、`-cl006-show-publish` 为 0 命中。两条 iOS 16/XCTest linker warning 仍存在；真机、旧 iOS、极端无障碍与真实远端媒体未验证。旧 `AG-008` 已 SUPERSEDED。
 - main 真实安装冷启动约 30 秒后稳定渲染首页诚实空态；启动参数逐页截图已目视确认搜索、帮助、我的与发布入口，发布页显示 `第 1 步，共 3 步`。这些是 Simulator 证据，不替代真机与无障碍实测。
-- 真机“桑柏之phone”已完成连接、开发者模式、Personal Team 签名、安装与启动；`CX-004` 玫红钥匙图标/中文名与 `CX-005` 中英文显示名均获产品负责人确认，并分别以 merge `b2fa630`、`e0bd6c8` 合入 main。已从 Claude 会话 `38c0e6b8` 及 `claude/rose-home-redesign@8e95b0b` 找回用户确认的玫粉白 + Lucide Dock 真源（house/search/square-plus/handshake/user-round）；`AG-010` 正在隔离迁移它到现有真实业务 Haluowode target，禁止直接合入其 87-file Gratia 重命名。
+- 真机“桑柏之phone”已完成连接、开发者模式、Personal Team 签名、安装与启动；`CX-004` 玫红钥匙图标/中文名与 `CX-005` 中英文显示名均获产品负责人确认，并分别以 merge `b2fa630`、`e0bd6c8` 合入 main。产品负责人明确优先运行 Claude 原始视觉版本：`claude/rose-home-redesign`（设计 commit `8e95b0b`，仅图标修正 `463a420`）已于 2026-07-19 在真机成功构建、安装、启动，独立 Bundle ID 为 `com.hanselzzh.gratia`，与主线 App 并存。`AG-010` 首次交付 `1887b30` 因运行时虚构故事、交接 SHA 不实与尾随空格被退回，随后 SUPERSEDED，未合入 main。
 
 ## 强制交接与接班卡同步
 
@@ -60,7 +60,7 @@
 ## 恢复顺序
 
 1. Codex 在 main 继续以真实启动/导航截图复核首页、搜索、发布、帮助、我的与 AG-007 进度/交付入口；运行态保持诚实空态。
-2. 等待 Antigravity `AG-010` 在隔离 worktree 迁移并交付构建/截图/测试证据；Codex 独立验收后合入 main 并重新安装真机。
+2. 产品负责人先在真机检查 `Gratia` 原版的页面、图标、名称与交互；如确认要将该原版替换主线，再创建新的迁移任务，保留真实 API/隐私/状态机并禁止伪造运行时数据。
 3. 每个新问题均先创建唯一负责人任务卡；不得自动扩张范围。
 
 ## 快速核验

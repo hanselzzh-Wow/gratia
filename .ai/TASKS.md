@@ -29,9 +29,9 @@
 | CL-006 | Claude | ACCEPTED | 玫红首页/搜索/中央发布/帮助/我的已由 `03fcb7e` 合入 main；AG-009 修复步骤文案、收口 DEBUG/Release 边界与生成工程差异后，main 独立复验 App 49/49、Core 17/17 | 历史 worktree `worktrees/claude-cl-006-home-search-help-ui`；Claude 已停止 | 已验收合入；不得自行继续修改或领取任务 |
 | AG-009 | Antigravity | ACCEPTED | CL-006 集成硬化已以 `55ef6f9`/`3804eb4`/`a0ec5a4`/`7c959a2` 交付并由 `03fcb7e` 合入 main：步骤回归、DEBUG/Release 审计、生成工程归零均通过 | 历史 worktree `worktrees/ag-009-cl006-hardening`；Antigravity 已停止 | 已验收合入；不得自行继续修改或领取任务 |
 | CX-004 | Codex | ACCEPTED | 系统显示名与 App Icon 已以 merge `b2fa630` 合入：玫红钥匙图标与中文显示名经过真机构建、安装、启动和产品负责人主屏确认 | 历史 worktree `worktrees/codex-cx-004-system-branding`；权限已收回 | 已验收合入；后续系统语言显示名需独立任务 |
-| CX-005 | Codex | IN_PROGRESS | iOS 系统显示名本地化：中文系统显示“哈喽卧得”，英文系统显示“Gratia”，不触及技术身份或签名 | 仅 `worktrees/codex-cx-005-display-name-localization` 的 `ios/Haluowode/{en.lproj,zh-Hans.lproj}/InfoPlist.strings`、`.ai/handoffs/CX-005-display-name-localization.md`、`.ai/TEAM_CHAT.md`（只追加） | 两种 locale 的 built-app metadata 和真机英语/中文系统显示名验证后停止等待验收 |
-| CL-007 | Claude | IN_PROGRESS | Lucide Icons 设计/实现审计：核对用户认可版本与 main 当前 SF Symbols 的差异，交付唯一可执行的图标资产与映射规范，不改代码 | 仅 `worktrees/claude-cl-007-lucide-audit/.ai/handoffs/CL-007-lucide-icons-audit.md`、`.ai/TEAM_CHAT.md`（只追加） | 交付审计、STATUS 与 commit 后停止；Codex 验收后才创建实现任务 |
-| AG-010 | Antigravity | IN_PROGRESS | 以用户确认的 `claude/rose-home-redesign@8e95b0b` 为视觉真源，安全迁移玫粉白、五位 Dock 与 Lucide 图标到现有真实业务 SwiftUI 客户端 | 仅 `worktrees/ag-010-rose-lucide-integration` 中下列精确 UI/资产/测试/交接路径 | 实测、commit、handoff/STATUS 后立即停止；Codex 独立验收、main 合入和真机安装后才继续 |
+| CX-005 | Codex | ACCEPTED | iOS 系统显示名本地化已由产品负责人确认并以 merge `e0bd6c8` 合入：中文显示“哈喽卧得”，英文显示“Gratia” | 历史 worktree `worktrees/codex-cx-005-display-name-localization`；权限已收回 | 已验收合入；不得继续修改 |
+| CL-007 | Claude | SUPERSEDED | 用户确认的 Claude 玫粉白/Lucide 真源已直接形成 AG-010 实现任务；Claude CLI 未交付审计 | 历史 worktree `worktrees/claude-cl-007-lucide-audit`；权限已收回 | 不得继续修改 |
+| AG-010 | Antigravity | SUPERSEDED | 首次交付 `1887b30` 含运行时虚构故事且未通过验收；产品负责人改为直接在真机运行 Claude 原始设计分支 | 任务 worktree 权限已收回 | 不得修复、合入、推送或继续修改；若未来要将原版迁移回主线，必须另建任务 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -717,7 +717,7 @@ git diff --check
 
 裁决：Claude CLI 本轮未返回 ACK/交接；但 Codex 已从 Claude 本地会话 `38c0e6b8-…`、用户原话“所有的 icon 用 lucide icons，首页用 house，帮助用 handshake，个人用 user-round”、`claude/rose-home-redesign@8e95b0b` 与其 `CL-006-rose-redesign.md` 找回完整真源。产品负责人已明确要求以该版本上实机，故本只读审计由 `AG-010` 替代；不得继续修改。
 
-## AG-010：玫粉白 Lucide 视觉安全集成（Antigravity，IN_PROGRESS）
+## AG-010：玫粉白 Lucide 视觉安全集成（Antigravity，SUPERSEDED）
 
 工作区：`/Users/hansangbai/Documents/New project/worktrees/ag-010-rose-lucide-integration`
 
@@ -774,6 +774,10 @@ git diff --check
 ```
 
 停止条件：所有允许范围内交付、真实执行证据、commit、handoff、STATUS 后立即停止，等待 Codex 独立验收。任何真源与 main 真实流程冲突、缺失资产、测试失败或超范围需求，先发 OBJECTION，禁止自行扩大。
+
+### 首次验收退回与产品裁决（2026-07-19）
+
+`1887b30dac49f243527df981e6d4f2cbdbb6b065` **不得合入**：`StoryFeed.swift` 的 `StoryFeedSource` 将虚构故事带入运行时，违反本任务禁止“运行时假故事”和生产无公开故事源时诚实空态的硬边界；其交接报告还列出与实际 HEAD 不符的 SHA，且独立 `git diff --check HEAD^ HEAD` 发现测试文件尾随空格。产品负责人随后明确要求先运行 Claude 原始 `8e95b0b` 版本；Codex 已将其分支（含仅图标修正 `463a420`）直接构建、安装并启动于真机。因此本任务终止并收回全部写权限，不得修复、合入或继续修改。
 
 ## 新任务创建要求
 
