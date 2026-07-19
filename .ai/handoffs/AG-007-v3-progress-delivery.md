@@ -4,6 +4,8 @@
 
 Codex 已接管并完成允许范围内的 SwiftUI 展示层改造与四态 Simulator 截图补证。真实 `TrackWishViewModel`、生产 API 注入、取消、404/429、成功后 contact 清除、DTO/事件/assignment/deliverable 和能力 URL 隐私路径均未修改。
 
+实现与截图证据 commit：`d02cdf4`。
+
 ## 修改路径
 
 - `ios/Haluowode/ProgressView.swift`
