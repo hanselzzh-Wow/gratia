@@ -30,6 +30,7 @@
 | AG-009 | Antigravity | ACCEPTED | CL-006 集成硬化已以 `55ef6f9`/`3804eb4`/`a0ec5a4`/`7c959a2` 交付并由 `03fcb7e` 合入 main：步骤回归、DEBUG/Release 审计、生成工程归零均通过 | 历史 worktree `worktrees/ag-009-cl006-hardening`；Antigravity 已停止 | 已验收合入；不得自行继续修改或领取任务 |
 | CX-004 | Codex | ACCEPTED | 系统显示名与 App Icon 已以 merge `b2fa630` 合入：玫红钥匙图标与中文显示名经过真机构建、安装、启动和产品负责人主屏确认 | 历史 worktree `worktrees/codex-cx-004-system-branding`；权限已收回 | 已验收合入；后续系统语言显示名需独立任务 |
 | CX-005 | Codex | IN_PROGRESS | iOS 系统显示名本地化：中文系统显示“哈喽卧得”，英文系统显示“Gratia”，不触及技术身份或签名 | 仅 `worktrees/codex-cx-005-display-name-localization` 的 `ios/Haluowode/{en.lproj,zh-Hans.lproj}/InfoPlist.strings`、`.ai/handoffs/CX-005-display-name-localization.md`、`.ai/TEAM_CHAT.md`（只追加） | 两种 locale 的 built-app metadata 和真机英语/中文系统显示名验证后停止等待验收 |
+| CL-007 | Claude | IN_PROGRESS | Lucide Icons 设计/实现审计：核对用户认可版本与 main 当前 SF Symbols 的差异，交付唯一可执行的图标资产与映射规范，不改代码 | 仅 `worktrees/claude-cl-007-lucide-audit/.ai/handoffs/CL-007-lucide-icons-audit.md`、`.ai/TEAM_CHAT.md`（只追加） | 交付审计、STATUS 与 commit 后停止；Codex 验收后才创建实现任务 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -686,7 +687,32 @@ git diff --check
 
 验收：两份 strings 均是有效 UTF-16/UTF-8 strings 文件，仅定义 `CFBundleDisplayName`；对 English 与 Simplified Chinese locale 的编译产物分别读取 `Info.plist` 验证对应值；真机在 English 与简体中文系统语言下重新安装/刷新并人工确认系统显示名。命令行 Team 覆盖不得写回工程。
 
-停止条件：写完交接与 STATUS，报告 commit、实际命令/结果、两种语言真机验证和未验证项后立即停止，等待 Codex PM 验收。
+验收结论：实现 `b58e9b4`、交接勘误 `5d76fa9` 已由 merge `e0bd6c8` 合入 main。两份本地化 resources 均在真机构建产物中读取正确，真机安装/启动成功，产品负责人确认系统语言显示正确。任务 ACCEPTED；权限收回。
+
+## CL-007：Lucide Icons 审计与冻结交接（Claude，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/claude-cl-007-lucide-audit`
+
+分支：`codex/cl-007-lucide-audit`
+
+唯一目标：核对产品负责人认可的 Claude/Lucide 图标版本与 main 当前实现，给出可实施、可验收的 Lucide 图标资产、版本、授权和屏幕映射规范。当前 main 和 CL-006 交接仍大量使用 SF Symbols；本任务只做设计与审计，不能改用图标代码或资源。
+
+允许修改（仅限任务 worktree）：
+
+- 新建 `.ai/handoffs/CL-007-lucide-icons-audit.md`
+- `.ai/TEAM_CHAT.md`（仅追加 ACK/OBJECTION/STATUS）
+
+禁止修改：所有 `ios/**`、任何 Lucide/SF 图标资产、Swift/测试/Core、`project.yml`/`.xcodeproj`、Bundle ID/签名/Team、后端/部署、任务板、冻结、项目记忆、项目日志、主分支或 Git 历史；不得安装依赖、下载第三方包、重画页面或把审计结论直接实现。
+
+必须交付：
+
+1. 明确用户认可的 Lucide 版本来源：现有 worktree/commit/资产路径；若仓库不存在，明确写“未找到”且不能猜测或伪造。
+2. 对 main 当前所有 `Image(systemName:)` 与自绘 `HandsClaspedIcon` 做按页面/用途的 inventory，区分需要替换、可保留系统语义（如系统媒体控件）与不应改动的状态/业务图标。
+3. 提供唯一版本号、许可确认、SwiftUI 可行集成方式（本地 SVG/PDF/Swift package）和每个业务图标的 Lucide 名称、stroke/size/颜色/状态映射；明确禁用 Emoji、禁用混用风格与 44pt/VoiceOver 要求。
+4. 写出最小实现切片和可运行验收（构建、无 SF Symbols 残留的范围扫描、截图/真机、动态字体/VoiceOver），但不得自行创建实现任务或改代码。
+5. 在 handoff 如实列出搜索过的路径、未确定项、风险（许可证、可访问性、平台符号语义）与 commit SHA；追加 STATUS 后立即停止。
+
+停止条件：交付上述只读审计、commit、STATUS 后立即停止，等待 Codex 验收。任何找不到原版本或出现授权不清的情形先写 OBJECTION，不得自行替换图标。
 
 ## 新任务创建要求
 

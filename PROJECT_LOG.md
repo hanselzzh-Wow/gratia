@@ -818,3 +818,10 @@ Cloudflare Worker API
 - 派发：`CX-005` 仅新增 `zh-Hans.lproj/InfoPlist.strings` 与 `en.lproj/InfoPlist.strings`，以 localized `CFBundleDisplayName` 实现系统显示名；禁止修改图标、Info.plist、工程、Bundle ID、签名、Swift、后端。
 - 下一步：在隔离 worktree 编译两种 locale，读取对应 built app metadata；然后以真机英语/中文语言切换完成主屏核验。
 - 未验证：iOS 的语言切换/主屏刷新可能需要重新安装或重启 SpringBoard；当前未在两种真机语言下验证。
+## 2026-07-19｜CX-005 验收合入与 CL-007 Lucide 审计派发
+
+- 验收：产品负责人确认双语言系统显示名正确；`CX-005` 实现 `b58e9b4`、交接 `5d76fa9` 以 merge `e0bd6c8` 合入 main。真机 build/install/launch 成功，build 产物包含 English `Gratia` 与 zh-Hans “哈喽卧得”两份 `InfoPlist.strings`；Bundle ID/签名/图标未变。
+- 新事实：产品负责人指出先前 Claude 已做出正确 Lucide Icons 版本；main 代码与 CL-006 handoff 均明确使用 SF Symbols/自绘 `HandsClaspedIcon`，尚未具备 Lucide 冻结或实现证据。
+- 派发：`CL-007` 是 Claude 的只读设计/资产审计任务，必须追溯正确版本/commit/资产，建立当前 SF Symbols inventory 与唯一 Lucide 逐图标映射、许可证、SwiftUI 集成及验收方案；禁止修改任何源码或资源。
+- 下一步：等待 Claude 交接后，Codex 审核来源与许可，再创建单一最小实现切片。
+- 未验证：原用户认可 Lucide 资产的精确提交/路径、完整页面覆盖、许可与真机视觉，均待 CL-007 证据，不得假设。
