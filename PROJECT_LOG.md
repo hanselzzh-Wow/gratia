@@ -774,3 +774,12 @@ Cloudflare Worker API
 - warning：既有 iOS 16 deployment target 与 Xcode 27 XCTest 最低 iOS 17 的 2 条链接 warning；截图测试宿主原始控制台有 appearance-transition 提示，但结果包 runtime warning 为 0，截图完整。
 - 未验证：真实远端视频/图片失败、系统 Link、极端 Dynamic Type、VoiceOver、Reduce Transparency/Motion、iOS 16–25 回退和真机。
 - 当前状态：AG-007 ACCEPTED，源码权限收回；下一步等待 CL-006 交接并独立验收，然后复验新导航与既有进度/交付入口，最后进行真机闭环。
+
+### 2026-07-19：CL-006 初验通过主体设计，派发 AG-009 集成硬化
+
+- Claude 在认证与外层沙箱问题解决后交付 CL-006：代码 `8021bff`、交接/9 张证据 `9b02627`、5 张真实逐页启动截图与 DEBUG 选择页钩子 `651886b`、最终 STATUS 封存 `5364595`。
+- Codex 目视检查首页/搜索/帮助/我的/发布的真实截图及首页/搜索 fixture：白底玫红方向、无汉字 Dock、中央发布、原创相握双手、诚实空态和明确虚构标记符合产品裁决。
+- Codex 独立复验 `/private/tmp/haluowode-cl006-codex.xcresult`：iPhone 17 Pro / iOS 27 Simulator App 44/44 passed，0 failure/skip/runtime warning；Core 17/17 passed。
+- 初验不接受直接合入：发布真实截图显示字面量 `第 (currentStep) 步`；CL-006 commit 含任务卡明确禁止的生成 `project.pbxproj` 差异。截图目录视为必交证据的合理隐含路径；“去我的查询进度”属授权导航适配；DEBUG 钩子暂待硬化审计。
+- 按产品负责人对 Antigravity 的要求创建 `AG-009`：不是重做设计，而是在独立 worktree 修复用户可见缺陷、增加生产 helper 回归、证明 DEBUG/Release 边界、清除生成项目差异并跑完整质量门。
+- 接下来三步：Antigravity 完成 AG-009 后停止；Codex 复验并集成 CL-006/AG-009；main 重生成工程并跑完整 Simulator/冷暖启动，随后进入真机签名与闭环。

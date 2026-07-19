@@ -26,7 +26,8 @@
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
 | CL-004 | Claude | ACCEPTED | 已交付 v3 SwiftUI 实施审计：冻结视觉的精确落地、差异与截图验收清单已可直接约束后续实现 | `.ai/handoffs/CL-004-swiftui-audit.md` | 已验收；Claude 停止，待视觉实现后再做截图审阅，不得自动重画或改源码 |
 | CL-005 | Claude | ACCEPTED | 首页内容社区设计检查点已验收：正常/空/故事详情资产、职责、隐私和无障碍交接完整 | 历史 worktree `worktrees/claude-cl-005-home-community`；写权限已收回 | 已验收合入；不得继续重画或自行实现 |
-| CL-006 | Claude | IN_PROGRESS | 将用户已认可的 Claude 首页风格与新信息架构直接落到 SwiftUI：媒体首页、搜索、居中发布、帮助、我的 | 仅 `worktrees/claude-cl-006-home-search-help-ui` 的任务卡精确路径 | 完成代码、测试、截图、commit、交接与 STATUS 后立即停止等待 Codex 验收 |
+| CL-006 | Claude | REVIEW | 玫红首页/搜索/中央发布/帮助/我的已提交并通过 Codex 44/44 初验；待 AG-009 修复显示缺陷与越权生成文件后复验 | 历史 worktree `worktrees/claude-cl-006-home-search-help-ui`；Claude 已停止 | 未完成 AG-009 与 Codex 复验前不得 ACCEPTED/合入 |
+| AG-009 | Antigravity | IN_PROGRESS | 对 CL-006 做集成硬化：修复发布步数文案、锁定回归、清除越权生成项目差异并复验 DEBUG 证据钩子 | 仅 `worktrees/ag-009-cl006-hardening` 的任务卡精确路径 | 完成代码、真实测试、commit、交接与 STATUS 后立即停止等待 Codex 验收 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -542,7 +543,7 @@ Codex 已逐页查看 393×852 正常/空/故事详情，核验 3x 尺寸、HTML
 
 预计允许路径仅为 `HomeView.swift`、新建故事展示类型/ViewModel/测试、必要的 `ContentView` 导航注入、交接与群聊；禁止 Nearby/Publish/Progress/Profile、Core 既有公开列表契约、后端、签名、DesignSystem 和自绘 Tab Bar。正式任务卡会给出精确路径、数据边界、截图与测试命令。
 
-## CL-006：用户认可风格的 SwiftUI 首页与导航落地（Claude，IN_PROGRESS）
+## CL-006：用户认可风格的 SwiftUI 首页与导航落地（Claude，REVIEW）
 
 工作区：`/Users/hansangbai/Documents/New project/worktrees/claude-cl-006-home-search-help-ui`
 
@@ -598,6 +599,50 @@ git diff --check
 ```
 
 停止条件：Claude 完成允许范围内代码、验证、截图、commit、交接，并在本 worktree `.ai/TEAM_CHAT.md` 追加准确 STATUS 后立即停止；不得合入 main、推送、部署、改签名、领取下一任务或顺手修改 AG-007。Codex 独立验收后才决定合入或退回。
+
+## AG-009：CL-006 集成硬化（Antigravity，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/ag-009-cl006-hardening`
+
+分支：`codex/ag-009-cl006-hardening`
+
+前置：Claude CL-006 最终交接 `5364595`；Codex 已目视检查 14 张截图并独立复验 Core 17/17、App 44/44。设计方向合格，但不得直接验收：发布页真实截图显示 `第 (currentStep) 步`，且 Claude commit 含任务卡明确禁止的生成 `.xcodeproj` 差异。
+
+唯一目标：不重画 Claude 设计、不改业务状态机，将 CL-006 收敛成可安全集成候选。修复发布步骤文案并增加真实回归断言；证明 DEBUG 截图启动参数只选择初始页面/发布层、不注入数据且 Release 不包含该分支；从最终提交中清除生成 `.xcodeproj` 差异，由 Codex 合入 main 后统一运行 xcodegen 生成项目文件。
+
+允许修改：
+
+- `ios/Haluowode/PublishView.swift`（仅步骤展示 helper/插值修复，不改表单、API、校验、提交、取消或成功语义）
+- 新建 `ios/HaluowodeTests/CL006IntegrationHardeningTests.swift`，或只追加 `ios/HaluowodeTests/AppNavigationAndSearchTests.swift`（仅本任务展示/DEBUG 边界断言）
+- `ios/Haluowode/ContentView.swift`（仅当审计证明 DEBUG 钩子需要最小安全收口；不得增加新启动能力、fixture 或生产分支）
+- `.ai/handoffs/AG-009-cl006-hardening.md`
+- `.ai/TEAM_CHAT.md`（只追加 ACK/OBJECTION/STATUS）
+
+特殊生成文件规则：`ios/Haluowode.xcodeproj/project.pbxproj` 可以在运行 xcodegen/测试时临时变化，但**最终 commit 必须与 CL-006 起点 `fb86b84` 对该文件的内容一致**，不得提交任何 `.xcodeproj` 差异。不得修改 `project.yml`。Codex 集成后负责统一重生成项目。
+
+禁止修改：Home/Search/Nearby/Profile/DesignSystem/HomePreviewFixtures、CL-006 截图/交接、AG-007 三文件、所有 ViewModel/Core/API、后端/数据库/部署、签名/Bundle ID、依赖、主分支、任务板/冻结/项目日志、Git 历史；不得删除 Claude 有效提交、改视觉方向、添加运行时 Mock/假数据或访问生产 API。
+
+必须交付：
+
+1. `PublishView` 显示 `第 1 步，共 3 步`、`第 2 步，共 3 步`、`第 3 步，共 3 步`，不得再出现字面量 `(currentStep)`；用生产 helper 的 XCTest 锁定 1/2/3，不能只扫描源码。
+2. 审计 `ContentView` 的 `#if DEBUG` 启动参数钩子：仅 `-cl006-initial-tab` 与 `-cl006-show-publish`，不注入故事、API、联系方式、编号或状态；Release 构建/预处理路径不包含该行为。若无需修改，交接给出源码范围与 Release build 证据。
+3. 临时运行 xcodegen 接入新测试并完成 Core/App 全套；测试后将 `project.pbxproj` 恢复为 `fb86b84` 内容，最终 `git diff fb86b84 -- ios/Haluowode.xcodeproj/project.pbxproj` 必须 0 差异。
+4. 运行 parser、隐私/Mock/生产 URL/凭据/渐变扫描与 `git diff --check`。交接列实际测试数、结果包、warning、未验证项、精确路径、commit SHA；不得声称真机或旧系统已验证。
+
+验收命令（在本 worktree 执行）：
+
+```bash
+/private/tmp/xcodegen-2.46.0-release/xcodegen/bin/xcodegen generate --spec ios/project.yml
+swift test --package-path ios/Packages/HaluowodeCore --scratch-path /private/tmp/haluowode-core-ag009 --disable-xctest --enable-swift-testing
+xcodebuild -project ios/Haluowode.xcodeproj -scheme Haluowode -destination 'platform=iOS Simulator,id=742A9D34-5F88-4578-BB12-851A00D2C0FE' -derivedDataPath /private/tmp/haluowode-ag009-tests -resultBundlePath /private/tmp/haluowode-ag009.xcresult -only-testing:HaluowodeTests test
+xcodebuild -project ios/Haluowode.xcodeproj -scheme Haluowode -configuration Release -destination 'generic/platform=iOS Simulator' -derivedDataPath /private/tmp/haluowode-ag009-release build
+swiftc -frontend -parse ios/Haluowode/*.swift
+rg -n -i 'admin|x-admin-key|api[_-]?key|cloudflare.*token|Wish\.mockWishes|LinearGradient' ios/Haluowode ios/Packages/HaluowodeCore
+git diff fb86b84 -- ios/Haluowode.xcodeproj/project.pbxproj
+git diff --check
+```
+
+停止条件：完成允许范围内修订、真实验证、commit、交接与 STATUS 后立即停止；不得合入、推送、部署、修改主分支或领取下一任务。任何需要改视觉、业务或任务卡外文件的情况先 OBJECTION。
 
 ## 新任务创建要求
 

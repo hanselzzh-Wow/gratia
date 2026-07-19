@@ -11,9 +11,9 @@
 - `CX-001` 已独立验收并合入本地 main。其首页、DesignSystem 与 App Icon 变更不触碰 Antigravity 的 Progress/Track/Delivery 路径；后续其余页面视觉改造需另建独立任务。
 - `CX-002` 已由 Codex 独立验收并合入本地 main；其 Nearby/详情/响应视觉变更不触碰 `AG-006` 的 Progress/Track/Delivery/Content 路径，也不改变已验收的 response ViewModel 行为。后续其余页面视觉改造必须另建独立任务。
 - `CX-003` 已由 Codex 独立验收并合入本地 main；其 Publish/Profile 视觉变更不触碰 `AG-006` 的 Progress/Track/Delivery/Content 路径、任何 ViewModel 或业务语义。后续 Tab Bar 必须在 P0-D 收口后另建独立任务。
-- Claude 的 `CL-001`、`CL-003`、`CL-004`、`CL-005` 已验收。产品负责人已明确授权 `CL-006` 作为角色例外：Claude 仅可在 `worktrees/claude-cl-006-home-search-help-ui` 内修改任务卡列出的 SwiftUI/测试/交接路径；不得触碰 AG-007 的 Progress/Track/Delivery、后端、签名、主分支或其它文件。旧 `AG-008` 已 SUPERSEDED，不再授权任何写入。
+- Claude 的 `CL-001`、`CL-003`、`CL-004`、`CL-005` 已验收；`CL-006` 已交付并进入 REVIEW，Claude 权限已暂停。Codex 已创建 `AG-009`，Antigravity 仅可在 `worktrees/ag-009-cl006-hardening` 内修改任务卡列出的发布展示/测试/必要 DEBUG 收口与交接路径；不得重画 Claude 设计、触碰 AG-007、业务 ViewModel/Core、后端、签名、主分支或其它文件。旧 `AG-008` 已 SUPERSEDED。
 - 所有成员可以严格按照 `.ai/TEAM_CHAT.md` 的格式在文件末尾追加群聊消息；这是沟通例外，不解除任何源码写入冻结。
 - 其他 AI 只能阅读，不得写任何文件。
-- 除 `CL-006` 隔离 worktree 的精确任务卡授权路径外，任何代理不得修改 `ios/`、后端、部署配置、主分支或 Git 历史。`AG-007` 已验收合入并恢复冻结；未经 Codex 独立验收不得合入任何后续源码。
+- 除 `AG-009` 隔离 worktree 的精确任务卡授权路径外，任何代理不得修改 `ios/`、后端、部署配置、主分支或 Git 历史。`AG-007` 已验收合入；`CL-006` 等待硬化与复验；未经 Codex 独立验收不得合入任何后续源码。
 
 每张已批准任务可局部解除冻结，任务完成即恢复冻结等待验收。只有 Codex 将状态改为 `LIFTED` 后才全面解除。用户口头要求某个新功能，不等于自动解除范围；先由协调人创建任务卡。
