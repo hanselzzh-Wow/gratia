@@ -4,6 +4,10 @@
 
 > 新会话先读本文件、`AGENTS.md`、`.ai/WRITE_FREEZE.md` 与 `.ai/TASKS.md`；只读工作不必通读长日志。开始写入前仍须核对 Git/worktree 现状。`PROJECT_LOG.md` 是可追溯事实记录，只有需要历史证据、验收细节或冲突裁决时再按需查阅。
 
+## 当前持久 Goal
+
+统筹 Codex、Claude 与 Antigravity 协作，将哈喽卧得现有 Cloudflare 后端与原生 SwiftUI 客户端整合为可在真实 iPhone 上安装试用的 MVP，完成设计冻结、候选代码审查、API 联调、Xcode 构建、模拟器/真机验收及持续项目日志交接；除必须由用户完成的 Apple 账号、签名或系统授权外自动推进。当前暂停只停止执行，不缩减或删除此 Goal；恢复工作时仍以它为完整目标。
+
 ## 北极星与不可违背项
 
 - 做出可在真实 iPhone 安装试用的原生 SwiftUI MVP，之后走 TestFlight/App Store；React/GitHub Pages 仅是历史原型/接口工具。

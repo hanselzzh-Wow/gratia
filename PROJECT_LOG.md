@@ -783,3 +783,10 @@ Cloudflare Worker API
 - 初验不接受直接合入：发布真实截图显示字面量 `第 (currentStep) 步`；CL-006 commit 含任务卡明确禁止的生成 `project.pbxproj` 差异。截图目录视为必交证据的合理隐含路径；“去我的查询进度”属授权导航适配；DEBUG 钩子暂待硬化审计。
 - 按产品负责人对 Antigravity 的要求创建 `AG-009`：不是重做设计，而是在独立 worktree 修复用户可见缺陷、增加生产 helper 回归、证明 DEBUG/Release 边界、清除生成项目差异并跑完整质量门。
 - 接下来三步：Antigravity 完成 AG-009 后停止；Codex 复验并集成 CL-006/AG-009；main 重生成工程并跑完整 Simulator/冷暖启动，随后进入真机签名与闭环。
+
+### 2026-07-19：固化 Codex 开局授权与代理故障升级规则
+
+- 产品负责人明确：项目工程代理统一称为 Antigravity，不再使用 Gemini、Gemini CLI 或 `GEMINI-EXEC` 作为身份或入口。
+- 调用 Antigravity 或 Claude 遇到登录、客户端、权限、配额、沙箱或环境问题时，Codex 必须报告准确阻塞并请求产品负责人处理或裁决；不得未经授权自行接管、重新分派或代做。
+- Codex 每次开局读完任务、交接、群聊和 Git/worktree 状态后，必须先在 `.ai/TASKS.md` 与 `.ai/WRITE_FREEZE.md` 建立当前任务和精确写入范围，不能把 PM 身份视为实现文件的默认权限。
+- `PROJECT_MEMORY.md` 新增“当前持久 Goal”，后续开局与 Goal 变化时必须同步；暂停不缩减完整项目目标。当前项目仍暂停，AG-009 负责人仍为 Antigravity，未开始新实现或测试。
