@@ -885,3 +885,17 @@ Cloudflare Worker API
 - Antigravity `AG-012` 初次实际 HEAD 为 `814209c06739cacaed6ea75666a56f90e298fe26`。Codex 用官方 `xcresulttool` 读取 `/private/tmp/gratia-ag012.xcresult`：发现/执行/通过 25/25，0 failure、0 skip、0 runtime warning，iPhone 17 Pro / iOS Simulator 27.0；Antigravity 报告 Core 17/17，但本轮 Codex 未重跑 Core。
 - 正确项包括：发布第 1 步只隐藏右侧“地点”、通知行使用 `UIApplication.openNotificationSettingsURLString`、发布成功准确说明人工审核、搜索和访客帮助文案诚实化。初次交付仍被 REJECTED：未修改 `ContentView.swift`，漏五位 Dock VoiceOver；搜索 CTA 为 36pt；首页可见标题可能与 principal 品牌叠加；新增测试复制生产校验闭包且通知测试仅断言常量；未交截图/实际系统跳转；`git diff --check 463a420..HEAD` 报 13 处空白；handoff `9bd0c5f`、STATUS `cc67c10`、实际 HEAD `814209c` 三者不一致。
 - AG-012 仍为原范围修订中的 `IN_PROGRESS`，未合入任何产品线。下一步三项：Antigravity 修订并重新 STATUS；Codex独立复验截图/系统跳转/真实测试/差异；通过后才集成并派发 Apple 登录跨层实现。未验证项：AG-012 Core 独立回归、真实通知设置跳转、VoiceOver、真机；Apple 登录/token 撤销/D1 约束仍为未实现。
+
+## 2026-07-19｜当前 Goal 改为微信小程序 0.1 真实试用
+
+- 产品负责人决定：由于 Apple Developer Program 年费不适合作为早期验证成本，近期第一目标从 iOS/TestFlight 变更为微信小程序 0.1 的极小范围真实试用；保留已冻结的 Gratia iOS 1.0 作为后续体验基线，而非当前分发前置条件。
+- 小程序必须复用现有 Cloudflare Worker、D1、R2 和独立运营审核闭环；账号层改为 provider-neutral，当前先接微信身份，未来才接 Apple。游客可浏览；新发布/新响应最终提交必须登录；不做支付，不把微信 AppSecret、运营 PIN、会话或交付能力 URL 放入客户端/日志。
+- `AG-012` 所有未验收提交（`814209c`、`70d3523`、`115e0d2`）均未合入；Antigravity 当前还报告配额需约 3 小时后恢复。因优先级改变，任务状态改为 BLOCKED，权限收回，禁止自动恢复。`CL-009@4085b85` 保留为未来 iOS Apple 登录参考，当前不实施。
+- 接下来三步：Codex 冻结小程序目录、身份、会话、现有 API 兼容和隐私/验收规范；随后创建唯一隔离实现任务；先在受邀体验版验证发布→审核→帮助→查询交付，再依据事实决定 iOS/App Store 投入。未验证：微信个人主体当前可用类目、体验版受邀限制、域名白名单、微信登录换码和上线审核要求，均须在账户注册时以微信官方控制台为准。
+
+## 2026-07-19｜WX-001：Codex 独立交付微信小程序上线候选
+
+- 产品负责人明确授权 Codex 不再等待或派发 Antigravity/Claude，而是在隔离 worktree 独立实现微信小程序 0.1 上线候选；目标扩展为全链路、微信登录、provider-neutral 归属、本人记录、确认完成、账户删除、运营兼容、隐私/提审材料与实际验证。
+- 已创建 `WX-001` 唯一任务授权和局部写入冻结：允许小程序、最小 Worker/D1/契约/测试与上线材料；明确禁止 iOS 1.0、密钥、PIN、生产自动部署和伪称平台已审核。小程序可将 iOS 浮动 Dock 适配为固定底栏，所有差异必须记录。
+- 下一步三项：提交协调授权并创建隔离 worktree；审计既有 API/D1/1.0 视觉，冻结微信登录与数据迁移；实现、测试、导入微信工具并准备平台外部动作清单。
+- 未验证：微信主体/类目、服务域名、体验版资格、隐私主体与最终审核均需实际微信控制台与账户材料；这些外部裁决不会被本地代码或模拟测试替代。
