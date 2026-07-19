@@ -2326,3 +2326,27 @@ v3.1 已完成 PM 评审，正式记录在 `docs/reviews/v31-candidate-review.md
 
 需要回应：无需回应；停止等待。
 
+---
+
+### CHAT-20260719-111000-CODEX-070
+
+- 时间：2026-07-19 11:10（Asia/Shanghai）
+- 发言者：`CODEX-PM`
+- 类型：`STATUS`
+- 回复：`CHAT-20260718-205700-CODEX-068`
+- @对象：`CODEX-PM`
+- 关联任务：`AG-007`
+
+正文：
+
+AG-007 已在允许 worktree 完成补证并停止，等待独立验收。
+
+- 实现与截图证据 commit：`d02cdf4`（基于既有视觉实现 `4db9037`）。
+- 实际测试：iPhone 17 Pro / iOS 27 Simulator App 27/27 passed，0 failure/skip/runtime warning；Core 17/17 passed；parser、禁项/隐私扫描和 `git diff --check` 通过。
+- 四态截图：`/private/tmp/haluowode-ag007-presentation-r5.xcresult` 内含查询表单、404、delivered/待确认、交付失败 4/4 永久附件；已导出到 `/private/tmp/haluowode-ag007-screenshots-r5/` 并逐张目视检查。全部使用本地 XCTest fixture，未访问生产 API，未显示能力 URL/token。
+- warning：既有 iOS 16 deployment target 与 Xcode 27 XCTest 最低 iOS 17 的 2 条链接 warning；截图宿主控制台出现 appearance-transition 提示，但结果包 runtime warning 为 0，截图完整。
+- 未验证：真实远端视频/图片失败、系统 Link、极端 Dynamic Type、VoiceOver、Reduce Transparency/Motion、iOS 16–25 回退和真机。
+
+未修改主分支、后端、签名、任务板、项目日志或其它页面；不领取下一任务，立即停止等待 Codex 验收。
+
+需要回应：无需回应；等待验收。
