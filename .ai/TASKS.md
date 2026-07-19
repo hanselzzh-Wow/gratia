@@ -33,8 +33,10 @@
 | CL-007 | Claude | SUPERSEDED | 用户确认的 Claude 玫粉白/Lucide 真源已直接形成 AG-010 实现任务；Claude CLI 未交付审计 | 历史 worktree `worktrees/claude-cl-007-lucide-audit`；权限已收回 | 不得继续修改 |
 | AG-010 | Antigravity | SUPERSEDED | 首次交付 `1887b30` 含运行时虚构故事且未通过验收；产品负责人改为直接在真机运行 Claude 原始设计分支 | 任务 worktree 权限已收回 | 不得修复、合入、推送或继续修改；若未来要将原版迁移回主线，必须另建任务 |
 | VERSION-1.0 | Codex PM | FROZEN | 产品负责人指定 Claude 原始玫粉白/Lucide 客户端为唯一 1.0：`463a420`（设计 `8e95b0b`） | 仅 `release/1.0` 分支与 `v1.0-claude-rose` 标签作为基线 | 后续任务只能从 1.0 分出；不得以 main、CL-006 或 AG-010 取代、混入或回滚 1.0 |
-| CL-008 | Claude | IN_PROGRESS | 审计 Gratia 1.0 从首页到真实发布、帮助响应、进度/交付的产品与交互闭环，冻结最小 MVP 页面职责和状态 | 仅独立 worktree 的 `.ai/handoffs/CL-008-gratia-mvp-flow-audit.md` 与 `.ai/TEAM_CHAT.md` 末尾追加 | 交付审计、STATUS、commit 后立即停止；不得改产品代码或领取实现 |
+| CL-008 | Claude | ACCEPTED | Gratia 1.0 产品闭环审计与二次增量已以 `c5e4f78`/`7c16b01` 交付并集成；确认四链路、生产故事边界及发布者确认完成等断点 | 历史审计 worktree；写权限已收回 | 已验收；不得继续修改或领取实现 |
 | AG-011 | Antigravity | ACCEPTED | Gratia 1.0 工程基线审计已交付 `b42337e`：Core 17/17、App 23/23，真实 API 四链路已接线，首页/搜索为本地故事域且生产诚实空态 | 历史审计 worktree；写权限已收回 | 已验收；不得继续修改或领取实现，等待新任务 |
+| AG-012 | Antigravity | IN_PROGRESS | 1.0 UI 诚信与可达性硬化：按产品原话删发布步骤右侧“地点”、通知设置直达系统、讲清人工审核、修校验/无障碍/诚实空态 | 仅独立 worktree 中任务卡列明的 Gratia UI、测试、生成工程与交接路径 | 全套测试/截图、commit、handoff/STATUS 后停止；Codex 独立验收前不得合入 |
+| CL-009 | Claude | IN_PROGRESS | 冻结 Apple 登录、账号归属、兼容找回与账户删除的 1.0 UX/状态规格 | 仅独立 worktree 的 `.ai/handoffs/CL-009-apple-account-ux.md` 与 `.ai/TEAM_CHAT.md` 末尾追加 | 交付状态/文案/页面责任/验收规格、commit、STATUS 后停止；不得改代码 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -851,6 +853,69 @@ git diff --check
 - Codex 使用 Xcode 官方 `xcresulttool` 读取 `/private/tmp/gratia-ag011.xcresult`：发现/执行/通过 23/23，0 失败、0 跳过、0 runtime warning；设备 iPhone 17 Pro / iOS Simulator 27.0。
 - Codex 另在冻结 `release/1.0` 独立重跑 GratiaCore：17/17 通过。交接列出的 4 条构建/链接 warning 与结果包 runtime warning 是不同维度，不得表述为运行时 warning。
 - 审计准确确认真实发布、待匹配列表、响应、发布者查询/交付预览均已接线；“我帮助的”没有响应者查询 API，访客也没有用户身份或跨设备记录，不能称为已闭环。
+
+### CL-008 独立验收结论（2026-07-19）
+
+- Claude 交付 `c5e4f78` 与增量 `7c16b01`，仅 handoff/群聊有差异，`git diff --check 463a420..7c16b01` 通过；产品代码 0 修改。两份 handoff 已由 Codex 集成至 main 协调历史。
+- 接受：demo 故事只能用于 Preview/DEBUG 显式启动参数/注明虚构的宣传素材，Release 保持诚实空态；首页/搜索无生产故事服务；四条真实链路已接线但不等于完整闭环。
+- 新增确认：App 缺少发布者 `delivered → completed` 的“确认完成”动作；发布成功状态词与查询状态不一致；步骤提前校验与最终提交校验不一致；通知设置静态无动作；“我帮助的”文案过诺；若干 VoiceOver/标题缺口。
+- 产品负责人已裁决登录升为 P0，故不接受 CL-008 较早“无账户阶段隐藏 chips 即可”的长期方案；账号与服务端归属由 CL-009/后续跨层实现替代。
+
+## AG-012：Gratia 1.0 UI 诚信与可达性硬化（Antigravity，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/ag-012-ui-integrity`
+
+分支：`codex/ag-012-ui-integrity`，起点 `release/1.0@463a420`。
+
+唯一目标：不改变 1.0 视觉、导航、技术身份、API 或业务状态机，修复产品负责人已明确的发布步骤文案与通知入口，并收口 CL-008 可在纯客户端完成的审核说明、校验一致性、诚实空态和无障碍断点。不得实现登录或确认完成后端。
+
+允许修改（仅任务 worktree）：
+
+- `ios/Gratia/PublishView.swift`
+- `ios/Gratia/ProfileView.swift`（只限通知设置按钮、访客/活动文案诚实性；不得做假账号或本地假记录）
+- `ios/Gratia/SearchView.swift`（只限生产故事空态说明与真实出口）
+- `ios/Gratia/HomeView.swift`（只限移除无动作刷新、页面 VoiceOver 标题）
+- `ios/Gratia/ContentView.swift`（只限 Dock VoiceOver 标签）
+- `ios/Gratia/DeliveryPreviewView.swift`（只限关闭按钮无障碍标签）
+- 现有 `ios/GratiaTests/*.swift` 中与上述行为有关的最小测试，或新建 `ios/GratiaTests/AG012UIIntegrityTests.swift`
+- `ios/Gratia.xcodeproj/project.pbxproj`（仅在新增测试文件后由 `ios/project.yml` 的既有 source glob 生成、只允许新增文件引用/BuildFile；不得改签名、Bundle ID、Team、build setting）
+- `.ai/handoffs/AG-012-ui-integrity.md`
+- `.ai/TEAM_CHAT.md`（只追加）
+
+禁止修改：其他 `ios/Gratia/**`、全部 ViewModel/Core/API、`StoryFeed.swift` 与 demo 内容、`project.yml`、Info/本地化/AppIcon/Lucide 资产、后端/Worker/D1/R2/部署、签名/capability/Bundle ID、依赖、任务板/冻结/记忆/日志/main/release/1.0/Git 历史；不得实现账号、通知权限申请、推送、确认完成 API、运营 PIN 或运行时假数据。
+
+产品精确要求与验收：
+
+1. `PublishView.progressIndicator` 在第 1 步**只让右侧“地点”两字不显示**；左侧“第 N 步，共 3 步”、三段进度条及第 2/3 步现有“内容/确认”保持不变，禁止改成 `1/3` 或替换结构。
+2. 发布成功页明确：“提交后进入人工审核；审核通过后会出现在帮助页供他人响应”，状态路线统一使用 Core 的“待审核/待匹配/已派单”等词；消费者 App 不显示运营台 URL/PIN。
+3. 第 1/2 步继续按钮条件与 `PublishWishViewModel.validate()` 的长度边界一致，用户不能带明显非法字段走到第 3 步；不改 ViewModel/API。
+4. “消息通知设置”整行可点击，使用 `UIApplication.openNotificationSettingsURLString` 交给 SwiftUI `openURL` 打开本 App 系统通知设置；失败/URL 不可用不得崩溃；不在本任务请求通知权限。
+5. 搜索生产无故事时说明“公开故事尚未上线”，提供去帮助/发布的真实出口；不得把 demo 词表/故事当成线上内容。
+6. Dock 五项 VoiceOver 朗读首页/搜索/发布心愿/帮助/我的；交付预览关闭按钮有明确标签；首页有可读页面标题；所有触控 >=44pt。
+7. “我帮助的”不再承诺无法实现的本地完成记录；账号上线前只诚实引导帮助页。不得声称访客可被唯一识别。
+
+验证至少执行：Core 17/17、App 全套、新增测试、parser、Release demo 参数/故事边界扫描、隐私/凭据扫描、`git diff --check`、iPhone 17 Pro Simulator 对发布步骤 1/2/3、成功页、搜索空态、我的通知行截图，并实际点通知行记录系统跳转结果。交接必须给实际发现/执行/通过/失败/跳过数、xcresult、截图、warning、未验证项与 commit。完成后 STATUS/停止。
+
+## CL-009：Gratia 1.0 Apple 账号体验冻结（Claude，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/cl-009-apple-account-ux`
+
+分支：`codex/cl-009-apple-account-ux`，起点 `release/1.0@463a420`。
+
+唯一目标：在不重画 1.0 的前提下，冻结“通过 Apple 登录”如何嵌入浏览、发布、响应、我的、兼容找回与删除账户的完整 UX/状态/文案，使后续 iOS+Worker+D1 实现可直接执行。只做设计规格，不写代码。
+
+允许修改：仅 `.ai/handoffs/CL-009-apple-account-ux.md` 与 `.ai/TEAM_CHAT.md` 末尾追加。
+
+禁止修改：所有源码/测试/资源/工程、签名/capability/Bundle ID、后端/D1/部署/密钥、任务板/冻结/记忆/日志/main/release/1.0/Git 历史；不得要求手机号、微信登录、关注/私信/评论/点赞等扩展范围。
+
+必须交付：
+
+1. 浏览免登录；发布/响应在什么时点要求 Apple 登录，取消/失败/网络断开/凭证撤销/首次授权只返回一次姓名邮箱时如何处理。
+2. “我的”登录前/登录后信息架构；本人发布、本人响应、状态/交付的列表与详情；旧“公开编号+联系方式”兼容找回如何迁入账号且避免冒领。
+3. App 内退出登录、删除账户二次确认、处理中/失败/完成状态；关联发布内容、响应、联系方式、交付与法定保留数据的准确文案，Apple token 撤销必须纳入流程。
+4. 明确不展示 Apple 隐藏邮箱以外的额外隐私，不把联系方式当登录凭证；不引入假记录/假成功。
+5. 逐屏文案、状态表、页面责任、无障碍、验收截图清单，以及交给工程的最小分阶段顺序（架构/API→iOS 登录→归属列表→迁移/删除）。
+6. 写明基线、读过的文件、官方约束假设、未决产品问题、未验证项、commit；STATUS 后停止。
 
 ## 新任务创建要求
 

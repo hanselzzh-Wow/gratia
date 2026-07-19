@@ -869,3 +869,11 @@ Cloudflare Worker API
 - 产品负责人明确：发布进度区仅删除右侧“地点”文字，保留“第 N 步，共 3 步”和进度条；不得改成 `1/3`。通知设置静态行必须改为按钮，直达本 App 系统通知设置。
 - 产品负责人询问并认可直接做登录。Codex 选择 MVP 首版只做原生 Apple 登录：浏览免登录，发布/响应与个人真实记录纳入账号；后端验证 Apple token、签发会话并归属数据，旧编号+联系方式保留兼容找回。账户创建同时必须实现 App 内账户删除、Apple token 撤销与关联数据删除。
 - 官方依据：Apple 提供 SwiftUI `SignInWithAppleButton` 与服务端 token 验证/公钥接口；App Store Review Guidelines 要求无重要账号功能时允许免登录，支持创建账户时必须 App 内发起删除。尚未创建登录实现任务，未修改签名/capability、Worker 或 D1。
+
+## 2026-07-19｜CL-008 验收并派发 AG-012 / CL-009
+
+- CL-008 文档 `c5e4f78` 与二次增量 `7c16b01` 已验收并集成到 main 协调历史；仅 handoff/群聊，产品代码 0 修改。Claude确认 demo 故事只限 Preview/DEBUG 显式参数/注明虚构的宣传素材，Release 诚实空态。
+- 新断点：发布者无法在 App 将 `delivered` 确认为 `completed`；发布成功状态词与 Core 不一致；发布提前校验与最终校验错位；通知静态行、我帮助的过诺及 VoiceOver 缺口。产品负责人最新登录/删“地点”裁决覆盖较早的无账号长期建议。
+- 派发 AG-012 给 Antigravity：纯客户端 UI 诚信/可达性硬化，精确落实只隐藏第 1 步右侧“地点”、通知设置系统跳转、人工审核说明、校验一致性、搜索诚实空态和无障碍；禁止登录/后端/签名/ViewModel/Core。
+- 派发 CL-009 给 Claude：只读冻结 Apple 登录、登录前后“我的”、旧记录兼容找回、账号删除/token 撤销的逐屏 UX 与状态；禁止任何代码或 capability 修改。
+- 下一步：并行验收 AG-012 与 CL-009；随后由 Codex 冻结 Apple 登录的跨层架构/接口和 Antigravity 实现任务。发布者确认完成作为账号归属之后的独立闭环切片。
