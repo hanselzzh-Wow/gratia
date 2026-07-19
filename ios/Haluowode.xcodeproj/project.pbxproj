@@ -9,7 +9,9 @@
 /* Begin PBXBuildFile section */
 		06C8ED42AD29280F96867FA4 /* WishResponseViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46D02287F43252F22279E63 /* WishResponseViewModelTests.swift */; };
 		0C2E751C3700951C3C49848A /* DeliveryPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 357FF076D523E2AA9189DD39 /* DeliveryPreviewView.swift */; };
+		14C8B4B264D912A2893F87AD /* HomePreviewFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FDEF48CC8551A069E20D07D /* HomePreviewFixtures.swift */; };
 		20B3F5482F1D4D8776B4E424 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D8C38BCFAD380951D6D5BB7 /* HomeView.swift */; };
+		27812744CA971C76524B815E /* CL006PresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C37704D94AE87DC2DA872C15 /* CL006PresentationTests.swift */; };
 		28BD8396213BF32C2A5C6DEA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8336A40B8AC7F8E866C78B1A /* ContentView.swift */; };
 		2F1800481C6759EB61F28DC7 /* TrackWishViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42C391D67AD0611C526DB389 /* TrackWishViewModelTests.swift */; };
 		41E3B30923E7F9F433042C42 /* PublishWishViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0FD3ED9D702DFF7121D610C /* PublishWishViewModel.swift */; };
@@ -21,6 +23,7 @@
 		6DC5FC026C391956AF0B039D /* SwiftUI+Compat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887EACF5B1EB7240A73F287B /* SwiftUI+Compat.swift */; };
 		7639F8F30CD7823D07690352 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DA3BFEE80FC06CF97769DF0F /* Assets.xcassets */; };
 		88CB25B4F63F64EC0CCEA960 /* HaluowodeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2BDE1F988AF9D63EFC6C5EA /* HaluowodeApp.swift */; };
+		99194CE050F2592D23FCE921 /* AppNavigationAndSearchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F99EBE6D9B122C7513C7F8D4 /* AppNavigationAndSearchTests.swift */; };
 		9B436D6CED55A5BFF35AFEDB /* TrackWishViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C023781F0313D4EC4DFA1862 /* TrackWishViewModel.swift */; };
 		AFAC82574ADD0D5EB99BEE7D /* WishListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 752469DF790458D7FEB895A8 /* WishListViewModelTests.swift */; };
 		B3D4BBF5256D99F3829FCEE6 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F94CC4301EC09CF07378A7 /* Models.swift */; };
@@ -28,6 +31,7 @@
 		C45D7F8CC71C5A2D6A7A41FC /* PublishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36817BBF7BFAE2B25DC4921 /* PublishView.swift */; };
 		CAD3CBDF052E3278F37B64F9 /* WishListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39746411CA509AF28B647F06 /* WishListViewModel.swift */; };
 		CC6A17E91A882A2B1B7CBB23 /* PublishWishViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A56C00CAFD853D0C4203FB9E /* PublishWishViewModelTests.swift */; };
+		EC435AD6E9E9F3B051B602AA /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99857FD7EC2ED85F18A1BC58 /* SearchView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +50,7 @@
 		112E28D798A28379D6A78006 /* WishResponseViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishResponseViewModel.swift; sourceTree = "<group>"; };
 		2A2F81EECC54084008EC49A7 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		2BE37E2ADCE38B19D4870DF4 /* Haluowode.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Haluowode.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2FDEF48CC8551A069E20D07D /* HomePreviewFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePreviewFixtures.swift; sourceTree = "<group>"; };
 		357FF076D523E2AA9189DD39 /* DeliveryPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliveryPreviewView.swift; sourceTree = "<group>"; };
 		39746411CA509AF28B647F06 /* WishListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishListViewModel.swift; sourceTree = "<group>"; };
 		42C391D67AD0611C526DB389 /* TrackWishViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackWishViewModelTests.swift; sourceTree = "<group>"; };
@@ -55,16 +60,19 @@
 		8336A40B8AC7F8E866C78B1A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		85E6FA3C2DA32FF3D6C537A7 /* HaluowodeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HaluowodeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		887EACF5B1EB7240A73F287B /* SwiftUI+Compat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SwiftUI+Compat.swift"; sourceTree = "<group>"; };
+		99857FD7EC2ED85F18A1BC58 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		A56C00CAFD853D0C4203FB9E /* PublishWishViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishWishViewModelTests.swift; sourceTree = "<group>"; };
 		B0FD3ED9D702DFF7121D610C /* PublishWishViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishWishViewModel.swift; sourceTree = "<group>"; };
 		B36817BBF7BFAE2B25DC4921 /* PublishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishView.swift; sourceTree = "<group>"; };
 		B6F1F74F9C44F97F74E8D4A7 /* HaluowodeCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = HaluowodeCore; path = Packages/HaluowodeCore; sourceTree = SOURCE_ROOT; };
 		BDF823FE4F1CE75DEEFF668E /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		C023781F0313D4EC4DFA1862 /* TrackWishViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackWishViewModel.swift; sourceTree = "<group>"; };
+		C37704D94AE87DC2DA872C15 /* CL006PresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CL006PresentationTests.swift; sourceTree = "<group>"; };
 		D2BDE1F988AF9D63EFC6C5EA /* HaluowodeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HaluowodeApp.swift; sourceTree = "<group>"; };
 		D46D02287F43252F22279E63 /* WishResponseViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishResponseViewModelTests.swift; sourceTree = "<group>"; };
 		D6F94CC4301EC09CF07378A7 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		DA3BFEE80FC06CF97769DF0F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F99EBE6D9B122C7513C7F8D4 /* AppNavigationAndSearchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigationAndSearchTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +95,7 @@
 				357FF076D523E2AA9189DD39 /* DeliveryPreviewView.swift */,
 				BDF823FE4F1CE75DEEFF668E /* DesignSystem.swift */,
 				D2BDE1F988AF9D63EFC6C5EA /* HaluowodeApp.swift */,
+				2FDEF48CC8551A069E20D07D /* HomePreviewFixtures.swift */,
 				0D8C38BCFAD380951D6D5BB7 /* HomeView.swift */,
 				497023A94ACCC191BBE412C9 /* Info.plist */,
 				D6F94CC4301EC09CF07378A7 /* Models.swift */,
@@ -95,6 +104,7 @@
 				0304A32E0107CF6B8A492D7D /* ProgressView.swift */,
 				B36817BBF7BFAE2B25DC4921 /* PublishView.swift */,
 				B0FD3ED9D702DFF7121D610C /* PublishWishViewModel.swift */,
+				99857FD7EC2ED85F18A1BC58 /* SearchView.swift */,
 				887EACF5B1EB7240A73F287B /* SwiftUI+Compat.swift */,
 				C023781F0313D4EC4DFA1862 /* TrackWishViewModel.swift */,
 				39746411CA509AF28B647F06 /* WishListViewModel.swift */,
@@ -106,6 +116,8 @@
 		2F8873EF49AC78F9AE38D04D /* HaluowodeTests */ = {
 			isa = PBXGroup;
 			children = (
+				F99EBE6D9B122C7513C7F8D4 /* AppNavigationAndSearchTests.swift */,
+				C37704D94AE87DC2DA872C15 /* CL006PresentationTests.swift */,
 				A56C00CAFD853D0C4203FB9E /* PublishWishViewModelTests.swift */,
 				42C391D67AD0611C526DB389 /* TrackWishViewModelTests.swift */,
 				752469DF790458D7FEB895A8 /* WishListViewModelTests.swift */,
@@ -236,6 +248,7 @@
 				0C2E751C3700951C3C49848A /* DeliveryPreviewView.swift in Sources */,
 				4BEFD84B8B8830F77FACA935 /* DesignSystem.swift in Sources */,
 				88CB25B4F63F64EC0CCEA960 /* HaluowodeApp.swift in Sources */,
+				14C8B4B264D912A2893F87AD /* HomePreviewFixtures.swift in Sources */,
 				20B3F5482F1D4D8776B4E424 /* HomeView.swift in Sources */,
 				B3D4BBF5256D99F3829FCEE6 /* Models.swift in Sources */,
 				68E58538F7A521DBC3F71347 /* NearbyView.swift in Sources */,
@@ -243,6 +256,7 @@
 				BBC73A56F7E4404EFFFE0718 /* ProgressView.swift in Sources */,
 				C45D7F8CC71C5A2D6A7A41FC /* PublishView.swift in Sources */,
 				41E3B30923E7F9F433042C42 /* PublishWishViewModel.swift in Sources */,
+				EC435AD6E9E9F3B051B602AA /* SearchView.swift in Sources */,
 				6DC5FC026C391956AF0B039D /* SwiftUI+Compat.swift in Sources */,
 				9B436D6CED55A5BFF35AFEDB /* TrackWishViewModel.swift in Sources */,
 				CAD3CBDF052E3278F37B64F9 /* WishListViewModel.swift in Sources */,
@@ -254,6 +268,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99194CE050F2592D23FCE921 /* AppNavigationAndSearchTests.swift in Sources */,
+				27812744CA971C76524B815E /* CL006PresentationTests.swift in Sources */,
 				CC6A17E91A882A2B1B7CBB23 /* PublishWishViewModelTests.swift in Sources */,
 				2F1800481C6759EB61F28DC7 /* TrackWishViewModelTests.swift in Sources */,
 				AFAC82574ADD0D5EB99BEE7D /* WishListViewModelTests.swift in Sources */,

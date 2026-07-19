@@ -5,7 +5,11 @@ struct PublishView: View {
     private enum PublishField: Hashable { case landmark, words, name, contact }
 
     @ObservedObject var viewModel: PublishWishViewModel
-    @Binding var selectedTab: Int
+    /// Presented as a full-screen cover from the dock's centre action;
+    /// these closures only control dismissal and tab routing, not the business flow.
+    var onClose: () -> Void = {}
+    var onViewProgress: () -> Void = {}
+    var onGoHome: () -> Void = {}
     @State private var currentStep = 1
     @FocusState private var focusedField: PublishField?
 
@@ -52,16 +56,16 @@ struct PublishView: View {
             }
             .navigationTitle(isSuccess ? "发布成功" : "发布心愿")
             .navigationBarTitleDisplayMode(.inline)
-            .warmBackground()
+            .whiteCanvas()
             .toolbar {
                 if !isSuccess {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("取消") {
                             viewModel.resetForm()
                             currentStep = 1
-                            selectedTab = 0
+                            onClose()
                         }
-                        .foregroundStyle(DesignSystem.accent)
+                        .foregroundStyle(DesignSystem.rose)
                     }
                 }
             }
@@ -73,16 +77,16 @@ struct PublishView: View {
             HStack {
                 Text("第 (currentStep) 步，共 3 步")
                     .font(DesignSystem.metadataFont)
-                    .foregroundStyle(DesignSystem.ink700)
+                    .foregroundStyle(DesignSystem.inkMuted)
                 Spacer()
                 Text(["地点", "内容", "确认"][currentStep - 1])
                     .font(DesignSystem.metadataFont.weight(.semibold))
-                    .foregroundStyle(DesignSystem.accent)
+                    .foregroundStyle(DesignSystem.rose)
             }
             HStack(spacing: DesignSystem.spacing4) {
                 ForEach(1...3, id: \.self) { index in
                     Capsule()
-                        .fill(index <= currentStep ? DesignSystem.accent : DesignSystem.hairline)
+                        .fill(index <= currentStep ? DesignSystem.rose : DesignSystem.roseHairline)
                         .frame(height: 4)
                 }
             }
@@ -102,7 +106,7 @@ struct PublishView: View {
             Spacer()
             Button("重试") { submitWish() }
                 .font(DesignSystem.metadataFont.weight(.semibold))
-                .foregroundStyle(DesignSystem.accent)
+                .foregroundStyle(DesignSystem.rose)
         }
         .padding(DesignSystem.spacing12)
         .background(
@@ -118,7 +122,7 @@ struct PublishView: View {
         HStack(spacing: DesignSystem.spacing16) {
             if currentStep > 1 {
                 Button("返回") { withAnimation { currentStep -= 1 } }
-                    .buttonStyle(SecondaryButtonStyle())
+                    .buttonStyle(RoseSecondaryButtonStyle())
                     .frame(width: 108)
             }
             Button {
@@ -127,11 +131,11 @@ struct PublishView: View {
                 if isSubmitting { SwiftUI.ProgressView().tint(.white) }
                 else { Text(currentStep == 3 ? "确认并提交" : "继续") }
             }
-            .buttonStyle(PrimaryButtonStyle(isDisabled: !canAdvance))
+            .buttonStyle(RosePrimaryButtonStyle(isDisabled: !canAdvance))
             .disabled(!canAdvance || isSubmitting)
         }
         .padding(DesignSystem.spacing20)
-        .overlay(alignment: .top) { Rectangle().fill(DesignSystem.hairline).frame(height: 1) }
+        .overlay(alignment: .top) { Rectangle().fill(DesignSystem.roseHairline).frame(height: 1) }
         .background(DesignSystem.canvas)
     }
 
@@ -165,11 +169,11 @@ struct PublishView: View {
                     Spacer()
                     Text("\(viewModel.words.count)/120")
                         .font(DesignSystem.captionFont)
-                        .foregroundStyle(viewModel.words.count > 120 ? DesignSystem.danger : DesignSystem.ink500)
+                        .foregroundStyle(viewModel.words.count > 120 ? DesignSystem.danger : DesignSystem.inkMuted)
                 }
                 TextEditor(text: $viewModel.words)
                     .font(DesignSystem.bodyFont)
-                    .foregroundStyle(DesignSystem.ink900)
+                    .foregroundStyle(DesignSystem.inkPrimary)
                     .scrollContentBackground(.hidden)
                     .padding(DesignSystem.spacing8)
                     .frame(height: 124)
@@ -209,7 +213,7 @@ struct PublishView: View {
             Toggle(isOn: $viewModel.agreeContact) {
                 Text("我已知晓联系方式仅限运营沟通，并同意审核通过后向附近的人公开心愿内容（不含联系方式）。")
                     .font(DesignSystem.metadataFont)
-                    .foregroundStyle(DesignSystem.ink700)
+                    .foregroundStyle(DesignSystem.inkMuted)
                     .lineSpacing(2)
             }
             .toggleStyle(CheckboxToggleStyle())
@@ -220,25 +224,25 @@ struct PublishView: View {
 
     private func stepHeader(title: String, subtitle: String) -> some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
-            Text(title).font(DesignSystem.titleFont).foregroundStyle(DesignSystem.ink900)
-            Text(subtitle).font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.ink700)
+            Text(title).font(DesignSystem.titleFont).foregroundStyle(DesignSystem.inkPrimary)
+            Text(subtitle).font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.inkMuted)
         }
     }
 
     private func fieldLabel(_ text: String) -> some View {
-        Text(text).font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.ink900)
+        Text(text).font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.inkPrimary)
     }
 
     private func selectionTile(_ text: String, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(text)
                 .font(DesignSystem.metadataFont.weight(.semibold))
-                .foregroundStyle(selected ? DesignSystem.accent : DesignSystem.ink900)
+                .foregroundStyle(selected ? DesignSystem.rose : DesignSystem.inkPrimary)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .background(
                     RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
-                        .fill(selected ? DesignSystem.canvasSunk : DesignSystem.canvas)
-                        .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).stroke(selected ? DesignSystem.accent : DesignSystem.hairline, lineWidth: selected ? 2 : 1))
+                        .fill(selected ? DesignSystem.roseCanvas : DesignSystem.canvas)
+                        .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).stroke(selected ? DesignSystem.rose : DesignSystem.roseHairline, lineWidth: selected ? 2 : 1))
                 )
         }
         .buttonStyle(.plain)
@@ -249,10 +253,10 @@ struct PublishView: View {
         Button { viewModel.city = city } label: {
             Text(city)
                 .font(DesignSystem.metadataFont.weight(.semibold))
-                .foregroundStyle(viewModel.city == city ? .white : DesignSystem.ink700)
+                .foregroundStyle(viewModel.city == city ? .white : DesignSystem.inkMuted)
                 .padding(.horizontal, DesignSystem.spacing16)
                 .frame(minHeight: 36)
-                .background(Capsule().fill(viewModel.city == city ? DesignSystem.accent : DesignSystem.canvas).overlay(Capsule().stroke(viewModel.city == city ? DesignSystem.accent : DesignSystem.hairline, lineWidth: 1)))
+                .background(Capsule().fill(viewModel.city == city ? DesignSystem.rose : DesignSystem.canvas).overlay(Capsule().stroke(viewModel.city == city ? DesignSystem.rose : DesignSystem.roseHairline, lineWidth: 1)))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(viewModel.city == city ? .isSelected : [])
@@ -263,7 +267,7 @@ struct PublishView: View {
             fieldLabel(label)
             TextField(placeholder, text: text)
                 .font(DesignSystem.bodyFont)
-                .foregroundStyle(DesignSystem.ink900)
+                .foregroundStyle(DesignSystem.inkPrimary)
                 .padding(.horizontal, DesignSystem.spacing12)
                 .frame(minHeight: 48)
                 .background(fieldBackground(isFocused: focusedField == field, hasError: error != nil))
@@ -285,8 +289,8 @@ struct PublishView: View {
 
     private func fieldBackground(isFocused: Bool, hasError: Bool) -> some View {
         RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
-            .fill(DesignSystem.canvasSunk)
-            .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).stroke(hasError ? DesignSystem.danger : (isFocused ? DesignSystem.accent : DesignSystem.hairlineStrong), lineWidth: isFocused ? 2 : 1))
+            .fill(DesignSystem.roseCanvas)
+            .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).stroke(hasError ? DesignSystem.danger : (isFocused ? DesignSystem.rose : DesignSystem.roseSoft), lineWidth: isFocused ? 2 : 1))
     }
 
     private func deliveryTypeRow(type: String, description: String, icon: String) -> some View {
@@ -297,19 +301,19 @@ struct PublishView: View {
             HStack(spacing: DesignSystem.spacing12) {
                 Image(systemName: icon)
                     .font(.title3.weight(.regular))
-                    .foregroundStyle(selected ? DesignSystem.accent : DesignSystem.ink500)
+                    .foregroundStyle(selected ? DesignSystem.rose : DesignSystem.inkMuted)
                     .frame(width: 28)
                 VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
-                    Text(type).font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.ink900)
-                    Text(description).font(DesignSystem.captionFont).foregroundStyle(DesignSystem.ink700).multilineTextAlignment(.leading)
+                    Text(type).font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.inkPrimary)
+                    Text(description).font(DesignSystem.captionFont).foregroundStyle(DesignSystem.inkMuted).multilineTextAlignment(.leading)
                 }
                 Spacer()
                 Image(systemName: selected ? "checkmark.circle" : "circle")
                     .font(.body.weight(.regular))
-                    .foregroundStyle(selected ? DesignSystem.accent : DesignSystem.ink500)
+                    .foregroundStyle(selected ? DesignSystem.rose : DesignSystem.inkMuted)
             }
             .padding(DesignSystem.spacing16)
-            .background(RoundedRectangle(cornerRadius: DesignSystem.radiusMedium).fill(DesignSystem.canvas).overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusMedium).stroke(selected ? DesignSystem.accent : DesignSystem.hairline, lineWidth: selected ? 2 : 1)))
+            .background(RoundedRectangle(cornerRadius: DesignSystem.radiusMedium).fill(DesignSystem.canvas).overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusMedium).stroke(selected ? DesignSystem.rose : DesignSystem.roseHairline, lineWidth: selected ? 2 : 1)))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])
@@ -323,9 +327,9 @@ struct PublishView: View {
                 Text(reward == 12 ? "基础答谢" : (reward == 18 ? "推荐金额" : "诚意满满"))
                     .font(DesignSystem.captionFont)
             }
-            .foregroundStyle(selected ? .white : DesignSystem.ink900)
+            .foregroundStyle(selected ? .white : DesignSystem.inkPrimary)
             .frame(maxWidth: .infinity, minHeight: 76)
-            .background(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).fill(selected ? DesignSystem.accent : DesignSystem.canvas).overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).stroke(selected ? DesignSystem.accent : DesignSystem.hairline, lineWidth: 1)))
+            .background(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).fill(selected ? DesignSystem.rose : DesignSystem.canvas).overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).stroke(selected ? DesignSystem.rose : DesignSystem.roseHairline, lineWidth: 1)))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])
@@ -333,17 +337,17 @@ struct PublishView: View {
 
     private var summaryCard: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
-            Text("心愿发布摘要").font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.ink900)
+            Text("心愿发布摘要").font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.inkPrimary)
             Divider()
             Text("目标：\(viewModel.city) · \(viewModel.landmark)（\(viewModel.scene)）")
             Text("形式：\(viewModel.deliveryType)")
             Text("内容：\(viewModel.words)").lineLimit(3)
-            Text("金额：¥\(viewModel.reward)").foregroundStyle(DesignSystem.ink900)
+            Text("金额：¥\(viewModel.reward)").foregroundStyle(DesignSystem.inkPrimary)
         }
         .font(DesignSystem.metadataFont)
-        .foregroundStyle(DesignSystem.ink700)
+        .foregroundStyle(DesignSystem.inkMuted)
         .padding(DesignSystem.spacing16)
-        .v3Card()
+        .roseCard(radius: DesignSystem.radiusMedium)
     }
 
     private func successView(publicCode: String) -> some View {
@@ -354,30 +358,30 @@ struct PublishView: View {
                 .foregroundStyle(DesignSystem.success)
                 .accessibilityHidden(true)
             VStack(spacing: DesignSystem.spacing8) {
-                Text("心愿送出，正在审核中").font(DesignSystem.titleFont).foregroundStyle(DesignSystem.ink900)
+                Text("心愿送出，正在审核中").font(DesignSystem.titleFont).foregroundStyle(DesignSystem.inkPrimary)
                 Text("请妥善保管公开编号，可用于查询心愿后续进度。")
-                    .font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.ink700).multilineTextAlignment(.center)
+                    .font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.inkMuted).multilineTextAlignment(.center)
             }
             VStack(spacing: DesignSystem.spacing12) {
-                Text("公开查询编号").font(DesignSystem.metadataFont).foregroundStyle(DesignSystem.ink700)
-                Text(publicCode).font(.title2.monospaced().weight(.bold)).foregroundStyle(DesignSystem.ink900)
+                Text("公开查询编号").font(DesignSystem.metadataFont).foregroundStyle(DesignSystem.inkMuted)
+                Text(publicCode).font(.title2.monospaced().weight(.bold)).foregroundStyle(DesignSystem.inkPrimary)
                 Button { UIPasteboard.general.string = publicCode } label: {
                     Label("复制编号", systemImage: "doc.on.doc")
                         .font(DesignSystem.metadataFont.weight(.semibold))
-                        .foregroundStyle(DesignSystem.accent)
+                        .foregroundStyle(DesignSystem.rose)
                 }
             }
             .padding(DesignSystem.spacing20)
             .frame(maxWidth: .infinity)
-            .v3Card(radius: DesignSystem.radiusLarge)
+            .roseCard(radius: DesignSystem.radiusLarge)
             .padding(.horizontal, DesignSystem.spacing24)
             roadmap
             Spacer()
             VStack(spacing: DesignSystem.spacing12) {
-                Button("查看心愿进度") { selectedTab = 3; viewModel.resetForm(); currentStep = 1 }
-                    .buttonStyle(PrimaryButtonStyle())
-                Button("返回首页") { selectedTab = 0; viewModel.resetForm(); currentStep = 1 }
-                    .font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.accent)
+                Button("去「我的」查询进度") { viewModel.resetForm(); currentStep = 1; onViewProgress() }
+                    .buttonStyle(RosePrimaryButtonStyle())
+                Button("返回首页") { viewModel.resetForm(); currentStep = 1; onGoHome() }
+                    .font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.rose)
             }
             .padding(.horizontal, DesignSystem.spacing24)
             .padding(.bottom, DesignSystem.spacing24)
@@ -386,14 +390,14 @@ struct PublishView: View {
 
     private var roadmap: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
-            Text("状态流转路线").font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.ink900)
+            Text("状态流转路线").font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.inkPrimary)
             HStack(spacing: DesignSystem.spacing8) {
                 processBadge("已提交", completed: true)
-                Image(systemName: "chevron.right").font(DesignSystem.captionFont).foregroundStyle(DesignSystem.ink500)
+                Image(systemName: "chevron.right").font(DesignSystem.captionFont).foregroundStyle(DesignSystem.inkMuted)
                 processBadge("审核中", completed: true)
-                Image(systemName: "chevron.right").font(DesignSystem.captionFont).foregroundStyle(DesignSystem.ink500)
+                Image(systemName: "chevron.right").font(DesignSystem.captionFont).foregroundStyle(DesignSystem.inkMuted)
                 processBadge("匹配中", completed: false)
-                Image(systemName: "chevron.right").font(DesignSystem.captionFont).foregroundStyle(DesignSystem.ink500)
+                Image(systemName: "chevron.right").font(DesignSystem.captionFont).foregroundStyle(DesignSystem.inkMuted)
                 processBadge("已接单", completed: false)
             }
         }
@@ -403,10 +407,10 @@ struct PublishView: View {
     private func processBadge(_ name: String, completed: Bool) -> some View {
         Text(name)
             .font(DesignSystem.captionFont.weight(.semibold))
-            .foregroundStyle(completed ? DesignSystem.accent : DesignSystem.ink700)
+            .foregroundStyle(completed ? DesignSystem.rose : DesignSystem.inkMuted)
             .padding(.horizontal, DesignSystem.spacing8)
             .frame(minHeight: 28)
-            .background(Capsule().fill(completed ? DesignSystem.canvasSunk : DesignSystem.canvas).overlay(Capsule().stroke(DesignSystem.hairline, lineWidth: 1)))
+            .background(Capsule().fill(completed ? DesignSystem.roseCanvas : DesignSystem.canvas).overlay(Capsule().stroke(DesignSystem.roseHairline, lineWidth: 1)))
     }
 
     private func submitWish() { Task { await viewModel.submitWish() } }

@@ -28,9 +28,9 @@ struct NearbyView: View {
                 filterChips
                 content
             }
-            .navigationTitle("附近的心愿")
+            .navigationTitle("需要帮助的心愿")
             .navigationBarTitleDisplayMode(.inline)
-            .warmBackground()
+            .whiteCanvas()
             .sheet(isPresented: $showFilterSheet) {
                 FilterSheetView(selectedCity: $localCity, isPresented: $showFilterSheet) { newCity in
                     viewModel.selectedCity = newCity
@@ -45,17 +45,17 @@ struct NearbyView: View {
         HStack(spacing: DesignSystem.spacing12) {
             HStack(spacing: DesignSystem.spacing8) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DesignSystem.ink500)
+                    .foregroundStyle(DesignSystem.inkMuted)
                     .accessibilityHidden(true)
                 TextField("搜索地标、心愿内容", text: $searchKeywords)
                     .font(DesignSystem.bodyFont)
-                    .foregroundStyle(DesignSystem.ink900)
+                    .foregroundStyle(DesignSystem.inkPrimary)
             }
             .padding(.horizontal, DesignSystem.spacing12)
             .frame(minHeight: 44)
             .background(
                 RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
-                    .fill(DesignSystem.canvasSunk)
+                    .fill(DesignSystem.roseCanvas)
             )
 
             Button {
@@ -64,14 +64,14 @@ struct NearbyView: View {
             } label: {
                 Image(systemName: "slider.horizontal.3")
                     .font(.body.weight(.regular))
-                    .foregroundStyle(DesignSystem.accent)
+                    .foregroundStyle(DesignSystem.rose)
                     .frame(width: 44, height: 44)
                     .background(
                         RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
                             .fill(DesignSystem.canvas)
                             .overlay(
                                 RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
-                                    .stroke(DesignSystem.hairlineStrong, lineWidth: 1)
+                                    .stroke(DesignSystem.roseSoft, lineWidth: 1)
                             )
                     )
             }
@@ -90,15 +90,15 @@ struct NearbyView: View {
                     } label: {
                         Text(type)
                             .font(DesignSystem.metadataFont.weight(.semibold))
-                            .foregroundStyle(selectedDeliveryFilter == type ? .white : DesignSystem.ink700)
+                            .foregroundStyle(selectedDeliveryFilter == type ? .white : DesignSystem.inkMuted)
                             .padding(.horizontal, DesignSystem.spacing16)
                             .frame(minHeight: 36)
                             .background(
                                 Capsule()
-                                    .fill(selectedDeliveryFilter == type ? DesignSystem.accent : DesignSystem.canvas)
+                                    .fill(selectedDeliveryFilter == type ? DesignSystem.rose : DesignSystem.canvas)
                                     .overlay(
                                         Capsule().stroke(
-                                            selectedDeliveryFilter == type ? DesignSystem.accent : DesignSystem.hairline,
+                                            selectedDeliveryFilter == type ? DesignSystem.rose : DesignSystem.roseHairline,
                                             lineWidth: 1
                                         )
                                     )
@@ -118,7 +118,7 @@ struct NearbyView: View {
         case .idle, .loading:
             Spacer()
             SwiftUI.ProgressView("正在加载心愿")
-                .tint(DesignSystem.accent)
+                .tint(DesignSystem.rose)
                 .font(DesignSystem.metadataFont)
             Spacer()
         case .failed(let error):
@@ -129,10 +129,10 @@ struct NearbyView: View {
                     .foregroundStyle(DesignSystem.danger)
                 Text(error)
                     .font(DesignSystem.bodyFont)
-                    .foregroundStyle(DesignSystem.ink700)
+                    .foregroundStyle(DesignSystem.inkMuted)
                     .multilineTextAlignment(.center)
                 Button("重试") { Task { await viewModel.fetchWishes() } }
-                    .buttonStyle(SecondaryButtonStyle())
+                    .buttonStyle(RoseSecondaryButtonStyle())
                     .frame(width: 120)
             }
             .padding(.horizontal, DesignSystem.spacing32)
@@ -144,7 +144,7 @@ struct NearbyView: View {
                 HStack {
                     Text("共找到 \(filteredWishes.count) 个心愿")
                         .font(DesignSystem.metadataFont)
-                        .foregroundStyle(DesignSystem.ink700)
+                        .foregroundStyle(DesignSystem.inkMuted)
                     Spacer()
                 }
                 .padding(.horizontal, DesignSystem.spacing20)
@@ -177,10 +177,10 @@ struct NearbyView: View {
             Spacer()
             Image(systemName: "tray")
                 .font(.largeTitle.weight(.regular))
-                .foregroundStyle(DesignSystem.ink500)
+                .foregroundStyle(DesignSystem.inkMuted)
             Text("没有找到符合条件的心愿")
                 .font(DesignSystem.bodyFont)
-                .foregroundStyle(DesignSystem.ink700)
+                .foregroundStyle(DesignSystem.inkMuted)
             Spacer()
         }
         .frame(maxWidth: .infinity)
@@ -195,40 +195,40 @@ struct WishRowView: View {
             HStack(alignment: .top) {
                 Text("\(wish.city) · \(wish.landmark)")
                     .font(DesignSystem.headlineFont)
-                    .foregroundStyle(DesignSystem.ink900)
+                    .foregroundStyle(DesignSystem.inkPrimary)
                     .lineLimit(1)
                 Spacer(minLength: DesignSystem.spacing8)
                 Text("¥\(Int(wish.rewardYuan))")
                     .font(DesignSystem.headlineFont)
-                    .foregroundStyle(DesignSystem.ink900)
+                    .foregroundStyle(DesignSystem.inkPrimary)
             }
 
             Text(wish.message)
                 .font(DesignSystem.bodyFont)
-                .foregroundStyle(DesignSystem.ink700)
+                .foregroundStyle(DesignSystem.inkMuted)
                 .lineLimit(3)
                 .lineSpacing(2)
 
             HStack {
                 Text(wish.deliveryType.label)
                     .font(DesignSystem.captionFont.weight(.semibold))
-                    .foregroundStyle(DesignSystem.accent)
+                    .foregroundStyle(DesignSystem.rose)
                     .padding(.horizontal, DesignSystem.spacing8)
                     .frame(minHeight: 28)
                     .background(
                         Capsule()
-                            .fill(DesignSystem.canvasSunk)
-                            .overlay(Capsule().stroke(DesignSystem.hairline, lineWidth: 1))
+                            .fill(DesignSystem.roseCanvas)
+                            .overlay(Capsule().stroke(DesignSystem.roseHairline, lineWidth: 1))
                     )
                 Spacer()
                 Text("期望时间：\(wish.deadlineText)")
                     .font(DesignSystem.captionFont)
-                    .foregroundStyle(DesignSystem.ink500)
+                    .foregroundStyle(DesignSystem.inkMuted)
                     .lineLimit(1)
             }
         }
         .padding(DesignSystem.spacing16)
-        .v3Card()
+        .roseCard(radius: DesignSystem.radiusMedium)
     }
 }
 
@@ -244,7 +244,7 @@ struct FilterSheetView: View {
             VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
                 Text("选择城市")
                     .font(DesignSystem.headlineFont)
-                    .foregroundStyle(DesignSystem.ink900)
+                    .foregroundStyle(DesignSystem.inkPrimary)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: DesignSystem.spacing8) {
@@ -252,12 +252,12 @@ struct FilterSheetView: View {
                             Button { selectedCity = city } label: {
                                 Text(city)
                                     .font(DesignSystem.metadataFont.weight(.semibold))
-                                    .foregroundStyle(selectedCity == city ? .white : DesignSystem.ink700)
+                                    .foregroundStyle(selectedCity == city ? .white : DesignSystem.inkMuted)
                                     .padding(.horizontal, DesignSystem.spacing16)
                                     .frame(minHeight: 40)
                                     .background(
                                         RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
-                                            .fill(selectedCity == city ? DesignSystem.accent : DesignSystem.canvasSunk)
+                                            .fill(selectedCity == city ? DesignSystem.rose : DesignSystem.roseCanvas)
                                     )
                             }
                         }
@@ -270,7 +270,7 @@ struct FilterSheetView: View {
                     onConfirm(selectedCity)
                     isPresented = false
                 }
-                .buttonStyle(PrimaryButtonStyle())
+                .buttonStyle(RosePrimaryButtonStyle())
             }
             .padding(DesignSystem.spacing20)
             .navigationTitle("筛选")
@@ -278,11 +278,11 @@ struct FilterSheetView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("重置") { selectedCity = "全国" }
-                        .foregroundStyle(DesignSystem.accent)
+                        .foregroundStyle(DesignSystem.rose)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("关闭") { isPresented = false }
-                        .foregroundStyle(DesignSystem.accent)
+                        .foregroundStyle(DesignSystem.rose)
                 }
             }
         }
@@ -309,17 +309,17 @@ struct WishDetailView: View {
             }
 
             Button("我刚好在这里，可以帮忙") { showApplySheet = true }
-                .buttonStyle(PrimaryButtonStyle())
+                .buttonStyle(RosePrimaryButtonStyle())
                 .padding(DesignSystem.spacing20)
                 .background(
                     DesignSystem.canvas.overlay(alignment: .top) {
-                        Rectangle().fill(DesignSystem.hairline).frame(height: 1)
+                        Rectangle().fill(DesignSystem.roseHairline).frame(height: 1)
                     }
                 )
         }
         .navigationTitle("心愿详情")
         .navigationBarTitleDisplayMode(.inline)
-        .warmBackground()
+        .whiteCanvas()
         .sheet(isPresented: $showApplySheet) {
             ApplyResponseSheet(wish: wish, isPresented: $showApplySheet, showSuccess: $showSuccess, apiClient: apiClient)
                 .presentationDetents([.large])
@@ -336,81 +336,81 @@ struct WishDetailView: View {
                 Spacer()
                 Text(wish.status.label)
                     .font(DesignSystem.metadataFont.weight(.semibold))
-                    .foregroundStyle(DesignSystem.accent)
+                    .foregroundStyle(DesignSystem.rose)
             }
             Text("\(wish.city) · \(wish.landmark)")
                 .font(DesignSystem.titleFont)
-                .foregroundStyle(DesignSystem.ink900)
+                .foregroundStyle(DesignSystem.inkPrimary)
             HStack(spacing: DesignSystem.spacing4) {
                 Text("感谢金")
                     .font(DesignSystem.bodyFont)
-                    .foregroundStyle(DesignSystem.ink700)
+                    .foregroundStyle(DesignSystem.inkMuted)
                 Text("¥\(Int(wish.rewardYuan))")
                     .font(DesignSystem.titleFont)
-                    .foregroundStyle(DesignSystem.ink900)
+                    .foregroundStyle(DesignSystem.inkPrimary)
             }
         }
         .padding(DesignSystem.spacing20)
-        .v3Card(radius: DesignSystem.radiusLarge)
+        .roseCard(radius: DesignSystem.radiusLarge)
     }
 
     private var contentCard: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
             Text("心愿内容")
                 .font(DesignSystem.headlineFont)
-                .foregroundStyle(DesignSystem.ink900)
+                .foregroundStyle(DesignSystem.inkPrimary)
             Text(wish.message)
                 .font(DesignSystem.bodyFont)
-                .foregroundStyle(DesignSystem.ink700)
+                .foregroundStyle(DesignSystem.inkMuted)
                 .lineSpacing(3)
-            Divider().overlay(DesignSystem.hairline)
+            Divider().overlay(DesignSystem.roseHairline)
             HStack {
                 Text("期望完成时间")
                     .font(DesignSystem.metadataFont)
-                    .foregroundStyle(DesignSystem.ink700)
+                    .foregroundStyle(DesignSystem.inkMuted)
                 Spacer()
                 Text(wish.deadlineText)
                     .font(DesignSystem.metadataFont.weight(.semibold))
-                    .foregroundStyle(DesignSystem.ink900)
+                    .foregroundStyle(DesignSystem.inkPrimary)
             }
         }
         .padding(DesignSystem.spacing20)
-        .v3Card(radius: DesignSystem.radiusLarge)
+        .roseCard(radius: DesignSystem.radiusLarge)
     }
 
     private var processCard: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
             Text("接单履约说明")
                 .font(DesignSystem.headlineFont)
-                .foregroundStyle(DesignSystem.ink900)
+                .foregroundStyle(DesignSystem.inkPrimary)
             Text("提交响应后，运营人员会确认匹配。确认后请在约定时间前往现场履约；完成后上传照片或视频，等待发布者确认。")
                 .font(DesignSystem.bodyFont)
-                .foregroundStyle(DesignSystem.ink700)
+                .foregroundStyle(DesignSystem.inkMuted)
                 .lineSpacing(3)
         }
         .padding(DesignSystem.spacing20)
-        .v3Card(radius: DesignSystem.radiusLarge)
+        .roseCard(radius: DesignSystem.radiusLarge)
     }
 
     private var safetyNotice: some View {
         Label("响应者与发布者的联系方式均不对外公开，由平台居中保护。", systemImage: "shield")
             .font(DesignSystem.metadataFont)
-            .foregroundStyle(DesignSystem.ink700)
+            .foregroundStyle(DesignSystem.inkMuted)
             .padding(DesignSystem.spacing12)
             .background(
                 RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
-                    .fill(DesignSystem.canvasSunk)
-                    .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusMedium).stroke(DesignSystem.hairline, lineWidth: 1))
+                    .fill(DesignSystem.roseCanvas)
+                    .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusMedium).stroke(DesignSystem.roseHairline, lineWidth: 1))
             )
     }
 
     private func detailChip(_ text: String) -> some View {
         Text(text)
             .font(DesignSystem.captionFont.weight(.semibold))
-            .foregroundStyle(DesignSystem.accent)
+            .foregroundStyle(DesignSystem.rose)
             .padding(.horizontal, DesignSystem.spacing8)
             .frame(minHeight: 28)
-            .background(Capsule().fill(DesignSystem.canvasSunk))
+            .background(Capsule().fill(DesignSystem.roseCanvas))
     }
 }
 
@@ -460,7 +460,7 @@ struct ApplyResponseSheet: View {
                             Text("提交响应")
                         }
                     }
-                    .buttonStyle(PrimaryButtonStyle(isDisabled: !isFormValid))
+                    .buttonStyle(RosePrimaryButtonStyle(isDisabled: !isFormValid))
                     .disabled(!isFormValid || isSubmitting)
                 }
                 .padding(DesignSystem.spacing20)
@@ -473,7 +473,7 @@ struct ApplyResponseSheet: View {
                         viewModel.cancel()
                         isPresented = false
                     }
-                    .foregroundStyle(DesignSystem.accent)
+                    .foregroundStyle(DesignSystem.rose)
                 }
             }
             .onDisappear { viewModel.cancel() }
@@ -485,18 +485,18 @@ struct ApplyResponseSheet: View {
             VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
                 Text("\(wish.city) · \(wish.landmark)")
                     .font(DesignSystem.headlineFont)
-                    .foregroundStyle(DesignSystem.ink900)
+                    .foregroundStyle(DesignSystem.inkPrimary)
                 Text("感谢金 ¥\(Int(wish.rewardYuan))")
                     .font(DesignSystem.metadataFont)
-                    .foregroundStyle(DesignSystem.ink700)
+                    .foregroundStyle(DesignSystem.inkMuted)
             }
             Spacer()
         }
         .padding(DesignSystem.spacing16)
         .background(
             RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
-                .fill(DesignSystem.canvasSunk)
-                .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusMedium).stroke(DesignSystem.hairline, lineWidth: 1))
+                .fill(DesignSystem.roseCanvas)
+                .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusMedium).stroke(DesignSystem.roseHairline, lineWidth: 1))
         )
     }
 
@@ -510,7 +510,7 @@ struct ApplyResponseSheet: View {
             Spacer()
             Button("重试") { submitResponse() }
                 .font(DesignSystem.metadataFont.weight(.semibold))
-                .foregroundStyle(DesignSystem.accent)
+                .foregroundStyle(DesignSystem.rose)
         }
         .padding(DesignSystem.spacing12)
         .background(
@@ -524,10 +524,10 @@ struct ApplyResponseSheet: View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
             Text(label)
                 .font(DesignSystem.headlineFont)
-                .foregroundStyle(DesignSystem.ink900)
+                .foregroundStyle(DesignSystem.inkPrimary)
             TextField(placeholder, text: text)
                 .font(DesignSystem.bodyFont)
-                .foregroundStyle(DesignSystem.ink900)
+                .foregroundStyle(DesignSystem.inkPrimary)
                 .padding(.horizontal, DesignSystem.spacing12)
                 .frame(minHeight: 48)
                 .background(fieldBackground(isFocused: focusedField == field, hasError: error != nil))
@@ -545,10 +545,10 @@ struct ApplyResponseSheet: View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
             Text("补充说明（选填）")
                 .font(DesignSystem.headlineFont)
-                .foregroundStyle(DesignSystem.ink900)
+                .foregroundStyle(DesignSystem.inkPrimary)
             TextEditor(text: $viewModel.note)
                 .font(DesignSystem.bodyFont)
-                .foregroundStyle(DesignSystem.ink900)
+                .foregroundStyle(DesignSystem.inkPrimary)
                 .scrollContentBackground(.hidden)
                 .padding(DesignSystem.spacing8)
                 .frame(height: 112)
@@ -567,7 +567,7 @@ struct ApplyResponseSheet: View {
         Toggle(isOn: $viewModel.agreeContact) {
             Text("同意平台运营人员与我联系确认匹配事宜。")
                 .font(DesignSystem.metadataFont)
-                .foregroundStyle(DesignSystem.ink700)
+                .foregroundStyle(DesignSystem.inkMuted)
         }
         .toggleStyle(CheckboxToggleStyle())
         .disabled(isSubmitting)
@@ -575,11 +575,11 @@ struct ApplyResponseSheet: View {
 
     private func fieldBackground(isFocused: Bool, hasError: Bool) -> some View {
         RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
-            .fill(DesignSystem.canvasSunk)
+            .fill(DesignSystem.roseCanvas)
             .overlay(
                 RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
                     .stroke(
-                        hasError ? DesignSystem.danger : (isFocused ? DesignSystem.accent : DesignSystem.hairlineStrong),
+                        hasError ? DesignSystem.danger : (isFocused ? DesignSystem.rose : DesignSystem.roseSoft),
                         lineWidth: isFocused ? 2 : 1
                     )
             )
@@ -610,33 +610,33 @@ struct ApplySuccessView: View {
             VStack(spacing: DesignSystem.spacing8) {
                 Text("响应已提交")
                     .font(DesignSystem.titleFont)
-                    .foregroundStyle(DesignSystem.ink900)
+                    .foregroundStyle(DesignSystem.inkPrimary)
                 Text("已收到响应，等待运营确认，不代表已经接单。")
                     .font(DesignSystem.bodyFont)
-                    .foregroundStyle(DesignSystem.ink700)
+                    .foregroundStyle(DesignSystem.inkMuted)
                     .multilineTextAlignment(.center)
             }
             VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
                 Text("\(wish.city) · \(wish.landmark)")
                     .font(DesignSystem.headlineFont)
-                    .foregroundStyle(DesignSystem.ink900)
+                    .foregroundStyle(DesignSystem.inkPrimary)
                 Text(wish.message)
                     .font(DesignSystem.metadataFont)
-                    .foregroundStyle(DesignSystem.ink700)
+                    .foregroundStyle(DesignSystem.inkMuted)
                     .lineLimit(2)
             }
             .padding(DesignSystem.spacing16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .v3Card()
+            .roseCard(radius: DesignSystem.radiusMedium)
             .padding(.horizontal, DesignSystem.spacing24)
             Spacer()
             Button("我知道了") { dismiss() }
-                .buttonStyle(PrimaryButtonStyle())
+                .buttonStyle(RosePrimaryButtonStyle())
                 .padding(.horizontal, DesignSystem.spacing24)
                 .padding(.bottom, DesignSystem.spacing24)
         }
         .navigationBarBackButtonHidden(true)
-        .warmBackground()
+        .whiteCanvas()
     }
 }
 
@@ -648,7 +648,7 @@ struct CheckboxToggleStyle: ToggleStyle {
             HStack(alignment: .top, spacing: DesignSystem.spacing8) {
                 Image(systemName: configuration.isOn ? "checkmark.square" : "square")
                     .font(.body.weight(.regular))
-                    .foregroundStyle(configuration.isOn ? DesignSystem.accent : DesignSystem.ink500)
+                    .foregroundStyle(configuration.isOn ? DesignSystem.rose : DesignSystem.inkMuted)
                     .accessibilityHidden(true)
                 configuration.label
             }
