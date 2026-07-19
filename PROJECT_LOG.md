@@ -798,3 +798,9 @@ Cloudflare Worker API
 - 采用 main 当前协调文档解决分支旧基线冲突，保留 CL-006/AG-009 iOS 源码、测试、截图与交接；merge commit 为 `03fcb7e`。
 - main 统一 XcodeGen 后独立复验：HaluowodeCore 17/17 passed；iPhone 17 Pro / iOS 27 Simulator App 49/49 passed，0 failure/skip/runtime warning，结果包 `/private/tmp/haluowode-main-cl006-ag009.xcresult`。构建链接输出仍有 2 条既有 iOS 16 deployment target 对 Xcode 27 XCTest iOS 17 最低版本的 warning。
 - 未验证：真机、iOS 16–26 运行态、横屏、极端 Dynamic Type、VoiceOver、Reduce Transparency/Motion、键盘实拍和真实远端媒体。下一步是 main 真实启动/导航复核，随后进行真机签名/安装闭环。
+
+### 2026-07-19：main 冷启动与导航运行态复核
+
+- 使用 `/private/tmp/haluowode-main-cl006-ag009-tests/Build/Products/Debug-iphonesimulator/Haluowode.app` 安装到 iPhone 17 Pro / iOS 27 Simulator 后，首次截图为白屏；约 30 秒后稳定渲染首页诚实空态。该现象与此前首次网络冷启动记录一致，尚未证明为已修复或可接受的真机体验。
+- 目视检查运行态截图：首页 `/private/tmp/haluowode-main-cl006-ag009-home-after30.png`、搜索 `...-search.png`、帮助 `...-help.png`、我的 `...-profile.png`、发布 `...-publish.png`。搜索与帮助均为诚实空态；我的显示访客模式、发布/帮助查询入口与隐私说明；发布显示 `第 1 步，共 3 步`，不再显示字面量 `(currentStep)`。
+- 本轮 DEBUG 参数只用于选择首屏或打开发布层，未注入数据；其 Release 二进制剥离证据仍以先前 `strings` 0 命中为准。未进行真机、真实发布/响应/进度闭环、横屏、极端无障碍或远端媒体验证。
