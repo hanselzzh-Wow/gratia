@@ -840,3 +840,10 @@ Cloudflare Worker API
 - 产品负责人随后明确要求先运行 Claude Code 的原始 `8e95b0b` 版本。Codex 未修改该分支源码；从 `worktrees/claude-rose-redesign` 的 `claude/rose-home-redesign@463a420`（包含 `8e95b0b` 设计和仅 App Icon recolor 修正）以临时 `DEVELOPMENT_TEAM`/Automatic signing 覆盖构建。
 - 真机构建成功；唯一输出 warning 为原分支的“除非要求全屏，否则须支持全部界面方向”。安装与启动均成功：bundle ID `com.hanselzzh.gratia`，安装目录由 `devicectl` 返回，启动命令成功。该 Bundle ID 与主线 `com.hanselzzh.haluowode` 不同，两个 App 并存；未修改主线、签名设置、后端或 Claude 分支源码。
 - `AG-010` 已 SUPERSEDED，权限收回；当前只等待产品负责人对真机原版进行视觉/交互检查。尚未验证原版与主线真实 API、隐私状态机的兼容性、极端无障碍、横屏或旧 iOS，不能据此合入或替换主线。
+
+## 2026-07-19｜产品 1.0 基线冻结与历史并行线清理
+
+- 产品负责人裁决：今后所称“1.0版本”唯一指 Claude 原始玫粉白/Lucide 客户端，设计提交 `8e95b0b` 加仅图标修正提交 `463a420`；不再以 main、CL-006 或 AG-010 作为产品基线。
+- Codex 将精确提交 `463a420fb2cf77ca9f6ff2a181a09b8fa37ff69b` 固化为 `release/1.0` 分支和 `v1.0-claude-rose` 标签，并保留 main 仅作历史/协调记录。
+- 按产品负责人明确授权，删除除 main 与 1.0 以外的全部本地历史 worktree/分支；不删除主工作区中的未跟踪用户文件、后端或已部署服务。
+- 后续：每个问题从 1.0 单独分支、单任务处理；仍未验证原版真实 API 兼容性、无障碍、横屏和旧 iOS。

@@ -6,7 +6,7 @@
 
 ## 当前持久 Goal
 
-统筹 Codex、Claude 与 Antigravity 协作，将哈喽卧得现有 Cloudflare 后端与原生 SwiftUI 客户端整合为可在真实 iPhone 上安装试用的 MVP，完成设计冻结、候选代码审查、API 联调、Xcode 构建、模拟器/真机验收及持续项目日志交接；除必须由用户完成的 Apple 账号、签名或系统授权外自动推进。当前暂停只停止执行，不缩减或删除此 Goal；恢复工作时仍以它为完整目标。
+以产品负责人确认的 Claude 原始玫粉白/Lucide 客户端为唯一 **1.0版本**，将其稳定迭代为可在真实 iPhone 安装试用、后续可进入 TestFlight/App Store 的 MVP；保留其现有体验与技术身份，任何后续功能、真实 API、测试和发布工作均以 1.0 为基线。除必须由用户完成的 Apple 账号、签名或系统授权外自动推进。
 
 ## 北极星与不可违背项
 
@@ -29,7 +29,8 @@
 - `AG-007` 已 ACCEPTED 并以 merge `679a371` 合入 main：本地 XCTest fixture 在 iPhone 17 Pro / iOS 27 Simulator 生成查询、404、delivered/待确认、交付失败四态证据；main 独立回归 App 27/27、Core 17/17，0 failure/skip/runtime warning。未访问生产 API，能力 URL/token 未进入画面或测试输出；真实远端媒体、系统 Link、极端无障碍设置、旧系统与真机仍未验证。
 - `CL-006` 与 `AG-009` 已 ACCEPTED 并以 merge `03fcb7e` 合入 main：玫红首页/搜索/中央发布/帮助/我的、步骤文案回归、DEBUG/Release 边界及生成工程归零均已收口。main 独立复验 Core 17/17、iPhone 17 Pro / iOS 27 Simulator App 49/49，0 failure/skip/runtime warning；Release 二进制对 `-cl006-initial-tab`、`-cl006-show-publish` 为 0 命中。两条 iOS 16/XCTest linker warning 仍存在；真机、旧 iOS、极端无障碍与真实远端媒体未验证。旧 `AG-008` 已 SUPERSEDED。
 - main 真实安装冷启动约 30 秒后稳定渲染首页诚实空态；启动参数逐页截图已目视确认搜索、帮助、我的与发布入口，发布页显示 `第 1 步，共 3 步`。这些是 Simulator 证据，不替代真机与无障碍实测。
-- 真机“桑柏之phone”已完成连接、开发者模式、Personal Team 签名、安装与启动；`CX-004` 玫红钥匙图标/中文名与 `CX-005` 中英文显示名均获产品负责人确认，并分别以 merge `b2fa630`、`e0bd6c8` 合入 main。产品负责人明确优先运行 Claude 原始视觉版本：`claude/rose-home-redesign`（设计 commit `8e95b0b`，仅图标修正 `463a420`）已于 2026-07-19 在真机成功构建、安装、启动，独立 Bundle ID 为 `com.hanselzzh.gratia`，与主线 App 并存。`AG-010` 首次交付 `1887b30` 因运行时虚构故事、交接 SHA 不实与尾随空格被退回，随后 SUPERSEDED，未合入 main。
+- **产品 1.0 基线已冻结：** Claude 原始玫粉白/Lucide 客户端 `463a420`（设计主提交 `8e95b0b`）是唯一的“1.0版本”；固定为本地 `release/1.0` 与标签 `v1.0-claude-rose`。其 Bundle ID 为 `com.hanselzzh.gratia`，已于 2026-07-19 真机成功构建、安装、启动。今后用户说“1.0版本”即指这一个精确提交，不能误指 main、CL-006、AG-010 或其他历史候选。
+- 历史并行 worktree/任务分支全部清理；`main` 只保留为既有历史与协调记录，不能再作为 1.0 的实现来源。`AG-010` 未通过验收且已 SUPERSEDED，未合入 1.0。
 
 ## 强制交接与接班卡同步
 
@@ -59,9 +60,9 @@
 
 ## 恢复顺序
 
-1. Codex 在 main 继续以真实启动/导航截图复核首页、搜索、发布、帮助、我的与 AG-007 进度/交付入口；运行态保持诚实空态。
-2. 产品负责人先在真机检查 `Gratia` 原版的页面、图标、名称与交互；如确认要将该原版替换主线，再创建新的迁移任务，保留真实 API/隐私/状态机并禁止伪造运行时数据。
-3. 每个新问题均先创建唯一负责人任务卡；不得自动扩张范围。
+1. 所有后续工作从 `release/1.0`/`v1.0-claude-rose` 分出独立任务分支；不得从 main 或已删除历史任务线恢复实现。
+2. 产品负责人检查真机 1.0 的页面、图标、名称与交互；发现的问题逐个创建唯一任务，先做最小修复。
+3. 接入真实 API、隐私/状态机、测试或发布前，先创建精确授权任务并保持 1.0 的视觉与技术身份。
 
 ## 快速核验
 
