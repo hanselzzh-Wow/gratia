@@ -790,3 +790,11 @@ Cloudflare Worker API
 - 调用 Antigravity 或 Claude 遇到登录、客户端、权限、配额、沙箱或环境问题时，Codex 必须报告准确阻塞并请求产品负责人处理或裁决；不得未经授权自行接管、重新分派或代做。
 - Codex 每次开局读完任务、交接、群聊和 Git/worktree 状态后，必须先在 `.ai/TASKS.md` 与 `.ai/WRITE_FREEZE.md` 建立当前任务和精确写入范围，不能把 PM 身份视为实现文件的默认权限。
 - `PROJECT_MEMORY.md` 新增“当前持久 Goal”，后续开局与 Goal 变化时必须同步；暂停不缩减完整项目目标。当前项目仍暂停，AG-009 负责人仍为 Antigravity，未开始新实现或测试。
+
+### 2026-07-19：CL-006 与 AG-009 独立验收并合入 main
+
+- Antigravity 交付 `55ef6f9`（`PublishView` 步骤插值与 1/2/3 XCTest）、`3804eb4`/`a0ec5a4`（准确交接）及 `7c959a2`（提交级 trailing-whitespace 修复）；`git diff --check 5364595..7c959a2` 通过，`project.pbxproj` 与 `fb86b84` 0 差异。
+- Codex 审计确认：DEBUG 参数仅选择首屏/发布层且不注入数据；Release App 二进制对 `-cl006-initial-tab`、`-cl006-show-publish` 均为 0 命中。CL-006/AG-009 的允许路径外没有源码改动。
+- 采用 main 当前协调文档解决分支旧基线冲突，保留 CL-006/AG-009 iOS 源码、测试、截图与交接；merge commit 为 `03fcb7e`。
+- main 统一 XcodeGen 后独立复验：HaluowodeCore 17/17 passed；iPhone 17 Pro / iOS 27 Simulator App 49/49 passed，0 failure/skip/runtime warning，结果包 `/private/tmp/haluowode-main-cl006-ag009.xcresult`。构建链接输出仍有 2 条既有 iOS 16 deployment target 对 Xcode 27 XCTest iOS 17 最低版本的 warning。
+- 未验证：真机、iOS 16–26 运行态、横屏、极端 Dynamic Type、VoiceOver、Reduce Transparency/Motion、键盘实拍和真实远端媒体。下一步是 main 真实启动/导航复核，随后进行真机签名/安装闭环。

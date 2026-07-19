@@ -26,8 +26,8 @@
 | CL-003 | Claude | ACCEPTED | 已完成 v3 视觉检查点、全页 1x/3x、真实首页 peek 与 SwiftUI 交接；视觉已冻结 | `.ai/handoffs/CL-003-claude-design.md`、`.ai/handoffs/CL-003-assets/**`、`docs/ios-design-freeze-v3.md` | 交付验收完成；不得自动重画其它页面 |
 | CL-004 | Claude | ACCEPTED | 已交付 v3 SwiftUI 实施审计：冻结视觉的精确落地、差异与截图验收清单已可直接约束后续实现 | `.ai/handoffs/CL-004-swiftui-audit.md` | 已验收；Claude 停止，待视觉实现后再做截图审阅，不得自动重画或改源码 |
 | CL-005 | Claude | ACCEPTED | 首页内容社区设计检查点已验收：正常/空/故事详情资产、职责、隐私和无障碍交接完整 | 历史 worktree `worktrees/claude-cl-005-home-community`；写权限已收回 | 已验收合入；不得继续重画或自行实现 |
-| CL-006 | Claude | REVIEW | 玫红首页/搜索/中央发布/帮助/我的已提交并通过 Codex 44/44 初验；待 AG-009 修复显示缺陷与越权生成文件后复验 | 历史 worktree `worktrees/claude-cl-006-home-search-help-ui`；Claude 已停止 | 未完成 AG-009 与 Codex 复验前不得 ACCEPTED/合入 |
-| AG-009 | Antigravity | IN_PROGRESS | 对 CL-006 做集成硬化：修复发布步数文案、锁定回归、清除越权生成项目差异并复验 DEBUG 证据钩子 | 仅 `worktrees/ag-009-cl006-hardening` 的任务卡精确路径 | 完成代码、真实测试、commit、交接与 STATUS 后立即停止等待 Codex 验收 |
+| CL-006 | Claude | ACCEPTED | 玫红首页/搜索/中央发布/帮助/我的已由 `03fcb7e` 合入 main；AG-009 修复步骤文案、收口 DEBUG/Release 边界与生成工程差异后，main 独立复验 App 49/49、Core 17/17 | 历史 worktree `worktrees/claude-cl-006-home-search-help-ui`；Claude 已停止 | 已验收合入；不得自行继续修改或领取任务 |
+| AG-009 | Antigravity | ACCEPTED | CL-006 集成硬化已以 `55ef6f9`/`3804eb4`/`a0ec5a4`/`7c959a2` 交付并由 `03fcb7e` 合入 main：步骤回归、DEBUG/Release 审计、生成工程归零均通过 | 历史 worktree `worktrees/ag-009-cl006-hardening`；Antigravity 已停止 | 已验收合入；不得自行继续修改或领取任务 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -600,7 +600,7 @@ git diff --check
 
 停止条件：Claude 完成允许范围内代码、验证、截图、commit、交接，并在本 worktree `.ai/TEAM_CHAT.md` 追加准确 STATUS 后立即停止；不得合入 main、推送、部署、改签名、领取下一任务或顺手修改 AG-007。Codex 独立验收后才决定合入或退回。
 
-## AG-009：CL-006 集成硬化（Antigravity，IN_PROGRESS）
+## AG-009：CL-006 集成硬化（Antigravity，ACCEPTED）
 
 工作区：`/Users/hansangbai/Documents/New project/worktrees/ag-009-cl006-hardening`
 
@@ -642,7 +642,7 @@ git diff fb86b84 -- ios/Haluowode.xcodeproj/project.pbxproj
 git diff --check
 ```
 
-停止条件：完成允许范围内修订、真实验证、commit、交接与 STATUS 后立即停止；不得合入、推送、部署、修改主分支或领取下一任务。任何需要改视觉、业务或任务卡外文件的情况先 OBJECTION。
+验收结论：Antigravity 已按允许范围提交 `55ef6f9`（修复/测试）、`3804eb4`（交接）、`a0ec5a4`（交接勘误）、`7c959a2`（提交级 whitespace 修复）；Codex 独立复验 Core 17/17、main App 49/49、0 failure/skip/runtime warning，Release 二进制对两个 DEBUG 参数 0 命中，且 `project.pbxproj` 与 `fb86b84` 0 差异。两条 iOS 16/XCTest linker warning 为既有工具链警告，未掩盖。`03fcb7e` 已合入 main，权限收回。
 
 ## 新任务创建要求
 

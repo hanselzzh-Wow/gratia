@@ -27,7 +27,7 @@
 - **运行状态：产品负责人已恢复自主推进。** Codex 继续验收、集成和依赖驱动派发；外部负责人仍只做唯一已派任务，交接后停止。
 - `main` merge commit `296ab12` 已具备真实公开列表、发布、响应、查询进度/交付与 v3 基线（P0-A/B/C/D）。AG-006 独立质量门：Core 17/17、iPhone 17 Pro iOS 27 Simulator 23/23，0 failure/skip/runtime warning。
 - `AG-007` 已 ACCEPTED 并以 merge `679a371` 合入 main：本地 XCTest fixture 在 iPhone 17 Pro / iOS 27 Simulator 生成查询、404、delivered/待确认、交付失败四态证据；main 独立回归 App 27/27、Core 17/17，0 failure/skip/runtime warning。未访问生产 API，能力 URL/token 未进入画面或测试输出；真实远端媒体、系统 Link、极端无障碍设置、旧系统与真机仍未验证。
-- `CL-006` 已交付 `8021bff`/`9b02627`/`651886b`/`5364595`：14 张截图已目视检查，Codex 独立复验 Core 17/17、App 44/44；玫红首页/搜索/中央发布/帮助/我的方向合格。但发布页真实显示 `第 (currentStep) 步`，且分支提交了任务卡禁止的生成 `.xcodeproj`，因此状态 REVIEW、未合入。`AG-009` 已派给 Antigravity，在独立 worktree 修复文案/回归、审计 DEBUG 钩子并清除生成项目差异。旧 `AG-008` 已 SUPERSEDED。
+- `CL-006` 与 `AG-009` 已 ACCEPTED 并以 merge `03fcb7e` 合入 main：玫红首页/搜索/中央发布/帮助/我的、步骤文案回归、DEBUG/Release 边界及生成工程归零均已收口。main 独立复验 Core 17/17、iPhone 17 Pro / iOS 27 Simulator App 49/49，0 failure/skip/runtime warning；Release 二进制对 `-cl006-initial-tab`、`-cl006-show-publish` 为 0 命中。两条 iOS 16/XCTest linker warning 仍存在；真机、旧 iOS、极端无障碍与真实远端媒体未验证。旧 `AG-008` 已 SUPERSEDED。
 - main 已在 iPhone 17 Pro、iOS 27 Simulator 完成 build/install/launch；系统原生浮动 Liquid Glass Tab Bar 截图可见。首次冷启动曾白屏约 27 秒后恢复，日志显示网络经本机代理成功 200；随后暖启动 0.64 秒并立即渲染，未稳定复现为 App 启动缺陷。真机安装仍未完成。
 
 ## 强制交接与接班卡同步
@@ -58,9 +58,9 @@
 
 ## 恢复顺序
 
-1. Antigravity 在 AG-009 worktree 完成 CL-006 集成硬化、真实测试、commit、交接与 STATUS 后停止；Codex 独立复验。
-2. Codex 验收 AG-009 后集成 CL-006/AG-009，在 main 统一 xcodegen，并于 iOS 27 Simulator 复验首页/搜索/发布/帮助/我的、AG-007 进度/交付入口与冷暖启动；运行态保持诚实空态。
-3. 用户连接 iPhone，选择 Personal Team 并信任开发者；Codex 构建安装并跑受控真实闭环。
+1. Codex 在 main 继续以真实启动/导航截图复核首页、搜索、发布、帮助、我的与 AG-007 进度/交付入口；运行态保持诚实空态。
+2. 用户连接 iPhone，选择 Personal Team 并信任开发者；Codex 构建安装并跑受控真实闭环。
+3. 真机闭环后再按缺口创建下一张唯一负责人任务卡；不得自动领取或扩张范围。
 
 ## 快速核验
 
