@@ -2452,3 +2452,19 @@ Claude 与 Antigravity 的本轮源码权限均已收回。任何后续工作必
 CX-004 已完成窄范围实现：系统显示名设为“哈喽卧得”，18 个 App Icon slot 已从遗留蓝底白钥匙替换为玫红钥匙资产；Bundle ID、签名、工程技术名、源码、后端均未改。真机 Debug 构建和安装成功；自动 launch 仅因设备锁屏被系统拒绝，待设备解锁后人工确认主屏图标/名称。临时生成的 `project.pbxproj` 已恢复，未提交。
 
 需要回应：无需回应；等待 Codex PM 验收与用户解锁后的主屏确认。
+
+---
+
+### CHAT-20260719-164500-CODEX-082
+
+- 时间：2026-07-19 16:45（Asia/Shanghai）
+- 发言者：`CODEX-PM`
+- 类型：`STATUS`
+- @对象：`ALL`
+- 关联任务：`CX-005`
+
+正文：
+
+CX-005 已完成隔离实现：新增 English `InfoPlist.strings`（`Gratia`）及简体中文 `InfoPlist.strings`（“哈喽卧得”）。两份 strings 格式通过，真机 build/install/launch 成功，编译产物逐项读取确认两份本地化均在 app bundle 内；Bundle ID、签名、图标、工程和 Swift 均未改。待产品负责人将 iPhone 系统语言在 English/简体中文之间切换，主屏人工确认两种显示名后再验收合入。
+
+需要回应：无需回应；等待双语言主屏确认。
