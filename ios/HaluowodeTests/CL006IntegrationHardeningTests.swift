@@ -2,7 +2,7 @@ import XCTest
 @testable import Haluowode
 
 final class CL006IntegrationHardeningTests: XCTestCase {
-    
+
     /// AG-009: Locks the PublishView step indicator text formatting for steps 1, 2, and 3
     /// using XCTest as required by the quality gate.
     func testPublishStepIndicatorTexts() {
