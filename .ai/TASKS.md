@@ -31,6 +31,7 @@
 | CX-004 | Codex | ACCEPTED | 系统显示名与 App Icon 已以 merge `b2fa630` 合入：玫红钥匙图标与中文显示名经过真机构建、安装、启动和产品负责人主屏确认 | 历史 worktree `worktrees/codex-cx-004-system-branding`；权限已收回 | 已验收合入；后续系统语言显示名需独立任务 |
 | CX-005 | Codex | IN_PROGRESS | iOS 系统显示名本地化：中文系统显示“哈喽卧得”，英文系统显示“Gratia”，不触及技术身份或签名 | 仅 `worktrees/codex-cx-005-display-name-localization` 的 `ios/Haluowode/{en.lproj,zh-Hans.lproj}/InfoPlist.strings`、`.ai/handoffs/CX-005-display-name-localization.md`、`.ai/TEAM_CHAT.md`（只追加） | 两种 locale 的 built-app metadata 和真机英语/中文系统显示名验证后停止等待验收 |
 | CL-007 | Claude | IN_PROGRESS | Lucide Icons 设计/实现审计：核对用户认可版本与 main 当前 SF Symbols 的差异，交付唯一可执行的图标资产与映射规范，不改代码 | 仅 `worktrees/claude-cl-007-lucide-audit/.ai/handoffs/CL-007-lucide-icons-audit.md`、`.ai/TEAM_CHAT.md`（只追加） | 交付审计、STATUS 与 commit 后停止；Codex 验收后才创建实现任务 |
+| AG-010 | Antigravity | IN_PROGRESS | 以用户确认的 `claude/rose-home-redesign@8e95b0b` 为视觉真源，安全迁移玫粉白、五位 Dock 与 Lucide 图标到现有真实业务 SwiftUI 客户端 | 仅 `worktrees/ag-010-rose-lucide-integration` 中下列精确 UI/资产/测试/交接路径 | 实测、commit、handoff/STATUS 后立即停止；Codex 独立验收、main 合入和真机安装后才继续 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -689,7 +690,7 @@ git diff --check
 
 验收结论：实现 `b58e9b4`、交接勘误 `5d76fa9` 已由 merge `e0bd6c8` 合入 main。两份本地化 resources 均在真机构建产物中读取正确，真机安装/启动成功，产品负责人确认系统语言显示正确。任务 ACCEPTED；权限收回。
 
-## CL-007：Lucide Icons 审计与冻结交接（Claude，IN_PROGRESS）
+## CL-007：Lucide Icons 审计与冻结交接（Claude，SUPERSEDED）
 
 工作区：`/Users/hansangbai/Documents/New project/worktrees/claude-cl-007-lucide-audit`
 
@@ -713,6 +714,66 @@ git diff --check
 5. 在 handoff 如实列出搜索过的路径、未确定项、风险（许可证、可访问性、平台符号语义）与 commit SHA；追加 STATUS 后立即停止。
 
 停止条件：交付上述只读审计、commit、STATUS 后立即停止，等待 Codex 验收。任何找不到原版本或出现授权不清的情形先写 OBJECTION，不得自行替换图标。
+
+裁决：Claude CLI 本轮未返回 ACK/交接；但 Codex 已从 Claude 本地会话 `38c0e6b8-…`、用户原话“所有的 icon 用 lucide icons，首页用 house，帮助用 handshake，个人用 user-round”、`claude/rose-home-redesign@8e95b0b` 与其 `CL-006-rose-redesign.md` 找回完整真源。产品负责人已明确要求以该版本上实机，故本只读审计由 `AG-010` 替代；不得继续修改。
+
+## AG-010：玫粉白 Lucide 视觉安全集成（Antigravity，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/ag-010-rose-lucide-integration`
+
+分支：`codex/ag-010-rose-lucide-integration`
+
+唯一目标：以用户确认的 `claude/rose-home-redesign@8e95b0b`/`463a420` 视觉为真源，把其玫粉白视觉、首页/搜索/发布/帮助/我的结构、五位 Dock 与 Lucide 模板图标安全移植到 `main` 当前 `Haluowode` target，并保持所有已验收真实 API、ViewModel、隐私、状态机、Bundle ID、签名和显示名本地化不变。**禁止直接 merge/cherry-pick 87-file Gratia 分支。**
+
+真源与产品冻结：
+
+- 用户裁决：Dock 为首页、搜索、中央发布、帮助、我的；图标 only，普通项黑/灰，中央发布玫红；全部使用 Lucide（ISC）`house`/`search`/`square-plus`/`handshake`/`user-round`。
+- 源证据：`worktrees/claude-rose-redesign/.ai/handoffs/CL-006-rose-redesign.md`，commit `8e95b0b`；Lucide 模板位于其 `ios/Gratia/Assets.xcassets/Tab*.imageset`，主屏截图位于 `.ai/handoffs/CL-006-assets/simulator/`。
+- 当前工程身份不变：target `Haluowode`、Bundle ID `com.hanselzzh.haluowode`、中文/英文显示名本地化、已合入真实业务/API。
+
+允许修改（仅限任务 worktree）：
+
+- `ios/Haluowode/ContentView.swift`
+- `ios/Haluowode/DesignSystem.swift`
+- `ios/Haluowode/HomeView.swift`
+- `ios/Haluowode/SearchView.swift`
+- `ios/Haluowode/ProfileView.swift`
+- `ios/Haluowode/PublishView.swift`（仅视觉/导航容器，不改 ViewModel 调用、校验、API、取消或成功语义）
+- `ios/Haluowode/NearbyView.swift`（仅标题/视觉 token/图标，不改真实列表、响应语义）
+- 新建 `ios/Haluowode/StoryFeed.swift`（仅在 main 现有来源缺失且能保持 production 诚实空态时）
+- `ios/Haluowode/Assets.xcassets/TabHouse.imageset/**`
+- `ios/Haluowode/Assets.xcassets/TabSearch.imageset/**`
+- `ios/Haluowode/Assets.xcassets/TabPublish.imageset/**`
+- `ios/Haluowode/Assets.xcassets/TabHandshake.imageset/**`
+- `ios/Haluowode/Assets.xcassets/TabUserRound.imageset/**`
+- 新建或修改 `ios/HaluowodeTests/AG010RoseLucideIntegrationTests.swift`（或仅追加既有导航视觉测试）
+- `.ai/handoffs/AG-010-rose-lucide-integration.md`
+- `.ai/TEAM_CHAT.md`（只追加 ACK/OBJECTION/STATUS）
+
+禁止修改：任何 ViewModel、`ProgressView.swift`、`TrackWishViewModel.swift`、`DeliveryPreviewView.swift`、Core Sources/API 模型、所有后端/数据库/部署、生产 API、`Info.plist` 与 `*.lproj/InfoPlist.strings`、AppIcon、`ios/project.yml`、`ios/Haluowode.xcodeproj/**`、Bundle ID、签名/证书/Team、依赖、任务板、冻结、项目记忆、项目日志、主分支或 Git 历史；不得引入账号、私信、评论/点赞后端、伪造互动数字、运行时假故事、个人精确位置、能力 URL/token 或 Mock 成功。
+
+必须交付：
+
+1. 在任务 worktree 群聊先 ACK，逐项确认已读取任务/真源交接、worktree/branch、允许/禁止范围；未 ACK 不得写源码。
+2. Dock 使用五个给定 Lucide 模板资产，图形名称/许可/1x-3x 输出与真源一致；普通项 template 呈黑/灰，中央发布 original 玫红；保留 VoiceOver 名称、选中态和 >=44pt 命中区。
+3. 迁移玫粉白 token（至少 `#9A536D`/`#7F4058`/`#E4C6D0`/`#FAF4F6`/`#191719`/`#ECE8EA`）与用户确认的五页视觉结构；所有真实加载/空/错误/提交中/成功/取消路径仍可达，生产无公开故事源时必须诚实空态。
+4. `PublishView`、`NearbyView` 只允许视觉容器变化，已验收真实发布/响应流程不可退化；进度/交付路径不得改动。
+5. 临时 XcodeGen 仅为构建/测试；最终 `project.pbxproj` 必须与任务起点完全一致，不得提交生成工程差异。
+6. 运行 Core 全套、HaluowodeTests 全套、Swift parser、隐私/Mock/凭据扫描、图标资产 JSON/尺寸检查、`git diff --check`；在 iPhone 17 Pro Simulator 生成首页、搜索、发布、帮助、我的截图并逐页与 `CL-006-assets/simulator/` 对照。交接给出实际发现/执行/通过数、截图/结果包、warning、未验证项、精确路径、license、commit SHA。
+
+验收命令（在本 worktree 执行）：
+
+```bash
+/private/tmp/xcodegen-2.46.0-release/xcodegen/bin/xcodegen generate --spec ios/project.yml
+swift test --package-path ios/Packages/HaluowodeCore --scratch-path /private/tmp/haluowode-core-ag010 --disable-xctest --enable-swift-testing
+xcodebuild -project ios/Haluowode.xcodeproj -scheme Haluowode -destination 'platform=iOS Simulator,id=742A9D34-5F88-4578-BB12-851A00D2C0FE' -derivedDataPath /private/tmp/haluowode-ag010-tests -resultBundlePath /private/tmp/haluowode-ag010.xcresult test
+swiftc -frontend -parse ios/Haluowode/*.swift
+rg -n -i 'admin|x-admin-key|api[_-]?key|cloudflare.*token|Wish\.mockWishes|DispatchQueue\.main\.asyncAfter' ios/Haluowode ios/Packages/HaluowodeCore
+git diff 543f3ff -- ios/Haluowode.xcodeproj/project.pbxproj
+git diff --check
+```
+
+停止条件：所有允许范围内交付、真实执行证据、commit、handoff、STATUS 后立即停止，等待 Codex 独立验收。任何真源与 main 真实流程冲突、缺失资产、测试失败或超范围需求，先发 OBJECTION，禁止自行扩大。
 
 ## 新任务创建要求
 

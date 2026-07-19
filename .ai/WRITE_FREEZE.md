@@ -16,6 +16,8 @@
 - `CX-005` 已对 Codex 局部解除冻结：只可在独立 worktree 添加 `InfoPlist.strings` 的中文/英文显示名资源，使系统语言中文显示“哈喽卧得”、英文显示“Gratia”；不得改图标、Bundle ID、签名、工程/技术名称、Swift、后端或其他资源。
 - `CX-005` 已由产品负责人确认并以 merge `e0bd6c8` 合入 main；显示名本地化权限已收回。
 - `CL-007` 已对 Claude 局部解除冻结：仅允许在隔离 worktree 编写 Lucide 图标审计交接和追加 STATUS，禁止修改任何 `ios/**` 源码、资源、工程、签名、任务板、冻结、日志或主分支。审计完成前不得自行将 SF Symbols 替换为 Lucide。
+- `CL-007` 已由产品负责人“以该版本为基础上实机”的裁决取代；Codex 已从 Claude 本地会话、分支 `claude/rose-home-redesign`、commit `8e95b0b` 与交接中恢复 Lucide 真源，但 Claude CLI 本轮未返回 ACK/交接。该审计权限收回，不得继续。
+- `AG-010` 已对 Antigravity 局部解除冻结：只可在隔离 worktree 将 `8e95b0b` 的已确认玫粉白视觉、五位 Dock 与五组 Lucide 模板资产移植到现有 `Haluowode` target，同时保留 main 已验收真实 API/状态机。禁止合入 Gratia 重命名、工程/签名、后端或未经明确允许的候选功能。
 - 所有成员可以严格按照 `.ai/TEAM_CHAT.md` 的格式在文件末尾追加群聊消息；这是沟通例外，不解除任何源码写入冻结。
 - 其他 AI 只能阅读，不得写任何文件。
 - 未有新任务卡明确解除冻结前，任何代理不得修改 `ios/`、后端、部署配置、主分支或 Git 历史。`AG-007`、`CL-006` 与 `AG-009` 均已验收合入；未经 Codex 独立验收不得合入任何后续源码。

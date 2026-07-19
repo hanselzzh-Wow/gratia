@@ -825,3 +825,11 @@ Cloudflare Worker API
 - 派发：`CL-007` 是 Claude 的只读设计/资产审计任务，必须追溯正确版本/commit/资产，建立当前 SF Symbols inventory 与唯一 Lucide 逐图标映射、许可证、SwiftUI 集成及验收方案；禁止修改任何源码或资源。
 - 下一步：等待 Claude 交接后，Codex 审核来源与许可，再创建单一最小实现切片。
 - 未验证：原用户认可 Lucide 资产的精确提交/路径、完整页面覆盖、许可与真机视觉，均待 CL-007 证据，不得假设。
+## 2026-07-19｜恢复 Claude 已确认 Lucide 真源并派发 AG-010
+
+- 恢复证据：Claude 本地会话 `38c0e6b8-…` 保存产品负责人明确裁决：“所有的 icon 用 lucide icons，首页用 house，帮助用 handshake，个人用 user-round”。同一会话在 `claude/rose-home-redesign@8e95b0b` 写入 `CL-006-rose-redesign.md`：五位 Dock、玫粉白 token、Lucide（ISC）house/search/square-plus/handshake/user-round 与五组 PNG template 资产；该分支未合入，因其同时包含 87 文件的 Gratia target/module/工程重命名。
+- 根因：此前 main 合入的是拆分验收的 CL-006/AG-009，使用 SF Symbols；并非用户认可的 Lucide 批次丢失。不得用 SF Symbols 版本冒充用户确认稿。
+- Claude 运行态：本轮 `claude -p` 未产生要求的 ACK/交接；历史会话末尾有 rate-limit 记录。按角色规则未让 Codex 代替 Claude 完成 CL-007；本任务因用户直接要求将真源上实机而 SUPERSEDED。
+- 派发：`AG-010` 给 Antigravity，在独立 worktree 仅迁移真源的视觉/Dock/Lucide 资产至现有 Haluowode 真实业务客户端；禁止直接 merge/cherry-pick Gratia 分支、重命名、签名/Bundle ID/后端/进度交付改动。
+- 下一步：Antigravity ACK 后实现/测试/截图/交接；Codex 独立复验、合入 main、真机重新安装并由产品负责人逐页检查。
+- 未验证：AG-010 尚未 ACK；真源对 main 实际 API/状态机的安全移植、全套回归、iOS 旧系统/无障碍、真机视觉均未验证。
