@@ -12,6 +12,10 @@ struct ProgressView: View {
         self._viewModel = StateObject(wrappedValue: TrackWishViewModel(apiClient: apiClient))
     }
 
+    init(viewModel: TrackWishViewModel) {
+        self._viewModel = StateObject(wrappedValue: viewModel)
+    }
+
     var isFormValid: Bool {
         viewModel.state != .loading &&
         !viewModel.publicCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
