@@ -12,7 +12,8 @@
 - `CX-002` 已由 Codex 独立验收并合入本地 main；其 Nearby/详情/响应视觉变更不触碰 `AG-006` 的 Progress/Track/Delivery/Content 路径，也不改变已验收的 response ViewModel 行为。后续其余页面视觉改造必须另建独立任务。
 - `CX-003` 已由 Codex 独立验收并合入本地 main；其 Publish/Profile 视觉变更不触碰 `AG-006` 的 Progress/Track/Delivery/Content 路径、任何 ViewModel 或业务语义。后续 Tab Bar 必须在 P0-D 收口后另建独立任务。
 - Claude 的 `CL-001`、`CL-003`、`CL-004`、`CL-005`、`CL-006` 已验收；Antigravity 的 `AG-009` 已验收并以 `03fcb7e` 合入 main，双方源码权限均已收回。后续视觉、功能或验收扩展必须另建唯一负责人、独立 worktree、精确允许路径与质量门的任务；不得自行修改已合入导航、AG-007、业务 ViewModel/Core、后端、签名或主分支。旧 `AG-008` 已 SUPERSEDED。
-- `CX-004` 已对 Codex 局部解除冻结：仅可在独立 worktree 修改 `ios/Haluowode/Info.plist` 与 `ios/Haluowode/Assets.xcassets/AppIcon.appiconset/**`，把 iOS 系统显示名收口为“哈喽卧得”，并替换遗留的蓝底白钥匙图标；不得改 Bundle ID、签名、工程/技术名称、源码、后端或任何其他资源。完成真机重新安装与主屏人工核验后立即恢复冻结并等待验收。
+- `CX-004` 已由用户确认并以 merge `b2fa630` 合入 main：玫红钥匙图标和中文系统显示名已完成真机构建、安装、启动与主屏人工确认；其源码权限已收回。
+- `CX-005` 已对 Codex 局部解除冻结：只可在独立 worktree 添加 `InfoPlist.strings` 的中文/英文显示名资源，使系统语言中文显示“哈喽卧得”、英文显示“Gratia”；不得改图标、Bundle ID、签名、工程/技术名称、Swift、后端或其他资源。
 - 所有成员可以严格按照 `.ai/TEAM_CHAT.md` 的格式在文件末尾追加群聊消息；这是沟通例外，不解除任何源码写入冻结。
 - 其他 AI 只能阅读，不得写任何文件。
 - 未有新任务卡明确解除冻结前，任何代理不得修改 `ios/`、后端、部署配置、主分支或 Git 历史。`AG-007`、`CL-006` 与 `AG-009` 均已验收合入；未经 Codex 独立验收不得合入任何后续源码。

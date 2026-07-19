@@ -811,3 +811,10 @@ Cloudflare Worker API
 - 已核验：当前 `Info.plist` 无 `CFBundleDisplayName` 且 `CFBundleName=$(PRODUCT_NAME)`；当前营销图为 1024×1024。候选玫红钥匙资源套件具有对应完整 slot 集与 1024×1024 营销图，但尚未进入主线。
 - 下一步：在隔离分支设置显示名“哈喽卧得”、替换 icon slot，验证 plist/资源尺寸和 Simulator build；以命令行临时签名覆盖重装真机，人工核验主屏。
 - 未验证：替换后图标的主屏缓存刷新时机、旧 iOS 与极端无障碍；不得将这些写成已通过。
+## 2026-07-19｜CX-004 验收合入与 CX-005 本地化派发
+
+- 验收：产品负责人确认玫红钥匙图标正确；`CX-004` 实现 `9746443`、交接 `259ef57` 以 merge `b2fa630` 合入 main。已证实真机 Debug build、安装、解锁后启动；built app metadata 为 `CFBundleDisplayName=哈喽卧得`、Bundle ID 未变。首次自动启动失败原因是设备锁屏，非签名或崩溃。
+- 产品裁决：系统语言为简体中文时主屏显示“哈喽卧得”；英语系统界面必须显示“Gratia”。应用内中文 UI 及 `Haluowode` 技术 target 保持不变。
+- 派发：`CX-005` 仅新增 `zh-Hans.lproj/InfoPlist.strings` 与 `en.lproj/InfoPlist.strings`，以 localized `CFBundleDisplayName` 实现系统显示名；禁止修改图标、Info.plist、工程、Bundle ID、签名、Swift、后端。
+- 下一步：在隔离 worktree 编译两种 locale，读取对应 built app metadata；然后以真机英语/中文语言切换完成主屏核验。
+- 未验证：iOS 的语言切换/主屏刷新可能需要重新安装或重启 SpringBoard；当前未在两种真机语言下验证。

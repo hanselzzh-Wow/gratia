@@ -28,7 +28,8 @@
 | CL-005 | Claude | ACCEPTED | 首页内容社区设计检查点已验收：正常/空/故事详情资产、职责、隐私和无障碍交接完整 | 历史 worktree `worktrees/claude-cl-005-home-community`；写权限已收回 | 已验收合入；不得继续重画或自行实现 |
 | CL-006 | Claude | ACCEPTED | 玫红首页/搜索/中央发布/帮助/我的已由 `03fcb7e` 合入 main；AG-009 修复步骤文案、收口 DEBUG/Release 边界与生成工程差异后，main 独立复验 App 49/49、Core 17/17 | 历史 worktree `worktrees/claude-cl-006-home-search-help-ui`；Claude 已停止 | 已验收合入；不得自行继续修改或领取任务 |
 | AG-009 | Antigravity | ACCEPTED | CL-006 集成硬化已以 `55ef6f9`/`3804eb4`/`a0ec5a4`/`7c959a2` 交付并由 `03fcb7e` 合入 main：步骤回归、DEBUG/Release 审计、生成工程归零均通过 | 历史 worktree `worktrees/ag-009-cl006-hardening`；Antigravity 已停止 | 已验收合入；不得自行继续修改或领取任务 |
-| CX-004 | Codex | IN_PROGRESS | iOS 系统显示名与 App Icon 收口：主屏显示“哈喽卧得”，替换遗留蓝底白钥匙资源；以真机重新安装和人工主屏核验闭环 | 仅 `worktrees/codex-cx-004-system-branding` 中的 `ios/Haluowode/Info.plist`、`ios/Haluowode/Assets.xcassets/AppIcon.appiconset/**`、`.ai/handoffs/CX-004-system-branding.md`、`.ai/TEAM_CHAT.md`（只追加） | 真机重新安装、系统显示名和图标人工核验、交接/STATUS/提交完成后停止，等待 Codex PM 验收 |
+| CX-004 | Codex | ACCEPTED | 系统显示名与 App Icon 已以 merge `b2fa630` 合入：玫红钥匙图标与中文显示名经过真机构建、安装、启动和产品负责人主屏确认 | 历史 worktree `worktrees/codex-cx-004-system-branding`；权限已收回 | 已验收合入；后续系统语言显示名需独立任务 |
+| CX-005 | Codex | IN_PROGRESS | iOS 系统显示名本地化：中文系统显示“哈喽卧得”，英文系统显示“Gratia”，不触及技术身份或签名 | 仅 `worktrees/codex-cx-005-display-name-localization` 的 `ios/Haluowode/{en.lproj,zh-Hans.lproj}/InfoPlist.strings`、`.ai/handoffs/CX-005-display-name-localization.md`、`.ai/TEAM_CHAT.md`（只追加） | 两种 locale 的 built-app metadata 和真机英语/中文系统显示名验证后停止等待验收 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -664,7 +665,28 @@ git diff --check
 
 验收：`plutil` 明确显示 `CFBundleDisplayName = 哈喽卧得`；全部 AppIcon slot 的 JSON 与像素尺寸有效；Simulator Debug build 成功；以现有 Personal Team 的命令行临时覆盖构建并重新安装到已连接真机，由用户/PM 人工确认主屏显示名和图标。不得把命令行 Team 覆盖写回工程文件。
 
-停止条件：写完交接与 STATUS，报告 commit、实际命令/结果、真机人工核验和未验证项后立即停止，等待 Codex PM 验收。
+验收结论：实现提交 `9746443`、交接勘误 `259ef57` 已经由 merge `b2fa630` 合入 main。`plutil`、18 个图标 slot 像素尺寸、真机 Debug build 和安装通过；真机自动 launch 首次被锁屏拒绝、解锁后成功启动。产品负责人于 2026-07-19 确认玫红钥匙图标正确。任务 ACCEPTED；图标及固定中文显示名权限收回。
+
+## CX-005：系统显示名本地化（Codex，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/codex-cx-005-display-name-localization`
+
+分支：`codex/cx-005-display-name-localization`
+
+唯一目标：以系统语言本地化系统显示名，中文（简体）显示“哈喽卧得”、英文显示“Gratia”。这是 SpringBoard/App Library 名称，不能改变应用内中文 UI、`Haluowode` target、Bundle ID 或签名。
+
+允许修改（仅限任务 worktree）：
+
+- 新建 `ios/Haluowode/zh-Hans.lproj/InfoPlist.strings`
+- 新建 `ios/Haluowode/en.lproj/InfoPlist.strings`
+- `.ai/handoffs/CX-005-display-name-localization.md`
+- `.ai/TEAM_CHAT.md`（仅追加 STATUS）
+
+禁止修改：`ios/Haluowode/Info.plist`、`Assets.xcassets/**`、`ios/project.yml`、`ios/Haluowode.xcodeproj/**`、Bundle ID、签名/证书/Team、任何 Swift/测试/Core/后端/部署、其他资源、任务板、冻结、项目记忆、项目日志、主分支或 Git 历史。
+
+验收：两份 strings 均是有效 UTF-16/UTF-8 strings 文件，仅定义 `CFBundleDisplayName`；对 English 与 Simplified Chinese locale 的编译产物分别读取 `Info.plist` 验证对应值；真机在 English 与简体中文系统语言下重新安装/刷新并人工确认系统显示名。命令行 Team 覆盖不得写回工程。
+
+停止条件：写完交接与 STATUS，报告 commit、实际命令/结果、两种语言真机验证和未验证项后立即停止，等待 Codex PM 验收。
 
 ## 新任务创建要求
 
