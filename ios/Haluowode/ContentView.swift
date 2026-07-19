@@ -90,6 +90,23 @@ struct ContentView: View {
         self.apiClient = client
         _viewModel = StateObject(wrappedValue: WishListViewModel(apiClient: client))
         _publishViewModel = StateObject(wrappedValue: PublishWishViewModel(apiClient: client))
+
+        #if DEBUG
+        // Headless-simulator screenshot hook: picks the initial page only.
+        // DEBUG builds only; injects no data and fakes no state.
+        let arguments = ProcessInfo.processInfo.arguments
+        if let index = arguments.firstIndex(of: "-cl006-initial-tab"), index + 1 < arguments.count {
+            switch arguments[index + 1] {
+            case "search": _selectedTab = State(initialValue: .search)
+            case "help": _selectedTab = State(initialValue: .help)
+            case "profile": _selectedTab = State(initialValue: .profile)
+            default: break
+            }
+        }
+        if arguments.contains("-cl006-show-publish") {
+            _showPublish = State(initialValue: true)
+        }
+        #endif
     }
 
     var body: some View {
