@@ -853,3 +853,11 @@ Cloudflare Worker API
 - 已创建唯一保留的产品 worktree：`worktrees/release-1.0`，HEAD `463a420fb2cf77ca9f6ff2a181a09b8fa37ff69b`，工作区干净。
 - 已使用精确路径强制移除 20 个历史任务 worktree，并删除 20 个对应本地 `codex/*` 与 `claude/rose-home-redesign` 分支；未删除 `main`、`release/1.0` 或 `v1.0-claude-rose`。
 - 清理后 `git worktree list` 只显示主工作区 `main` 和 `worktrees/release-1.0`；`git branch` 只显示 `main` 和 `release/1.0`。主工作区原有未跟踪用户文件保持原状。
+
+## 2026-07-19｜恢复 Gratia 1.0 完整 MVP 推进并派发双审计
+
+- 当前 Goal：以冻结的 `release/1.0@463a420` 为唯一 UI/产品基线，由 Codex PM 协调 Claude 与 Antigravity，补齐真实 API 与所有用户可达路径，形成可验证的 MVP 功能闭环。
+- Codex 只读扫描证实 1.0 已包含 `GratiaCore`、生产 API URL、公开列表/发布/响应/查询交付 ViewModel 和对应测试；同时生产源码包含 `StoryFeedSource` 虚构内容，四条业务链路在新五位 Dock 下的实际可达性与回归证据尚不完整。
+- 派发 `CL-008`：只读审计产品/交互闭环、生产首页内容策略、P0/P1 断点和首个实现切片规格；只写 handoff/群聊。
+- 派发 `AG-011`：独立运行 Core/App 全套测试与 parser/扫描，建立 UI→ViewModel→Core→endpoint 可达图和工程断点；只写 handoff/群聊及 `/private/tmp` 结果包，不改产品代码。
+- 下一步：创建两个从 1.0 起点分出的隔离 worktree；收到 ACK/交付后 Codex 独立验收并冻结第一张实现任务。未验证项包括当前测试实际数、Simulator 构建、真实 API 运行态、真机闭环与无障碍。

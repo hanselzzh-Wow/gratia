@@ -33,6 +33,8 @@
 | CL-007 | Claude | SUPERSEDED | 用户确认的 Claude 玫粉白/Lucide 真源已直接形成 AG-010 实现任务；Claude CLI 未交付审计 | 历史 worktree `worktrees/claude-cl-007-lucide-audit`；权限已收回 | 不得继续修改 |
 | AG-010 | Antigravity | SUPERSEDED | 首次交付 `1887b30` 含运行时虚构故事且未通过验收；产品负责人改为直接在真机运行 Claude 原始设计分支 | 任务 worktree 权限已收回 | 不得修复、合入、推送或继续修改；若未来要将原版迁移回主线，必须另建任务 |
 | VERSION-1.0 | Codex PM | FROZEN | 产品负责人指定 Claude 原始玫粉白/Lucide 客户端为唯一 1.0：`463a420`（设计 `8e95b0b`） | 仅 `release/1.0` 分支与 `v1.0-claude-rose` 标签作为基线 | 后续任务只能从 1.0 分出；不得以 main、CL-006 或 AG-010 取代、混入或回滚 1.0 |
+| CL-008 | Claude | IN_PROGRESS | 审计 Gratia 1.0 从首页到真实发布、帮助响应、进度/交付的产品与交互闭环，冻结最小 MVP 页面职责和状态 | 仅独立 worktree 的 `.ai/handoffs/CL-008-gratia-mvp-flow-audit.md` 与 `.ai/TEAM_CHAT.md` 末尾追加 | 交付审计、STATUS、commit 后立即停止；不得改产品代码或领取实现 |
+| AG-011 | Antigravity | IN_PROGRESS | 对 Gratia 1.0 做工程基线审计：真实构建/测试、API/导航可达性、运行时虚构数据与闭环断点 | 仅独立 worktree 的 `.ai/handoffs/AG-011-gratia-mvp-engineering-audit.md` 与 `.ai/TEAM_CHAT.md` 末尾追加 | 交付真实测试证据、STATUS、commit 后立即停止；不得改产品代码或领取实现 |
 | CHAT-001 | ALL | IN_PROGRESS | 在共享群聊中自由提问、提案、异议、评审和同步状态 | 仅向 `.ai/TEAM_CHAT.md` 文件末尾追加符合格式的消息 | 群聊长期开放；不得把聊天当成代码授权 |
 
 ## 执行资源优先级（产品负责人决定）
@@ -779,6 +781,60 @@ git diff --check
 ### 首次验收退回与产品裁决（2026-07-19）
 
 `1887b30dac49f243527df981e6d4f2cbdbb6b065` **不得合入**：`StoryFeed.swift` 的 `StoryFeedSource` 将虚构故事带入运行时，违反本任务禁止“运行时假故事”和生产无公开故事源时诚实空态的硬边界；其交接报告还列出与实际 HEAD 不符的 SHA，且独立 `git diff --check HEAD^ HEAD` 发现测试文件尾随空格。产品负责人随后明确要求先运行 Claude 原始 `8e95b0b` 版本；Codex 已将其分支（含仅图标修正 `463a420`）直接构建、安装并启动于真机。因此本任务终止并收回全部写权限，不得修复、合入或继续修改。
+
+## CL-008：Gratia 1.0 MVP 产品闭环审计（Claude，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/cl-008-mvp-flow-audit`
+
+分支：`codex/cl-008-mvp-flow-audit`，起点必须为 `release/1.0@463a420`。
+
+唯一目标：以 1.0 当前玫粉白/Lucide 视觉和信息架构为不可替换基线，逐页审计首页、搜索、中央发布、帮助、我的，以及真实公开列表、发布、提交响应、查询进度、交付预览如何形成用户可理解、可到达、可返回的 MVP 闭环；冻结实现任务可直接执行的最小产品规格，不重画 1.0，不写 Swift。
+
+允许修改：仅新建 `.ai/handoffs/CL-008-gratia-mvp-flow-audit.md`，以及在 `.ai/TEAM_CHAT.md` 末尾追加 ACK/OBJECTION/STATUS。
+
+禁止修改：所有 `ios/**`、测试、资源、工程、签名/Bundle ID、后端/部署、依赖、任务板、冻结、项目记忆、日志、main、`release/1.0` 与 Git 历史；不得生成运行时虚构故事、账号、点赞/评论/关注或私信功能。
+
+必须交付：
+
+1. 先 ACK，确认已读主工作区最新任务/冻结/接班卡及 1.0 source/screenshots。
+2. 给出五个一级入口与四条真实业务链路的逐步用户旅程、入口/出口、空/加载/错误/提交中/成功/取消状态和返回路径。
+3. 明确 `StoryFeedSource` 的虚构故事只能用于 Preview/宣传素材还是可以进入产品；列出首页生产态的诚实内容策略。
+4. 标出当前 1.0 每个不可达、语义冲突、误导文案、隐私或无障碍断点，按 P0/P1 排序。
+5. 给出第一张最小纵向实现任务的精确页面职责、验收截图清单与禁止事项；保持 1.0 配色、Dock、Lucide 和 `Gratia` 技术身份不变。
+6. 交接写明精确基线 SHA、审计过的文件、未验证项、commit；追加 STATUS 后停止。
+
+## AG-011：Gratia 1.0 MVP 工程基线审计（Antigravity，IN_PROGRESS）
+
+工作区：`/Users/hansangbai/Documents/New project/worktrees/ag-011-mvp-engineering-audit`
+
+分支：`codex/ag-011-mvp-engineering-audit`，起点必须为 `release/1.0@463a420`。
+
+唯一目标：不改产品代码，独立证明 1.0 当前工程能否构建/测试，并建立公开列表、发布、响应、查询、交付从 Dock/页面到 ViewModel/Core/API 的实际可达映射，找出 MVP 闭环的工程断点，为后续单一实现任务提供可执行证据。
+
+允许修改：仅新建 `.ai/handoffs/AG-011-gratia-mvp-engineering-audit.md`，以及在 `.ai/TEAM_CHAT.md` 末尾追加 ACK/OBJECTION/STATUS。构建产物和结果包只能写 `/private/tmp/gratia-ag011-*`，不得提交。
+
+禁止修改：所有 `ios/**`、测试/资源/工程、签名/Bundle ID、后端/部署、依赖、任务板、冻结、项目记忆、日志、main、`release/1.0` 与 Git 历史；不得运行生产写入请求、伪造测试结果、自动修复或领取下一任务。STATUS 身份必须写 `ANTIGRAVITY`，不得使用 Gemini/GEMINI-EXEC。
+
+必须交付：
+
+1. 先 ACK，明确 worktree/branch/基线、允许/禁止范围。
+2. 实际运行 GratiaCore 全套测试、Gratia App XCTest 全套、Swift parser、`git diff --check`；用可读取 xcresult 报告发现/执行/通过/失败/跳过数和 warning。
+3. 逐链路列出 UI 入口 → View/ViewModel → Core API 方法 → endpoint → 成功/失败状态；明确哪些已接线、不可达、仅 Preview、仅虚构运行时或存在隐私风险。
+4. 搜索并列出 `StoryFeedSource`/fake/mock/硬编码敏感值、生产 API URL、能力 URL/token 暴露面；测试 fixture 与生产运行时必须区分。
+5. 给出第一张工程实现切片的精确允许文件、接口不变量、测试矩阵与回滚点，但不得修改源码。
+6. 交接写明所有实际命令、结果包路径、warnings、未验证项与精确 commit；追加 STATUS 后停止。
+
+验收命令至少包括：
+
+```bash
+swift test --package-path ios/Packages/GratiaCore --scratch-path /private/tmp/gratia-ag011-core --disable-xctest --enable-swift-testing
+xcodebuild -project ios/Gratia.xcodeproj -scheme Gratia -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -derivedDataPath /private/tmp/gratia-ag011-derived -resultBundlePath /private/tmp/gratia-ag011.xcresult test
+swiftc -frontend -parse ios/Gratia/*.swift
+rg -n -i 'StoryFeedSource|mock|fixture|admin|x-admin-key|api[_-]?key|cloudflare.*token|capability|delivery.*url' ios/Gratia ios/Packages/GratiaCore
+git diff --check
+```
+
+两任务停止条件：各自交付 handoff、真实证据、commit 和 STATUS 后立即停止，等待 Codex PM 独立验收；任何 CLI/登录/权限/沙箱/配额问题立即报告产品负责人，Codex 不得代做其任务。
 
 ## 新任务创建要求
 
