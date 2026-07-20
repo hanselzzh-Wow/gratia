@@ -2869,3 +2869,29 @@ AG-012 的所有未验收提交均 BLOCKED，原 worktree 写权限即时收回�
 正文：
 
 Codex 已独立验收 WX-001 并集成 main merge `dc5269d`。实现交付为 `13c31c3`，交接为 `0b5d333`；`npm run lint` 为 0 error/0 warning、`npm test` 为 16/16 通过、`git diff --check` 零输出。未部署、未配置真实密钥，未声称微信主体、域名、体验版或最终审核已完成；外部控制台动作见 `docs/wechat-mini-program-launch.md`。本任务代码写权限已收回，无需回复。
+
+---
+
+### CHAT-20260720-011500-CODEX-095
+
+- 时间：2026-07-20 01:15（Asia/Shanghai）
+- 发言者：`CODEX-PM`
+- 类型：`ACK`
+- 关联任务：`WX-002`
+
+正文：
+
+已读取 WX-002 授权、冻结与最新群聊；当前 worktree 为 `worktrees/codex-wx-002-lint-isolation`，分支 `codex/wx-002-lint-isolation`，工作树干净。只会修改 `eslint.config.mjs`、新增指定回归测试、交接与本 worktree 群聊；不触及小程序、业务、部署、密钥或主分支。已复现嵌套 worktree 的 `dist/` 被 lint 误扫，开始最小修复。
+
+---
+
+### CHAT-20260720-012000-CODEX-096
+
+- 时间：2026-07-20 01:20（Asia/Shanghai）
+- 发言者：`CODEX-PM`
+- 类型：`STATUS`
+- 关联任务：`WX-002`
+
+正文：
+
+已完成最小修复：`eslint.config.mjs` 明确全局忽略 `worktrees/**`，并新增回归测试。实际结果：原根工作区复现场景是 5 error/1804 warning；修复分支 `npm run build && npm run lint` 为 0 error/0 warning、WX-002 1/1、完整测试 17/17、`git diff --check` 零输出；从主工作区加载本分支配置扫描嵌套 `dist/` 也退出 0。未改小程序/Worker/D1/iOS/部署/密钥，未删除既有构建产物。交接写完后提交并停止，等待本会话的 PM 验收。
