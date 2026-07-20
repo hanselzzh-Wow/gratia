@@ -24,7 +24,7 @@
 
 ## 当前事实（每次续接先验证）
 
-- **运行状态：产品负责人已恢复自主推进。** Codex 继续验收、集成和依赖驱动派发；外部负责人仍只做唯一已派任务，交接后停止。
+- **运行状态：WX-001 本地上线候选已验收并集成；等待真实微信平台外部条件。** Codex 已完成实现、验收与主线集成，不派发或等待外部代理。
 - `main` merge commit `296ab12` 已具备真实公开列表、发布、响应、查询进度/交付与 v3 基线（P0-A/B/C/D）。AG-006 独立质量门：Core 17/17、iPhone 17 Pro iOS 27 Simulator 23/23，0 failure/skip/runtime warning。
 - `AG-007` 已 ACCEPTED 并以 merge `679a371` 合入 main：本地 XCTest fixture 在 iPhone 17 Pro / iOS 27 Simulator 生成查询、404、delivered/待确认、交付失败四态证据；main 独立回归 App 27/27、Core 17/17，0 failure/skip/runtime warning。未访问生产 API，能力 URL/token 未进入画面或测试输出；真实远端媒体、系统 Link、极端无障碍设置、旧系统与真机仍未验证。
 - `CL-006` 与 `AG-009` 已 ACCEPTED 并以 merge `03fcb7e` 合入 main：玫红首页/搜索/中央发布/帮助/我的、步骤文案回归、DEBUG/Release 边界及生成工程归零均已收口。main 独立复验 Core 17/17、iPhone 17 Pro / iOS 27 Simulator App 49/49，0 failure/skip/runtime warning；Release 二进制对 `-cl006-initial-tab`、`-cl006-show-publish` 为 0 命中。两条 iOS 16/XCTest linker warning 仍存在；真机、旧 iOS、极端无障碍与真实远端媒体未验证。旧 `AG-008` 已 SUPERSEDED。
@@ -33,6 +33,7 @@
 - 历史并行 worktree/任务分支全部清理；`main` 只保留为既有历史与协调记录，不能再作为 1.0 的实现来源。`AG-010` 未通过验收且已 SUPERSEDED，未合入 1.0。
 - MVP 推进已恢复：`AG-011` ACCEPTED（`b42337e`；Core 17/17、App 23/23），`CL-008` ACCEPTED（`c5e4f78`/`7c16b01`）。真实发布、帮助列表、响应、发布者查询/交付预览已接线，但首页/搜索没有生产故事 API，“我帮助的”无响应者查询，账号/跨设备身份不存在，且 App 缺发布者确认完成动作。
 - 当前授权已从“小范围原型”扩大为小程序上线候选：须实现微信登录、provider-neutral 用户/会话/归属、本人发布/响应、发布者确认完成、账户删除、人工审核说明与现有运营台兼容；游客可浏览，发布/响应最终提交必须登录。iOS 通知设置只保留为未来事项；小程序 Dock 可改为固定底栏，其他视觉以 1.0 玫粉白/Lucide 为基线并记录每项平台适配。
+- `WX-001` 已 ACCEPTED 并以 main merge `dc5269d` 集成：`miniprogram/` 原生工程和 `project.config.json`、Worker/D1 账户迁移、受保护账户 API、交付代理、确认完成、账户匿名化、运营兼容、隐私/提审清单均已落地。独立验收为 lint 0 error/0 warning、`npm test` 16/16、`git diff --check` 零输出；本机未发现微信开发者工具，未验证真实 AppID/AppSecret 换码、D1 生产迁移、体验版、主体/域名或最终审核。
 - `CL-009` Apple 账号 UX `4085b85` 仍为未来 iOS 参考，但 Apple 实现已 DEFERRED，不能作为当前小程序阻塞。`AG-012` 的所有未验收 iOS 提交（包括 `814209c`、`70d3523`、`115e0d2`）均未合入；因产品优先级切换和 Antigravity 配额阻塞而暂停，禁止自动恢复或混入小程序。
 
 ## 强制交接与接班卡同步
@@ -63,9 +64,9 @@
 
 ## 恢复顺序
 
-1. `WX-001` 在独立 worktree 冻结小程序目录、微信登录、provider-neutral 账户/会话、Worker/D1 迁移、现有 API 兼容、隐私和审核边界；先确保旧客户端/运营流不回归。
-2. 实现并验收小程序全链路：登录→发布→人工审核→帮助响应→本人记录/查询→交付→确认完成/删除账户；不做支付，不在客户端泄漏 AppSecret、运营 PIN 或交付能力链接。
-3. 生成可提交微信后台的隐私、类目/主体/域名、体验版和发布审核清单；只有平台账户与最终审核这类不可代办动作才请求产品负责人接管。`AG-012` 与 Apple 登录只在产品负责人重新授权后恢复。
+1. 使用 `docs/wechat-mini-program-launch.md` 在实际微信控制台核实主体/类目、服务域名、隐私指引、体验版及提审字段；在私密 Worker 环境配置真实微信登录变量，绝不提交。
+2. 在微信开发者工具导入 `project.config.json`，以真实 AppID 和受邀体验者跑登录→发布→人工审核→帮助响应→本人记录/查询→交付→确认完成/删除账户；随后执行受控 D1 迁移与预览部署。
+3. 只有控制台审核通过并成功发布后才宣布上线。`AG-012` 与 Apple 登录仅在产品负责人重新授权后恢复。
 
 ## 快速核验
 

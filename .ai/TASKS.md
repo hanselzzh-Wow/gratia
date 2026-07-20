@@ -1,6 +1,6 @@
 # 多 AI 任务板
 
-最后更新：2026-07-19 23:10（Asia/Shanghai）
+最后更新：2026-07-20 00:45（Asia/Shanghai）
 
 永久角色分工见 `.ai/ROLES.md`。
 
@@ -10,7 +10,7 @@
 | --- | --- | --- | --- | --- | --- |
 | COORD-001 | Codex | ACCEPTED | 已审计未分配生成的 iOS 候选工程，建立协作制度并决定保留范围 | `AGENTS.md`、`PROJECT_LOG.md`、`README.md`、`.ai/**`、`docs/ios-candidate-review.md` | 审查结论已记录；后续按小任务选择性集成 |
 | COORD-002 | Codex | IN_PROGRESS | 统筹产品完成可提交微信审核的小程序 0.1 上线候选；冻结跨平台账户/隐私/验收，复用 Worker/D1/R2，保留 iOS 1.0 为体验基线 | 协调文档、正式源码集成和验收所需路径 | 小程序全链路、上线材料和独立验收完成；平台主体/最终审核按实际账户状态交接 |
-| WX-001 | Codex | IN_PROGRESS | 独立实现可提交微信审核的小程序上线候选：完整用户链路、微信登录、provider-neutral 归属、人工审核与运营兼容、1.0 视觉适配 | 仅隔离 worktree 的 `miniprogram/**`、`worker/index.ts`、`server/**`、`lib/wishes-*.ts`、`drizzle/**`、`tests/**`、微信提交材料和任务交接 | 代码/迁移/测试/隐私与平台清单均已独立验证；生产部署、主体认证与最终微信审核仅在真实账户条件满足后执行 |
+| WX-001 | Codex | ACCEPTED | 小程序上线候选已以 `13c31c3`/`0b5d333` 交付并以 main merge `dc5269d` 集成：微信登录、provider-neutral 归属、发布/审核/响应/本人记录/查询交付/确认/删除、运营兼容、1.0 适配与提审材料均已本地验收 | 已合入 `main`；实现权限收回，外部平台材料见 `docs/wechat-mini-program-launch.md` | 代码候选验收完成；真实 AppID/主体/域名/体验版/审核仍必须按控制台清单执行，不得将其误报为已上线 |
 | AG-001 | Antigravity | ACCEPTED | 已提交此前候选工程的文件、命令、假设、验证、未验证项和风险交接 | `.ai/handoffs/AG-001-antigravity.md` | 交接已完成；当前没有新的实现任务，只能参与群聊 |
 | AG-002 | Antigravity | ACCEPTED | 已机械整理现有后端与 Swift 候选模型的 API 映射和差距 | 仅 `.ai/handoffs/AG-002-api-map.md` | 交接已完成；Codex 已在 `docs/ios-api-contract.md` 纠正边界并冻结 v1 |
 | AG-003 | Antigravity | ACCEPTED | R5 已删除 R4 测试中残留的 `@unchecked Sendable`/锁包装；真实取消与竞态证据独立复验通过，等待 Codex 选择性集成 | 仅本任务 R3/R4/R5 明列的隔离 worktree路径与交接文件 | 已验收；不得自动继续或领取新任务 |

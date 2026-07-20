@@ -22,7 +22,7 @@
 - `CL-008` 只对 Claude 的隔离 worktree 局部解除冻结：只可写产品闭环审计 handoff 和群聊 ACK/STATUS，禁止修改任何产品代码、资源、测试、工程或 1.0 基线。
 - `AG-011` 已由 Codex 独立验收 ACCEPTED：交付 `b42337e`，Core 17/17、App 23/23；Antigravity 的审计与群聊写权限已收回，不得继续修改或领取实现。
 - 产品 P0 已调整：发布进度仅删除右侧“地点”；账号/归属仍是 P0，小程序先采用微信身份、未来再接 Apple；所有账户端点和数据表必须 provider-neutral。
-- `WX-001` 由 Codex 独立实施：只在隔离 worktree `worktrees/codex-wx-001-launch` 的 `codex/wx-001-launch` 分支内解除冻结。允许按任务卡修改 `miniprogram/**`、`worker/index.ts`、`server/**`、`lib/wishes-*.ts`、`drizzle/**`、`tests/**`、微信提交材料与该任务交接；允许执行本地/预览测试和只读生产检查。禁止把密钥写入源码、提交真实配置、自动生产部署、替产品负责人同意平台协议或变更 iOS 1.0。除该范围外继续冻结。
+- `WX-001` 已由 Codex 独立验收并以 main merge `dc5269d` 集成：`npm run lint` 通过、`npm test` 16/16 通过、差异格式通过。其隔离 worktree 的源码/测试/交接写权限已收回；不得自动续改、部署、设置真实密钥或伪称微信已审核。微信主体/域名/体验版/审核只按 `docs/wechat-mini-program-launch.md` 的外部清单推进。
 - `CL-008` 已由 Codex 验收 ACCEPTED：`c5e4f78`/`7c16b01` 只含审计与 STATUS，写权限收回。
 - `AG-012` 的未验收 iOS 提交已因产品负责人改为微信小程序 0.1 优先而 BLOCKED；Antigravity 的原 worktree、源码、测试、交接和群聊写权限全部收回。不得在配额恢复后自动续修、补 STATUS、合入或推送。
 - `CL-009` 已以 `4085b85` 验收，Claude 的 handoff/群聊写权限收回；Apple 登录 UX 仅作未来参考。当前未经新任务卡不得修改任何产品代码、后端、D1、微信/Apple 配置、签名/capability 或 1.0 基线。
