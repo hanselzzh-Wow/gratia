@@ -11,6 +11,9 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    // Isolated Git worktrees can contain their own generated output. They are
+    // independently linted from their own root and must not affect main.
+    "worktrees/**",
     "next-env.d.ts",
   ]),
 ]);
