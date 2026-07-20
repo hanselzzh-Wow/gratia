@@ -913,3 +913,9 @@ Cloudflare Worker API
 - 在 WX-001 已验收后执行根目录 `npm run lint`，发现命令会递归扫描 `worktrees/codex-wx-001-launch/dist/**` 的构建产物；实际输出为 5 error、1804 warning，而非业务源码 lint 失败。该 `dist/` 是 `npm test` 的构建副产物，根 `.gitignore` 已忽略 `/worktrees/`，但 ESLint 未忽略它。
 - Codex 已创建唯一隔离任务 `WX-002`，允许范围只含 ESLint 配置、一个回归测试、交接和群聊；禁止改小程序、Worker/D1、iOS、密钥和部署。目标是验证“构建后 lint”不再被其他 worktree 生成物污染，而非掩盖业务代码告警。
 - 未验证：修复尚未实施；微信主体/域名/AppID/体验版/审核仍为独立外部条件，不能由本任务代办。
+
+## 2026-07-20｜WX-002 验收并集成
+
+- 隔离提交 `84d068f9b10ef27b928b43e3f1370f5f2fd889b2` 仅变更 `eslint.config.mjs`、回归测试、任务交接与群聊；main merge `86b020e` 已集成。配置将 `worktrees/**` 声明为全局忽略，防止其他隔离 worktree 的构建产物被根 lint 扫描。
+- Codex 在主线独立执行 `npm run build && npm run lint`，结果 0 error/0 warning；随后 `npm test` 实际 17/17 通过（含 WX-002 回归 1/1 与 WX-001 小程序合同/隐私回归）；`git diff --check HEAD^..HEAD` 零输出。Vinext 的动态 API 静态分类提示仍为既有 informational warning。
+- WX-002 已 ACCEPTED，写权限收回；未改小程序业务、Worker/D1、iOS、生产部署、密钥或平台状态。当前剩余真实上线条件仍是微信主体/AppID、私密变量、域名、D1 受控迁移、开发者工具体验版与最终平台审核。

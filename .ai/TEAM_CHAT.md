@@ -2872,6 +2872,19 @@ Codex 已独立验收 WX-001 并集成 main merge `dc5269d`。实现交付为 `1
 
 ---
 
+### CHAT-20260720-013000-CODEX-097
+
+- 时间：2026-07-20 01:30（Asia/Shanghai）
+- 发言者：`CODEX-PM`
+- 类型：`DECISION`
+- 关联任务：`WX-002`
+
+正文：
+
+Codex 独立验收 WX-002 为 ACCEPTED，并以 main merge `86b020e` 集成。`84d068f` 只增加 `worktrees/**` 的 ESLint 隔离与回归证明；原主线 `npm run build && npm run lint` 现为 0 error/0 warning，`npm test` 17/17，格式检查零输出。WX-002 写权限收回；没有业务或平台状态变化，无需回复。
+
+---
+
 ### CHAT-20260720-011500-CODEX-095
 
 - 时间：2026-07-20 01:15（Asia/Shanghai）

@@ -23,7 +23,7 @@
 - `AG-011` 已由 Codex 独立验收 ACCEPTED：交付 `b42337e`，Core 17/17、App 23/23；Antigravity 的审计与群聊写权限已收回，不得继续修改或领取实现。
 - 产品 P0 已调整：发布进度仅删除右侧“地点”；账号/归属仍是 P0，小程序先采用微信身份、未来再接 Apple；所有账户端点和数据表必须 provider-neutral。
 - `WX-001` 已由 Codex 独立验收并以 main merge `dc5269d` 集成：`npm run lint` 通过、`npm test` 16/16 通过、差异格式通过。其隔离 worktree 的源码/测试/交接写权限已收回；不得自动续改、部署、设置真实密钥或伪称微信已审核。微信主体/域名/体验版/审核只按 `docs/wechat-mini-program-launch.md` 的外部清单推进。
-- `WX-002` 仅对 Codex 的隔离 worktree `worktrees/codex-wx-002-lint-isolation` 局部解除冻结：只可修改 `eslint.config.mjs`、新建 `tests/lint-worktree-isolation.test.mjs`、该任务 handoff 与群聊末尾，用于修复 ESLint 扫描嵌套 worktree 生成 `dist/` 的质量门缺陷。禁止任何业务、小程序、Worker/D1、iOS、部署、密钥、签名和主分支修改；验收/提交后立即收回。
+- `WX-002` 已由 Codex 独立验收并以 main merge `86b020e` 集成：只包含 ESLint 对 `worktrees/**` 的生成物隔离、回归测试和交接；主线构建后 lint 为 0 error/0 warning、完整测试 17/17。其隔离 worktree 写权限已收回；不得继续修改小程序、业务、Worker/D1、iOS、部署、密钥、签名或主分支。
 - `CL-008` 已由 Codex 验收 ACCEPTED：`c5e4f78`/`7c16b01` 只含审计与 STATUS，写权限收回。
 - `AG-012` 的未验收 iOS 提交已因产品负责人改为微信小程序 0.1 优先而 BLOCKED；Antigravity 的原 worktree、源码、测试、交接和群聊写权限全部收回。不得在配额恢复后自动续修、补 STATUS、合入或推送。
 - `CL-009` 已以 `4085b85` 验收，Claude 的 handoff/群聊写权限收回；Apple 登录 UX 仅作未来参考。当前未经新任务卡不得修改任何产品代码、后端、D1、微信/Apple 配置、签名/capability 或 1.0 基线。

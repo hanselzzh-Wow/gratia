@@ -1,6 +1,6 @@
 # 多 AI 任务板
 
-最后更新：2026-07-20 01:10（Asia/Shanghai）
+最后更新：2026-07-20 01:30（Asia/Shanghai）
 
 永久角色分工见 `.ai/ROLES.md`。
 
@@ -11,7 +11,7 @@
 | COORD-001 | Codex | ACCEPTED | 已审计未分配生成的 iOS 候选工程，建立协作制度并决定保留范围 | `AGENTS.md`、`PROJECT_LOG.md`、`README.md`、`.ai/**`、`docs/ios-candidate-review.md` | 审查结论已记录；后续按小任务选择性集成 |
 | COORD-002 | Codex | IN_PROGRESS | 统筹产品完成可提交微信审核的小程序 0.1 上线候选；冻结跨平台账户/隐私/验收，复用 Worker/D1/R2，保留 iOS 1.0 为体验基线 | 协调文档、正式源码集成和验收所需路径 | 小程序全链路、上线材料和独立验收完成；平台主体/最终审核按实际账户状态交接 |
 | WX-001 | Codex | ACCEPTED | 小程序上线候选已以 `13c31c3`/`0b5d333` 交付并以 main merge `dc5269d` 集成：微信登录、provider-neutral 归属、发布/审核/响应/本人记录/查询交付/确认/删除、运营兼容、1.0 适配与提审材料均已本地验收 | 已合入 `main`；实现权限收回，外部平台材料见 `docs/wechat-mini-program-launch.md` | 代码候选验收完成；真实 AppID/主体/域名/体验版/审核仍必须按控制台清单执行，不得将其误报为已上线 |
-| WX-002 | Codex | IN_PROGRESS | 修复根目录 ESLint 误扫嵌套隔离 worktree 生成产物，恢复可重复的“构建后 lint”质量门；不改小程序/业务逻辑 | 仅隔离 worktree 的 `eslint.config.mjs`、`tests/lint-worktree-isolation.test.mjs`、`.ai/handoffs/WX-002-lint-isolation.md` 与该 worktree 群聊 | `npm run build && npm run lint`、`npm test`、新增回归与格式检查通过；提交交接并停止，不部署、不改业务代码 |
+| WX-002 | Codex | ACCEPTED | 嵌套 worktree 的 ESLint 生成物隔离已由 `84d068f` 交付并以 main merge `86b020e` 集成；恢复可重复的“构建后 lint”质量门 | 已合入 `main`；写权限收回 | 主线 `npm run build && npm run lint` 0 error/0 warning、`npm test` 17/17、格式检查通过；不涉及小程序/业务/平台变更 |
 | AG-001 | Antigravity | ACCEPTED | 已提交此前候选工程的文件、命令、假设、验证、未验证项和风险交接 | `.ai/handoffs/AG-001-antigravity.md` | 交接已完成；当前没有新的实现任务，只能参与群聊 |
 | AG-002 | Antigravity | ACCEPTED | 已机械整理现有后端与 Swift 候选模型的 API 映射和差距 | 仅 `.ai/handoffs/AG-002-api-map.md` | 交接已完成；Codex 已在 `docs/ios-api-contract.md` 纠正边界并冻结 v1 |
 | AG-003 | Antigravity | ACCEPTED | R5 已删除 R4 测试中残留的 `@unchecked Sendable`/锁包装；真实取消与竞态证据独立复验通过，等待 Codex 选择性集成 | 仅本任务 R3/R4/R5 明列的隔离 worktree路径与交接文件 | 已验收；不得自动继续或领取新任务 |
@@ -974,19 +974,19 @@ Antigravity 只能修订以上原范围，完成后 commit、handoff/STATUS 并�
 
 停止条件：所有允许路径的代码、迁移、测试、文档和交接完成并有 commit；Codex 对自身改动独立复验，记录实际发现/执行/通过/失败/跳过、warning、截图/结果包、平台差异、未验证外部动作。不得自动生产部署或声称已通过微信审核。
 
-## WX-002：隔离 worktree 的 ESLint 质量门（Codex，IN_PROGRESS）
+## WX-002：隔离 worktree 的 ESLint 质量门（Codex，ACCEPTED）
 
 工作区：`/Users/hansangbai/Documents/New project/worktrees/codex-wx-002-lint-isolation`
 
 分支：`codex/wx-002-lint-isolation`，起点为 `main@dc6bc92`。
 
-唯一目标：修复根工作区的 `npm run lint` 在任一嵌套 Git worktree 已生成 `dist/` 后误扫其编译产物、导致 5 error/1804 warning 的隔离缺陷。该任务只恢复质量门可重复性，不得顺带修改小程序、Worker、D1、业务测试、iOS 或平台配置。
+唯一目标：修复根工作区的 `npm run lint` 在任一嵌套 Git worktree 已生成 `dist/` 后误扫其编译产物、导致 5 error/1804 warning 的隔离缺陷。该任务只恢复质量门可重复性，不得顺带修改小程序、Worker、D1、业务测试、iOS 或平台配置。已由 `84d068f` 交付、main merge `86b020e` 集成并独立验收。
 
 允许修改：仅 `eslint.config.mjs`、新建 `tests/lint-worktree-isolation.test.mjs`、`.ai/handoffs/WX-002-lint-isolation.md` 与该 worktree `.ai/TEAM_CHAT.md` 末尾追加。
 
 禁止修改：`miniprogram/**`、`worker/**`、`server/**`、`db/**`、`drizzle/**`、`ios/**`、`package.json`、生产/部署/密钥/签名、`main`、其他任务交接或已有未跟踪文件。
 
-验收：先以嵌套 worktree 已存在的 `dist/` 复现；修复后执行 `npm run build && npm run lint`、`npm test`、`node --test tests/lint-worktree-isolation.test.mjs`、`git diff --check`。交接必须写出复现/修复后的实际 error/warning 数、测试执行数、未验证项和 commit。完成后 STATUS 并停止；不得部署或续改。
+验收：已以嵌套 worktree 已存在的 `dist/` 复现；主线独立执行 `npm run build && npm run lint`（0 error/0 warning）、`npm test`（17/17）和 `git diff --check`（零输出）。交接、STATUS、独立验收与合入均完成；写权限收回，不得部署或续改。
 
 ## 新任务创建要求
 
