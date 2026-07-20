@@ -1,0 +1,7 @@
+<view class="nav" role="navigation" aria-label="主导航">
+  <view class="item {{active === 'home' ? 'active' : ''}}" data-target="home" bindtap="go"><image class="icon" src="/assets/lucide/home.svg" mode="aspectFit"/><text>首页</text></view>
+  <view class="item {{active === 'search' ? 'active' : ''}}" data-target="search" bindtap="go"><image class="icon" src="/assets/lucide/search.svg" mode="aspectFit"/><text>搜索</text></view>
+  <view class="publish {{active === 'publish' ? 'active' : ''}}" data-target="publish" bindtap="go"><view class="plus"><image src="/assets/lucide/plus.svg" mode="aspectFit"/></view><text>发布</text></view>
+  <view class="item {{active === 'help' ? 'active' : ''}}" data-target="help" bindtap="go"><image class="icon" src="/assets/lucide/heart-handshake.svg" mode="aspectFit"/><text>帮助</text></view>
+  <view class="item {{active === 'profile' ? 'active' : ''}}" data-target="profile" bindtap="go"><image class="icon" src="/assets/lucide/user-round.svg" mode="aspectFit"/><text>我的</text></view>
+</view>

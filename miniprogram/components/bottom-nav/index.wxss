@@ -1,0 +1,6 @@
+.nav { position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; display: flex; align-items: flex-end; justify-content: space-around; box-sizing: border-box; height: 144rpx; padding: 18rpx 18rpx calc(18rpx + env(safe-area-inset-bottom)); background: rgba(255,255,255,.97); border-top: 1rpx solid #f0e4e8; }
+.item, .publish { display: flex; flex: 1; flex-direction: column; align-items: center; gap: 4rpx; color: #81757a; font-size: 20rpx; }
+.icon { width: 40rpx; height: 40rpx; }
+.active { color: #7f4058; font-weight: 700; }
+.publish { transform: translateY(-20rpx); color: #9a536d; }
+.plus { display: grid; width: 72rpx; height: 72rpx; place-items: center; border-radius: 36rpx; background: #9a536d; box-shadow: 0 8rpx 18rpx rgba(154,83,109,.25); }.plus image{width:38rpx;height:38rpx}

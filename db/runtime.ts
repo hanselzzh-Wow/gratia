@@ -17,6 +17,7 @@ const schemaStatements = [
     status TEXT NOT NULL DEFAULT 'pending_review',
     moderation_note TEXT,
     source TEXT NOT NULL DEFAULT 'web',
+    user_id TEXT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
   )`,
@@ -79,6 +80,7 @@ const schemaStatements = [
     responder_contact TEXT NOT NULL,
     note TEXT,
     status TEXT NOT NULL DEFAULT 'pending',
+    user_id TEXT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
     FOREIGN KEY (wish_id) REFERENCES wishes(id) ON DELETE CASCADE
@@ -91,6 +93,29 @@ const schemaStatements = [
     updated_at INTEGER NOT NULL,
     PRIMARY KEY (fingerprint, action)
   )`,
+  `CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY NOT NULL,
+    created_at INTEGER NOT NULL,
+    deleted_at INTEGER
+  )`,
+  `CREATE TABLE IF NOT EXISTS account_identities (
+    id TEXT PRIMARY KEY NOT NULL,
+    user_id TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    provider_subject TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    deleted_at INTEGER,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT
+  )`,
+  `CREATE TABLE IF NOT EXISTS account_sessions (
+    id TEXT PRIMARY KEY NOT NULL,
+    user_id TEXT NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
+    expires_at INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
+    revoked_at INTEGER,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`,
   "CREATE INDEX IF NOT EXISTS wishes_status_created_idx ON wishes(status, created_at)",
   "CREATE INDEX IF NOT EXISTS wishes_city_status_idx ON wishes(city, status)",
   "CREATE INDEX IF NOT EXISTS providers_city_status_idx ON providers(city, status)",
@@ -99,6 +124,8 @@ const schemaStatements = [
   "CREATE INDEX IF NOT EXISTS wish_events_wish_created_idx ON wish_events(wish_id, created_at)",
   "CREATE UNIQUE INDEX IF NOT EXISTS wish_responses_wish_contact_unique ON wish_responses(wish_id, responder_contact)",
   "CREATE INDEX IF NOT EXISTS wish_responses_wish_created_idx ON wish_responses(wish_id, created_at)",
+  "CREATE UNIQUE INDEX IF NOT EXISTS account_identities_provider_subject_unique ON account_identities(provider, provider_subject)",
+  "CREATE INDEX IF NOT EXISTS account_sessions_user_expires_idx ON account_sessions(user_id, expires_at)",
 ] as const;
 
 async function addCompatibilityColumns(db: D1Database) {
@@ -122,6 +149,21 @@ async function addCompatibilityColumns(db: D1Database) {
   if (!deliverableColumns.results.some((column) => column.name === "access_token")) {
     await db.prepare("ALTER TABLE deliverables ADD COLUMN access_token TEXT").run();
   }
+
+  const wishColumns = await db.prepare("PRAGMA table_info(wishes)").all<{ name: string }>();
+  if (!wishColumns.results.some((column) => column.name === "user_id")) {
+    await db.prepare("ALTER TABLE wishes ADD COLUMN user_id TEXT").run();
+  }
+
+  const responseColumns = await db.prepare("PRAGMA table_info(wish_responses)").all<{ name: string }>();
+  if (!responseColumns.results.some((column) => column.name === "user_id")) {
+    await db.prepare("ALTER TABLE wish_responses ADD COLUMN user_id TEXT").run();
+  }
+
+  await db.batch([
+    db.prepare("CREATE INDEX IF NOT EXISTS wishes_user_created_idx ON wishes(user_id, created_at)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS wish_responses_user_created_idx ON wish_responses(user_id, created_at)"),
+  ]);
 }
 
 export function ensureWishSchema(db: D1Database) {

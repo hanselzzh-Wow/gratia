@@ -1,0 +1,17 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/search/index",
+    "pages/publish/index",
+    "pages/help/index",
+    "pages/profile/index",
+    "pages/delivery/index"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#FAF4F6",
+    "backgroundTextStyle": "light"
+  },
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

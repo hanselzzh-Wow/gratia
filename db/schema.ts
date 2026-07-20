@@ -1,5 +1,11 @@
 import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(),
+  createdAt: integer("created_at").notNull(),
+  deletedAt: integer("deleted_at"),
+});
+
 export const wishes = sqliteTable(
   "wishes",
   {
@@ -18,12 +24,14 @@ export const wishes = sqliteTable(
     status: text("status").notNull().default("pending_review"),
     moderationNote: text("moderation_note"),
     source: text("source").notNull().default("web"),
+    userId: text("user_id"),
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   },
   (table) => [
     index("wishes_status_created_idx").on(table.status, table.createdAt),
     index("wishes_city_status_idx").on(table.city, table.status),
+    index("wishes_user_created_idx").on(table.userId, table.createdAt),
   ],
 );
 
@@ -113,12 +121,14 @@ export const wishResponses = sqliteTable(
     responderContact: text("responder_contact").notNull(),
     note: text("note"),
     status: text("status").notNull().default("pending"),
+    userId: text("user_id"),
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   },
   (table) => [
     uniqueIndex("wish_responses_wish_contact_unique").on(table.wishId, table.responderContact),
     index("wish_responses_wish_created_idx").on(table.wishId, table.createdAt),
+    index("wish_responses_user_created_idx").on(table.userId, table.createdAt),
   ],
 );
 
@@ -132,4 +142,34 @@ export const rateLimits = sqliteTable(
     updatedAt: integer("updated_at").notNull(),
   },
   (table) => [primaryKey({ columns: [table.fingerprint, table.action] })],
+);
+
+export const accountIdentities = sqliteTable(
+  "account_identities",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    provider: text("provider").notNull(),
+    providerSubject: text("provider_subject").notNull(),
+    createdAt: integer("created_at").notNull(),
+    deletedAt: integer("deleted_at"),
+  },
+  (table) => [uniqueIndex("account_identities_provider_subject_unique").on(table.provider, table.providerSubject)],
+);
+
+export const accountSessions = sqliteTable(
+  "account_sessions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: integer("expires_at").notNull(),
+    createdAt: integer("created_at").notNull(),
+    revokedAt: integer("revoked_at"),
+  },
+  (table) => [index("account_sessions_user_expires_idx").on(table.userId, table.expiresAt)],
 );

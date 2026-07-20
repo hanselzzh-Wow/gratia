@@ -1,0 +1,13 @@
+{
+  "appid": "touristappid",
+  "projectname": "Gratia-哈喽卧得",
+  "miniprogramRoot": "miniprogram/",
+  "compileType": "miniprogram",
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "enhance": true,
+    "postcss": true,
+    "urlCheck": true
+  }
+}

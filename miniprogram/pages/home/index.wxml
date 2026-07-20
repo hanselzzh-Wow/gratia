@@ -1,0 +1,2 @@
+<view class="page"><view class="topbar"><text class="brand">哈喽卧得</text><button class="wish-pill" bindtap="publish">许个愿</button></view><view class="empty-wrap"><view class="story-mark"><image src="/assets/lucide/heart-handshake.svg" mode="aspectFit"/></view><text class="empty-title">还没有可以公开的故事</text><text class="empty-copy">每一次心愿完成后，只有发布者单独同意公开，这里才会出现真实的故事。我们不会用任何虚构内容填充这里。</text><button class="primary-button" bindtap="publish">发布一个心愿</button><button class="text-button" bindtap="help">看看谁需要帮助</button></view></view>
+<bottom-nav active="home" />
