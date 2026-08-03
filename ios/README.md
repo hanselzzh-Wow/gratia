@@ -1,4 +1,4 @@
-# Haluowode iOS
+# Gratia iOS
 
 本目录是原生 SwiftUI 消费者 App，目标为模拟器、真实 iPhone、TestFlight 和 App Store。
 
@@ -9,7 +9,7 @@
 完整 Xcode 可用前可执行：
 
 ```bash
-swiftc -frontend -parse ios/Haluowode/*.swift
+swiftc -frontend -parse ios/Gratia/*.swift
 ```
 
 该命令只验证语法，不代表 iOS SDK 编译、模拟器或真机验收通过。
