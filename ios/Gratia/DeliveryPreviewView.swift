@@ -5,10 +5,37 @@ import GratiaCore
 public struct DeliveryPreviewView: View {
     public let deliverable: WishDeliverableDTO
     @Binding public var isPresented: Bool
+    @StateObject private var saver = DeliverySaver()
 
     public init(deliverable: WishDeliverableDTO, isPresented: Binding<Bool>) {
         self.deliverable = deliverable
         self._isPresented = isPresented
+    }
+
+    private var canSaveToPhotos: Bool {
+        deliverable.kind == .handwrittenCard
+    }
+
+    /// 保存到相册只对图片类交付开放；失败文案统一，不暴露能力链接或 token。
+    private var saveButton: some View {
+        Button {
+            Task { await saver.save(from: deliverable.url) }
+        } label: {
+            Group {
+                switch saver.state {
+                case .saving:
+                    SwiftUI.ProgressView().tint(.white)
+                case .saved:
+                    Image(systemName: "checkmark").font(.title3)
+                default:
+                    Image(systemName: "square.and.arrow.down").font(.title3)
+                }
+            }
+            .foregroundColor(.white)
+            .frame(width: 44, height: 44)
+        }
+        .disabled(saver.state == .saving || saver.state == .saved)
+        .accessibilityLabel(saver.state == .saved ? "已保存到相册" : "保存到相册")
     }
 
     public var body: some View {
@@ -31,8 +58,12 @@ public struct DeliveryPreviewView: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
                     Spacer()
-                    // Dummy space to balance the close button
-                    Spacer().frame(width: 44)
+                    if canSaveToPhotos {
+                        saveButton
+                    } else {
+                        // Dummy space to balance the close button
+                        Spacer().frame(width: 44)
+                    }
                 }
 
                 Spacer()
@@ -107,6 +138,17 @@ public struct DeliveryPreviewView: View {
                     .padding(.bottom, 40)
                 }
             }
+        }
+        .alert(
+            "无法保存",
+            isPresented: Binding(
+                get: { if case .failed = saver.state { return true } else { return false } },
+                set: { if !$0 { saver.reset() } }
+            )
+        ) {
+            Button("好", role: .cancel) { saver.reset() }
+        } message: {
+            if case .failed(let message) = saver.state { Text(message) }
         }
     }
 

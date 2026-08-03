@@ -5,6 +5,8 @@ import GratiaCore
 /// "进度"不再是独立栏目——个人事务收进这里。
 struct ProfileView: View {
     @Binding var selectedTab: Int
+    @EnvironmentObject private var accountViewModel: AccountViewModel
+    @Environment(\.openURL) private var openURL
     @State private var showHelpView = false
     @State private var showPrivacyView = false
 
@@ -12,7 +14,7 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
-                    accountCard
+                    AccountSectionView(viewModel: accountViewModel)
                     activitySection
                     supportSection
                     aboutCard
@@ -25,28 +27,6 @@ struct ProfileView: View {
             .sheet(isPresented: $showHelpView) { HelpAndSafetyView() }
             .sheet(isPresented: $showPrivacyView) { PrivacyPolicyView() }
         }
-    }
-
-    private var accountCard: some View {
-        HStack(spacing: DesignSystem.spacing16) {
-            Circle()
-                .fill(DesignSystem.Rose.soft)
-                .frame(width: 52, height: 52)
-                .overlay(
-                    Image(systemName: "person")
-                        .font(.title3.weight(.medium))
-                        .foregroundStyle(DesignSystem.Rose.deep)
-                )
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
-                Text("访客模式").font(DesignSystem.titleFont).foregroundStyle(DesignSystem.Rose.ink)
-                Text("账户体系将在后续版本开放。当前可直接发布、帮助他人和查询进度。")
-                    .font(DesignSystem.metadataFont).foregroundStyle(DesignSystem.Rose.ink2).lineSpacing(2)
-            }
-        }
-        .padding(DesignSystem.spacing20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .roseCard(radius: DesignSystem.radiusLarge)
     }
 
     private var activitySection: some View {
@@ -108,8 +88,16 @@ struct ProfileView: View {
             Text("服务与支持").font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.Rose.ink)
             Button { showHelpView = true } label: { supportRow(title: "帮助与安全中心", icon: "shield") }
             Button { showPrivacyView = true } label: { supportRow(title: "隐私政策与条款", icon: "document") }
-            supportRow(title: "消息通知设置", icon: "bell", trailing: "去系统设置")
+            Button { openNotificationSettings() } label: {
+                supportRow(title: "消息通知设置", icon: "bell", trailing: "去系统设置")
+            }
         }
+    }
+
+    /// 通知开关由系统持有，App 只能把用户送到本应用的系统设置页。
+    private func openNotificationSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        openURL(url)
     }
 
     private func supportRow(title: String, icon: String, trailing: String? = nil) -> some View {

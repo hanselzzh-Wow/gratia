@@ -20,7 +20,8 @@ public final class WishAPIClient: WishAPIProtocol {
         method: String,
         path: String,
         queryItems: [URLQueryItem] = [],
-        body: Data? = nil
+        body: Data? = nil,
+        bearerToken: String? = nil
     ) async throws -> T {
         var urlComponents = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: true)!
         if !queryItems.isEmpty {
@@ -31,6 +32,9 @@ public final class WishAPIClient: WishAPIProtocol {
         var headers = ["accept": "application/json"]
         if body != nil {
             headers["content-type"] = "application/json"
+        }
+        if let bearerToken, !bearerToken.isEmpty {
+            headers["authorization"] = "Bearer \(bearerToken)"
         }
 
         let request = HTTPRequest(method: method, url: url, headers: headers, body: body)
@@ -120,5 +124,27 @@ public final class WishAPIClient: WishAPIProtocol {
             body: body
         )
         return envelope.wish
+    }
+}
+
+// MARK: - 账户
+
+extension WishAPIClient: AuthAPIProtocol {
+    public func signInWithApple(request: AppleSignInRequest) async throws -> AccountSession {
+        let body = try JSONEncoder().encode(request)
+        return try await executeRequest(method: "POST", path: "/api/auth/apple", body: body)
+    }
+
+    public func currentUser(token: String) async throws -> AccountUser {
+        let envelope: CurrentUserEnvelope = try await executeRequest(
+            method: "GET",
+            path: "/api/me",
+            bearerToken: token
+        )
+        return envelope.user
+    }
+
+    public func deleteAccount(token: String) async throws -> DeleteAccountResult {
+        try await executeRequest(method: "DELETE", path: "/api/me", bearerToken: token)
     }
 }

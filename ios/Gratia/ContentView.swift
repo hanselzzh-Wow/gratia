@@ -29,6 +29,7 @@ struct ContentView: View {
     @State private var showPublish: Bool
     @StateObject private var viewModel: WishListViewModel
     @StateObject private var publishViewModel: PublishWishViewModel
+    @StateObject private var accountViewModel: AccountViewModel
     @StateObject private var filterState = StoryFilterState()
     private let apiClient: WishAPIProtocol
 
@@ -37,6 +38,7 @@ struct ContentView: View {
         self.apiClient = client
         _viewModel = StateObject(wrappedValue: WishListViewModel(apiClient: client))
         _publishViewModel = StateObject(wrappedValue: PublishWishViewModel(apiClient: client))
+        _accountViewModel = StateObject(wrappedValue: AccountViewModel(authAPI: client))
 
         // 截图/调试辅助：仅 DEBUG 构建支持用启动参数选择初始栏目。
         var initialTab = Tab.home
@@ -128,6 +130,7 @@ struct ContentView: View {
         .tint(DesignSystem.Rose.primary)
         .environmentObject(viewModel)
         .environmentObject(filterState)
+        .environmentObject(accountViewModel)
         .environment(\.wishAPIClient, apiClient)
     }
 }
