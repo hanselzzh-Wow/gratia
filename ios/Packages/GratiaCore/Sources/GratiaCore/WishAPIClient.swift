@@ -148,3 +148,42 @@ extension WishAPIClient: AuthAPIProtocol {
         try await executeRequest(method: "DELETE", path: "/api/me", bearerToken: token)
     }
 }
+
+extension WishAPIClient: AccountAPIProtocol {
+    public func createAccountWish(request: CreateWishRequest, token: String) async throws -> CreateWishResult {
+        let body = try JSONEncoder().encode(request)
+        return try await executeRequest(
+            method: "POST",
+            path: "/api/account/wishes",
+            body: body,
+            bearerToken: token
+        )
+    }
+
+    public func createAccountWishResponse(
+        wishId: String,
+        request: CreateWishResponseRequest,
+        token: String
+    ) async throws -> CreateWishResponseResult {
+        let body = try JSONEncoder().encode(request)
+        return try await executeRequest(
+            method: "POST",
+            path: "/api/account/wishes/\(wishId)/responses",
+            body: body,
+            bearerToken: token
+        )
+    }
+
+    public func accountActivity(token: String) async throws -> AccountActivityDTO {
+        try await executeRequest(method: "GET", path: "/api/account/wishes", bearerToken: token)
+    }
+
+    public func confirmWishCompletion(wishId: String, token: String) async throws -> AccountWishDTO {
+        let envelope: CompleteWishEnvelope = try await executeRequest(
+            method: "POST",
+            path: "/api/account/wishes/\(wishId)/complete",
+            bearerToken: token
+        )
+        return envelope.wish
+    }
+}

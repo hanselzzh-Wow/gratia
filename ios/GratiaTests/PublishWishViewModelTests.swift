@@ -8,7 +8,10 @@ final class PublishWishViewModelTests: XCTestCase {
     @MainActor
     func testInvalidInputValidation() async throws {
         let mockAPI = PublishMockAPI()
-        let viewModel = PublishWishViewModel(apiClient: mockAPI)
+        let viewModel = PublishWishViewModel(
+            accountAPI: mockAPI,
+            accessToken: { "test-session-token" }
+        )
 
         // Set invalid fields
         viewModel.name = "" // requesterName too short
@@ -39,7 +42,10 @@ final class PublishWishViewModelTests: XCTestCase {
     @MainActor
     func testCorrectRequestMapping() async throws {
         let mockAPI = PublishMockAPI()
-        let viewModel = PublishWishViewModel(apiClient: mockAPI)
+        let viewModel = PublishWishViewModel(
+            accountAPI: mockAPI,
+            accessToken: { "test-session-token" }
+        )
 
         // Set valid inputs
         viewModel.name = "小白"
@@ -99,7 +105,10 @@ final class PublishWishViewModelTests: XCTestCase {
     @MainActor
     func testDuplicateSubmissionSuccess200() async throws {
         let mockAPI = PublishMockAPI()
-        let viewModel = PublishWishViewModel(apiClient: mockAPI)
+        let viewModel = PublishWishViewModel(
+            accountAPI: mockAPI,
+            accessToken: { "test-session-token" }
+        )
 
         viewModel.name = "小白"
         viewModel.contact = "wx_12345"
@@ -143,7 +152,10 @@ final class PublishWishViewModelTests: XCTestCase {
     @MainActor
     func testFailurePreservesDraft() async throws {
         let mockAPI = PublishMockAPI()
-        let viewModel = PublishWishViewModel(apiClient: mockAPI)
+        let viewModel = PublishWishViewModel(
+            accountAPI: mockAPI,
+            accessToken: { "test-session-token" }
+        )
 
         viewModel.name = "小白"
         viewModel.contact = "wx_12345"
@@ -185,7 +197,10 @@ final class PublishWishViewModelTests: XCTestCase {
     @MainActor
     func testSubmissionDeduplication() async throws {
         let mockAPI = PublishMockAPI()
-        let viewModel = PublishWishViewModel(apiClient: mockAPI)
+        let viewModel = PublishWishViewModel(
+            accountAPI: mockAPI,
+            accessToken: { "test-session-token" }
+        )
 
         viewModel.name = "小白"
         viewModel.contact = "wx_12345"
@@ -235,7 +250,10 @@ final class PublishWishViewModelTests: XCTestCase {
     @MainActor
     func testCancellationDoesNotSetFailedState() async throws {
         let mockAPI = PublishMockAPI()
-        let viewModel = PublishWishViewModel(apiClient: mockAPI)
+        let viewModel = PublishWishViewModel(
+            accountAPI: mockAPI,
+            accessToken: { "test-session-token" }
+        )
 
         viewModel.name = "小白"
         viewModel.contact = "wx_12345"
@@ -277,13 +295,91 @@ final class PublishWishViewModelTests: XCTestCase {
 }
 
 // MARK: - Publish Mock API
-actor PublishMockAPI: WishAPIProtocol {
+extension PublishWishViewModelTests {
+
+    /// 未登录时不得调用任何 API，草稿必须完整保留，登录后可直接重试。
+    @MainActor
+    func testValidDraftWithoutSessionRequiresSignIn() async throws {
+        let mockAPI = PublishMockAPI()
+        let viewModel = PublishWishViewModel(
+            accountAPI: mockAPI,
+            accessToken: { nil }
+        )
+
+        viewModel.name = "小白"
+        viewModel.contact = "13800000000"
+        viewModel.landmark = "西湖断桥"
+        viewModel.words = "请替我在断桥上说一声生日快乐。"
+        viewModel.agreeContact = true
+
+        await viewModel.submitWish()
+
+        XCTAssertEqual(viewModel.state, .requiresSignIn)
+        let request = await mockAPI.lastRequest
+        XCTAssertNil(request, "未登录时不得发出任何请求")
+        XCTAssertEqual(viewModel.landmark, "西湖断桥", "草稿必须保留")
+        XCTAssertEqual(viewModel.words, "请替我在断桥上说一声生日快乐。", "草稿必须保留")
+        XCTAssertTrue(viewModel.validationErrors.isEmpty, "未登录不是字段校验错误")
+    }
+
+    /// 已登录时必须把会话 token 传给账户端点。
+    @MainActor
+    func testSubmitSendsSessionToken() async throws {
+        let mockAPI = PublishMockAPI()
+        let viewModel = PublishWishViewModel(
+            accountAPI: mockAPI,
+            accessToken: { "session-token-abc" }
+        )
+
+        viewModel.name = "小白"
+        viewModel.contact = "13800000000"
+        viewModel.landmark = "西湖断桥"
+        viewModel.words = "请替我在断桥上说一声生日快乐。"
+        viewModel.agreeContact = true
+
+        let submission = Task { await viewModel.submitWish() }
+        await mockAPI.waitUntilStarted()
+
+        let token = await mockAPI.lastToken
+        XCTAssertEqual(token, "session-token-abc")
+
+        await mockAPI.completeRequest(with: .failure(GratiaAPIError.unknown))
+        await submission.value
+    }
+
+    /// 会话在提交途中失效：回到登录引导而不是通用失败，草稿保留。
+    @MainActor
+    func testExpiredSessionDuringSubmitRequiresSignIn() async throws {
+        let mockAPI = PublishMockAPI()
+        let viewModel = PublishWishViewModel(
+            accountAPI: mockAPI,
+            accessToken: { "stale-token" }
+        )
+
+        viewModel.name = "小白"
+        viewModel.contact = "13800000000"
+        viewModel.landmark = "西湖断桥"
+        viewModel.words = "请替我在断桥上说一声生日快乐。"
+        viewModel.agreeContact = true
+
+        let submission = Task { await viewModel.submitWish() }
+        await mockAPI.waitUntilStarted()
+        await mockAPI.completeRequest(with: .failure(GratiaAPIError.unauthorized(message: "登录已失效，请重新登录")))
+        await submission.value
+
+        XCTAssertEqual(viewModel.state, .requiresSignIn)
+        XCTAssertEqual(viewModel.landmark, "西湖断桥", "草稿必须保留")
+    }
+}
+
+actor PublishMockAPI: WishAPIProtocol, AccountAPIProtocol {
     private struct PendingRequest: Sendable {
         let continuation: CheckedContinuation<CreateWishResult, any Error>
     }
 
     private var pendingRequest: PendingRequest? = nil
     private(set) var lastRequest: CreateWishRequest? = nil
+    private(set) var lastToken: String? = nil
     private(set) var wasCancelled = false
     private var startContinuation: CheckedContinuation<Void, Never>? = nil
     private var cancelContinuation: CheckedContinuation<Void, Never>? = nil
@@ -307,7 +403,28 @@ actor PublishMockAPI: WishAPIProtocol {
     }
 
     func createWish(request: CreateWishRequest) async throws -> CreateWishResult {
+        fatalError("发布必须走已登录的账户端点")
+    }
+
+    func createAccountWishResponse(
+        wishId: String,
+        request: CreateWishResponseRequest,
+        token: String
+    ) async throws -> CreateWishResponseResult {
+        fatalError("Not used")
+    }
+
+    func accountActivity(token: String) async throws -> AccountActivityDTO {
+        fatalError("Not used")
+    }
+
+    func confirmWishCompletion(wishId: String, token: String) async throws -> AccountWishDTO {
+        fatalError("Not used")
+    }
+
+    func createAccountWish(request: CreateWishRequest, token: String) async throws -> CreateWishResult {
         lastRequest = request
+        lastToken = token
 
         if Task.isCancelled {
             wasCancelled = true

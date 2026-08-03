@@ -6,6 +6,8 @@ public enum ResponseState: Sendable, Equatable {
     case submitting
     case success
     case failed(String)
+    /// 校验已通过但尚未登录：草稿完整保留，登录后可直接重试提交。
+    case requiresSignIn
 }
 
 @MainActor
@@ -21,12 +23,19 @@ public final class WishResponseViewModel: ObservableObject {
     @Published public private(set) var validationErrors: [String: String] = [:]
 
     private let wishId: String
-    private let apiClient: WishAPIProtocol
+    private let accountAPI: AccountAPIProtocol
+    /// 取当前会话 token。响应必须归属到账户，"我帮助的"才能跨设备找回。
+    private let accessToken: @MainActor () -> String?
     private var currentTask: Task<Void, Never>? = nil
 
-    public init(wishId: String, apiClient: WishAPIProtocol) {
+    public init(
+        wishId: String,
+        accountAPI: AccountAPIProtocol,
+        accessToken: @escaping @MainActor () -> String?
+    ) {
         self.wishId = wishId
-        self.apiClient = apiClient
+        self.accountAPI = accountAPI
+        self.accessToken = accessToken
     }
 
     public func validate() -> Bool {
@@ -62,6 +71,11 @@ public final class WishResponseViewModel: ObservableObject {
             return
         }
 
+        guard let token = accessToken() else {
+            state = .requiresSignIn
+            return
+        }
+
         state = .submitting
 
         let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -76,7 +90,11 @@ public final class WishResponseViewModel: ObservableObject {
 
         let task = Task {
             do {
-                _ = try await apiClient.createWishResponse(wishId: wishId, request: request)
+                _ = try await accountAPI.createAccountWishResponse(
+                    wishId: wishId,
+                    request: request,
+                    token: token
+                )
                 guard !Task.isCancelled else {
                     self.state = .idle
                     return
@@ -98,7 +116,9 @@ public final class WishResponseViewModel: ObservableObject {
                     return
                 }
 
-                if let apiErr = error as? GratiaAPIError, case .badRequest(let message, let fields) = apiErr {
+                if let apiErr = error as? GratiaAPIError, case .unauthorized = apiErr {
+                    self.state = .requiresSignIn
+                } else if let apiErr = error as? GratiaAPIError, case .badRequest(let message, let fields) = apiErr {
                     if let fields = fields {
                         self.validationErrors = fields
                     }

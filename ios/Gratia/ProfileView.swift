@@ -6,6 +6,7 @@ import GratiaCore
 struct ProfileView: View {
     @Binding var selectedTab: Int
     @EnvironmentObject private var accountViewModel: AccountViewModel
+    @Environment(\.accountAPIClient) private var accountAPI
     @Environment(\.openURL) private var openURL
     @State private var showHelpView = false
     @State private var showPrivacyView = false
@@ -29,11 +30,22 @@ struct ProfileView: View {
         }
     }
 
+    private func makeActivityViewModel() -> AccountActivityViewModel {
+        AccountActivityViewModel(
+            accountAPI: accountAPI,
+            accessToken: { [weak accountViewModel] in accountViewModel?.accessToken }
+        )
+    }
+
     private var activitySection: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
             Text("我的心愿").font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.Rose.ink)
             NavigationLink {
-                MyActivityView(kind: .published, selectedTab: $selectedTab)
+                MyActivityView(
+                    kind: .published,
+                    selectedTab: $selectedTab,
+                    activityViewModel: makeActivityViewModel()
+                )
             } label: {
                 activityRow(
                     title: "我发布的",
@@ -42,7 +54,11 @@ struct ProfileView: View {
                 )
             }
             NavigationLink {
-                MyActivityView(kind: .helped, selectedTab: $selectedTab)
+                MyActivityView(
+                    kind: .helped,
+                    selectedTab: $selectedTab,
+                    activityViewModel: makeActivityViewModel()
+                )
             } label: {
                 activityRow(
                     title: "我帮助的",
@@ -126,8 +142,8 @@ struct ProfileView: View {
 
 // MARK: - 我发布的 / 我帮助的
 
-/// 无账户阶段的诚实呈现：不伪造本地记录，
-/// 发布的心愿通过公开编号 + 联系方式查询真实进度。
+/// 已登录时展示服务端返回的真实本人记录；
+/// 未登录时不伪造任何本地数据，直接引导登录，并保留公开编号查询作为兼容找回。
 struct MyActivityView: View {
     enum Kind {
         case published
@@ -136,24 +152,35 @@ struct MyActivityView: View {
         var title: String { self == .published ? "我发布的" : "我帮助的" }
     }
 
-    enum StatusFilter: String, CaseIterable {
-        case waiting = "等待回应"
-        case active = "进行中"
-        case done = "已完成"
-    }
-
     let kind: Kind
     @Binding var selectedTab: Int
     @Environment(\.wishAPIClient) private var apiClient
+    @Environment(\.accountAPIClient) private var accountAPI
     @Environment(\.dismiss) private var dismiss
-    @State private var statusFilter: StatusFilter = .waiting
+    @EnvironmentObject private var accountViewModel: AccountViewModel
+    @StateObject private var activityViewModel: AccountActivityViewModel
+    @State private var statusFilter: ActivityStatusFilter = .waiting
     @State private var showTrackSheet = false
+
+    init(kind: Kind, selectedTab: Binding<Int>, activityViewModel: AccountActivityViewModel) {
+        self.kind = kind
+        _selectedTab = selectedTab
+        _activityViewModel = StateObject(wrappedValue: activityViewModel)
+    }
+
+    private var filteredRequests: [AccountWishDTO] {
+        activityViewModel.requests.filter { statusFilter.matches($0.status) }
+    }
+
+    private var filteredResponses: [AccountResponseDTO] {
+        activityViewModel.responses.filter { statusFilter.matches($0.wish.status) }
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
                 statusChips
-                emptyContent
+                content
                 if kind == .published {
                     trackEntry
                 } else {
@@ -165,15 +192,168 @@ struct MyActivityView: View {
         .navigationTitle(kind.title)
         .navigationBarTitleDisplayMode(.inline)
         .background(DesignSystem.Rose.canvas.ignoresSafeArea())
+        .refreshable { activityViewModel.load() }
+        .task(id: accountViewModel.isSignedIn) { activityViewModel.load() }
+        .onDisappear { activityViewModel.cancelLoad() }
         .sheet(isPresented: $showTrackSheet) {
-            // 复用现有真实查询流程（TrackWishViewModel + 交付预览）。
+            // 保留公开编号 + 联系方式的兼容查询流程。
             ProgressView(apiClient: apiClient)
         }
     }
 
+    @ViewBuilder
+    private var content: some View {
+        switch activityViewModel.state {
+        case .idle, .loading:
+            loadingContent
+        case .requiresSignIn:
+            SignInPromptView(
+                viewModel: accountViewModel,
+                reason: kind == .published
+                    ? "登录后可以看到你发布过的全部心愿、进度与交付。"
+                    : "登录后可以看到你响应过的全部心愿与结果。"
+            )
+        case .failed(let message):
+            failureContent(message)
+        case .loaded:
+            loadedContent
+        }
+    }
+
+    private var loadingContent: some View {
+        HStack(spacing: DesignSystem.spacing8) {
+            SwiftUI.ProgressView().controlSize(.small)
+            Text("正在加载…").font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.Rose.ink2)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, DesignSystem.spacing32)
+    }
+
+    private func failureContent(_ message: String) -> some View {
+        VStack(spacing: DesignSystem.spacing12) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.title3)
+                .foregroundStyle(DesignSystem.danger)
+            Text(message)
+                .font(DesignSystem.bodyFont)
+                .foregroundStyle(DesignSystem.Rose.ink2)
+                .multilineTextAlignment(.center)
+            Button("重试") { activityViewModel.load() }
+                .font(DesignSystem.bodyFont.weight(.semibold))
+                .foregroundStyle(DesignSystem.Rose.deep)
+                .frame(minHeight: 44)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, DesignSystem.spacing32)
+    }
+
+    @ViewBuilder
+    private var loadedContent: some View {
+        if kind == .published {
+            if filteredRequests.isEmpty {
+                emptyContent
+            } else {
+                VStack(spacing: DesignSystem.spacing12) {
+                    ForEach(filteredRequests) { wish in requestRow(wish) }
+                }
+            }
+        } else {
+            if filteredResponses.isEmpty {
+                emptyContent
+            } else {
+                VStack(spacing: DesignSystem.spacing12) {
+                    ForEach(filteredResponses) { response in responseRow(response) }
+                }
+            }
+        }
+    }
+
+    private func requestRow(_ wish: AccountWishDTO) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
+            HStack {
+                Text(wish.publicCode)
+                    .font(DesignSystem.bodyFont.weight(.semibold))
+                    .foregroundStyle(DesignSystem.Rose.ink)
+                Spacer()
+                Text(wish.status.label)
+                    .font(DesignSystem.metadataFont)
+                    .foregroundStyle(DesignSystem.Rose.deep)
+                    .padding(.horizontal, DesignSystem.spacing8)
+                    .frame(minHeight: 24)
+                    .background(Capsule().fill(DesignSystem.Rose.tint))
+            }
+            Text("\(wish.city) · \(wish.landmark)")
+                .font(DesignSystem.metadataFont)
+                .foregroundStyle(DesignSystem.Rose.ink2)
+            Text(wish.message)
+                .font(DesignSystem.metadataFont)
+                .foregroundStyle(DesignSystem.Rose.ink2)
+                .lineLimit(2)
+            Text("感谢金 ¥\(Int(wish.rewardYuan))")
+                .font(DesignSystem.captionFont)
+                .foregroundStyle(DesignSystem.Rose.ink3)
+
+            if wish.canConfirmCompletion {
+                Button {
+                    Task { await activityViewModel.confirmCompletion(wishId: wish.id) }
+                } label: {
+                    HStack {
+                        Spacer()
+                        if activityViewModel.confirmingWishId == wish.id {
+                            SwiftUI.ProgressView().controlSize(.small).tint(.white)
+                        } else {
+                            Text("确认已完成").font(DesignSystem.bodyFont.weight(.semibold)).foregroundStyle(.white)
+                        }
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .background(
+                        RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                            .fill(DesignSystem.Rose.primary)
+                    )
+                }
+                .disabled(activityViewModel.confirmingWishId != nil)
+                .accessibilityLabel("确认心愿 \(wish.publicCode) 已完成")
+            }
+        }
+        .padding(DesignSystem.spacing16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .roseCard()
+    }
+
+    private func responseRow(_ response: AccountResponseDTO) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
+            HStack {
+                Text(response.wish.publicCode)
+                    .font(DesignSystem.bodyFont.weight(.semibold))
+                    .foregroundStyle(DesignSystem.Rose.ink)
+                Spacer()
+                Text(response.statusLabel)
+                    .font(DesignSystem.metadataFont)
+                    .foregroundStyle(DesignSystem.Rose.deep)
+                    .padding(.horizontal, DesignSystem.spacing8)
+                    .frame(minHeight: 24)
+                    .background(Capsule().fill(DesignSystem.Rose.tint))
+            }
+            Text("\(response.wish.city) · \(response.wish.landmark)")
+                .font(DesignSystem.metadataFont)
+                .foregroundStyle(DesignSystem.Rose.ink2)
+            Text(response.wish.message)
+                .font(DesignSystem.metadataFont)
+                .foregroundStyle(DesignSystem.Rose.ink2)
+                .lineLimit(2)
+            Text("心愿当前状态：\(response.wish.status.label)")
+                .font(DesignSystem.captionFont)
+                .foregroundStyle(DesignSystem.Rose.ink3)
+        }
+        .padding(DesignSystem.spacing16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .roseCard()
+    }
+
     private var statusChips: some View {
         HStack(spacing: DesignSystem.spacing8) {
-            ForEach(StatusFilter.allCases, id: \.self) { filter in
+            ForEach(ActivityStatusFilter.allCases, id: \.self) { filter in
                 Button {
                     statusFilter = filter
                 } label: {
@@ -205,10 +385,10 @@ struct MyActivityView: View {
             Image(systemName: "tray")
                 .font(.title3)
                 .foregroundStyle(DesignSystem.Rose.ink3)
-            Text("此设备上没有\(statusFilter.rawValue)的记录")
+            Text("没有\(statusFilter.rawValue)的记录")
                 .font(DesignSystem.bodyFont)
                 .foregroundStyle(DesignSystem.Rose.ink2)
-            Text("为保护隐私，记录不在设备上聚合；账户体系上线后可在此同步。")
+            Text(kind == .published ? "发布心愿后会出现在这里。" : "响应他人的心愿后会出现在这里。")
                 .font(DesignSystem.captionFont)
                 .foregroundStyle(DesignSystem.Rose.ink3)
                 .multilineTextAlignment(.center)

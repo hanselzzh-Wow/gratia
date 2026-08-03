@@ -204,6 +204,9 @@ APPLE_PRIVATE_KEY = （.p8 文件的完整内容，含 BEGIN/END 行）
 | Sign in with Apple entitlement | `ios/Gratia/Gratia.entitlements`、`project.yml` | — |
 | 隐私清单 | `ios/Gratia/PrivacyInfo.xcprivacy` | — |
 | 修复"消息通知设置"死行 | `ios/Gratia/ProfileView.swift` | 同上 |
+| 发布/响应改走 `/api/account/**` 带 Bearer，未登录不发请求 | `PublishWishViewModel.swift`、`WishResponseViewModel.swift` | 同上（新增 6 个 XCTest 用例待跑） |
+| "我发布的 / 我帮助的"展示真实账户记录 | `AccountActivityViewModel.swift`、`ProfileView.swift` | 同上 |
+| 发布者"确认已完成" | `ProfileView.swift` → `/api/account/wishes/{id}/complete` | 同上 |
 
 **未验证**：所有 iOS 代码只做了 Swift 语法解析，**没有编译、没有运行、没有模拟器或真机验证**，因为本机没有 Xcode。装好 Xcode 后必须完整跑一遍构建与测试。
 
@@ -213,8 +216,6 @@ APPLE_PRIVATE_KEY = （.p8 文件的完整内容，含 BEGIN/END 行）
 
 | 项目 | 说明 | 是否阻塞上架 |
 | --- | --- | --- |
-| 业务链路接入账户 | 发布/响应/本人记录仍走匿名端点，未改为 `/api/account/**` 带 Bearer。当前登录后账户还没有实际用途。 | 不阻塞审核，但**建议在提交前完成**，否则"有登录但登录没用"会显得可疑 |
-| 发布者"确认完成" | 后端 `/api/account/wishes/{id}/complete` 已有，iOS 未接 | 不阻塞 |
 | 推送通知 | 需要 APNs 配置与后端推送服务 | 不阻塞，1.1 再做 |
 | 应用内支付 | 需要企业主体 + 商户号；且需先与 Apple 确认按 3.1.3(e) 走外部支付还是按数字内容走 IAP | 不阻塞 1.0（1.0 无支付） |
 | 微信登录（iOS） | 微信开放平台"移动应用"只接受企业/组织主体，个人主体无法注册 | 不阻塞，后端 provider 已就绪 |

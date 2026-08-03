@@ -5,10 +5,19 @@ struct WishAPIClientKey: EnvironmentKey {
     static let defaultValue: WishAPIProtocol = WishAPIClient()
 }
 
+struct AccountAPIClientKey: EnvironmentKey {
+    static let defaultValue: AccountAPIProtocol = WishAPIClient()
+}
+
 extension EnvironmentValues {
     var wishAPIClient: WishAPIProtocol {
         get { self[WishAPIClientKey.self] }
         set { self[WishAPIClientKey.self] = newValue }
+    }
+
+    var accountAPIClient: AccountAPIProtocol {
+        get { self[AccountAPIClientKey.self] }
+        set { self[AccountAPIClientKey.self] = newValue }
     }
 }
 
@@ -32,13 +41,20 @@ struct ContentView: View {
     @StateObject private var accountViewModel: AccountViewModel
     @StateObject private var filterState = StoryFilterState()
     private let apiClient: WishAPIProtocol
+    private let accountAPIClient: AccountAPIProtocol
 
     init() {
         let client = WishAPIClient()
         self.apiClient = client
+        self.accountAPIClient = client
+        let account = AccountViewModel(authAPI: client)
         _viewModel = StateObject(wrappedValue: WishListViewModel(apiClient: client))
-        _publishViewModel = StateObject(wrappedValue: PublishWishViewModel(apiClient: client))
-        _accountViewModel = StateObject(wrappedValue: AccountViewModel(authAPI: client))
+        _accountViewModel = StateObject(wrappedValue: account)
+        // 发布通过闭包读取当前会话，避免把 token 复制进表单 ViewModel 长期持有。
+        _publishViewModel = StateObject(wrappedValue: PublishWishViewModel(
+            accountAPI: client,
+            accessToken: { [weak account] in account?.accessToken }
+        ))
 
         // 截图/调试辅助：仅 DEBUG 构建支持用启动参数选择初始栏目。
         var initialTab = Tab.home
@@ -126,12 +142,14 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showPublish) {
             PublishView(viewModel: publishViewModel, selectedTab: $selectedTab)
+                .environmentObject(accountViewModel)
         }
         .tint(DesignSystem.Rose.primary)
         .environmentObject(viewModel)
         .environmentObject(filterState)
         .environmentObject(accountViewModel)
         .environment(\.wishAPIClient, apiClient)
+        .environment(\.accountAPIClient, accountAPIClient)
     }
 }
 

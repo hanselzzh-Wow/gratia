@@ -5,6 +5,7 @@ struct PublishView: View {
     private enum PublishField: Hashable { case landmark, words, name, contact }
 
     @ObservedObject var viewModel: PublishWishViewModel
+    @EnvironmentObject private var accountViewModel: AccountViewModel
     @Binding var selectedTab: Int
     @Environment(\.dismiss) private var dismiss
     @State private var currentStep = 1
@@ -39,6 +40,14 @@ struct PublishView: View {
                 successView(publicCode: publicCode)
             } else {
                 progressIndicator
+                if viewModel.state == .requiresSignIn {
+                    SignInPromptView(
+                        viewModel: accountViewModel,
+                        reason: "登录后才能发布心愿。你填写的内容已经保留，登录后再点一次「确认发布」即可。"
+                    )
+                    .padding(.horizontal, DesignSystem.spacing20)
+                    .padding(.top, DesignSystem.spacing12)
+                }
                 if case .failed(let message) = viewModel.state { failureBanner(message) }
                 ScrollView {
                     VStack(alignment: .leading, spacing: DesignSystem.spacing20) {

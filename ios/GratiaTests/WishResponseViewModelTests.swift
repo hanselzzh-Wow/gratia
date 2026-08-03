@@ -8,7 +8,11 @@ final class WishResponseViewModelTests: XCTestCase {
     @MainActor
     func testInvalidInputValidation() async throws {
         let mockAPI = ResponseMockAPI()
-        let viewModel = WishResponseViewModel(wishId: "wish-123", apiClient: mockAPI)
+        let viewModel = WishResponseViewModel(
+            wishId: "wish-123",
+            accountAPI: mockAPI,
+            accessToken: { "test-session-token" }
+        )
 
         // Set invalid fields
         viewModel.name = "" // responderName too short
@@ -35,7 +39,11 @@ final class WishResponseViewModelTests: XCTestCase {
     @MainActor
     func testCorrectRequestMapping() async throws {
         let mockAPI = ResponseMockAPI()
-        let viewModel = WishResponseViewModel(wishId: "wish-abc-real-id", apiClient: mockAPI)
+        let viewModel = WishResponseViewModel(
+            wishId: "wish-abc-real-id",
+            accountAPI: mockAPI,
+            accessToken: { "test-session-token" }
+        )
 
         viewModel.name = "张三"
         viewModel.contact = "13800000000"
@@ -80,7 +88,11 @@ final class WishResponseViewModelTests: XCTestCase {
     @MainActor
     func testDuplicateSubmissionSuccess200() async throws {
         let mockAPI = ResponseMockAPI()
-        let viewModel = WishResponseViewModel(wishId: "wish-123", apiClient: mockAPI)
+        let viewModel = WishResponseViewModel(
+            wishId: "wish-123",
+            accountAPI: mockAPI,
+            accessToken: { "test-session-token" }
+        )
 
         viewModel.name = "张三"
         viewModel.contact = "13800000000"
@@ -115,7 +127,11 @@ final class WishResponseViewModelTests: XCTestCase {
     @MainActor
     func testFailurePreservesDraft() async throws {
         let mockAPI = ResponseMockAPI()
-        let viewModel = WishResponseViewModel(wishId: "wish-123", apiClient: mockAPI)
+        let viewModel = WishResponseViewModel(
+            wishId: "wish-123",
+            accountAPI: mockAPI,
+            accessToken: { "test-session-token" }
+        )
 
         viewModel.name = "张三"
         viewModel.contact = "13800000000"
@@ -145,7 +161,11 @@ final class WishResponseViewModelTests: XCTestCase {
     @MainActor
     func testSubmissionDeduplication() async throws {
         let mockAPI = ResponseMockAPI()
-        let viewModel = WishResponseViewModel(wishId: "wish-123", apiClient: mockAPI)
+        let viewModel = WishResponseViewModel(
+            wishId: "wish-123",
+            accountAPI: mockAPI,
+            accessToken: { "test-session-token" }
+        )
 
         viewModel.name = "张三"
         viewModel.contact = "13800000000"
@@ -183,7 +203,11 @@ final class WishResponseViewModelTests: XCTestCase {
     @MainActor
     func testCancellationDoesNotSetFailedState() async throws {
         let mockAPI = ResponseMockAPI()
-        let viewModel = WishResponseViewModel(wishId: "wish-123", apiClient: mockAPI)
+        let viewModel = WishResponseViewModel(
+            wishId: "wish-123",
+            accountAPI: mockAPI,
+            accessToken: { "test-session-token" }
+        )
 
         viewModel.name = "张三"
         viewModel.contact = "13800000000"
@@ -218,7 +242,84 @@ final class WishResponseViewModelTests: XCTestCase {
 }
 
 // MARK: - Response Mock API
-actor ResponseMockAPI: WishAPIProtocol {
+extension WishResponseViewModelTests {
+
+    /// 未登录时不得调用任何 API，草稿必须完整保留。
+    @MainActor
+    func testValidDraftWithoutSessionRequiresSignIn() async throws {
+        let mockAPI = ResponseMockAPI()
+        let viewModel = WishResponseViewModel(
+            wishId: "wish-123",
+            accountAPI: mockAPI,
+            accessToken: { nil }
+        )
+
+        viewModel.name = "阿远"
+        viewModel.contact = "13900000000"
+        viewModel.note = "我就住在附近，明早可以去。"
+        viewModel.agreeContact = true
+
+        await viewModel.submitResponse()
+
+        XCTAssertEqual(viewModel.state, .requiresSignIn)
+        let request = await mockAPI.lastRequest
+        XCTAssertNil(request, "未登录时不得发出任何请求")
+        XCTAssertEqual(viewModel.note, "我就住在附近，明早可以去。", "草稿必须保留")
+        XCTAssertTrue(viewModel.validationErrors.isEmpty, "未登录不是字段校验错误")
+    }
+
+    /// 已登录时必须把会话 token 与真实 wishId 一起传给账户端点。
+    @MainActor
+    func testSubmitSendsSessionToken() async throws {
+        let mockAPI = ResponseMockAPI()
+        let viewModel = WishResponseViewModel(
+            wishId: "wish-real-id",
+            accountAPI: mockAPI,
+            accessToken: { "session-token-xyz" }
+        )
+
+        viewModel.name = "阿远"
+        viewModel.contact = "13900000000"
+        viewModel.agreeContact = true
+
+        let submission = Task { await viewModel.submitResponse() }
+        await mockAPI.waitUntilStarted()
+
+        let token = await mockAPI.lastToken
+        let wishId = await mockAPI.lastWishId
+        XCTAssertEqual(token, "session-token-xyz")
+        XCTAssertEqual(wishId, "wish-real-id")
+
+        await mockAPI.completeRequest(with: .failure(GratiaAPIError.unknown))
+        await submission.value
+    }
+
+    /// 会话在提交途中失效：回到登录引导，草稿保留。
+    @MainActor
+    func testExpiredSessionDuringSubmitRequiresSignIn() async throws {
+        let mockAPI = ResponseMockAPI()
+        let viewModel = WishResponseViewModel(
+            wishId: "wish-123",
+            accountAPI: mockAPI,
+            accessToken: { "stale-token" }
+        )
+
+        viewModel.name = "阿远"
+        viewModel.contact = "13900000000"
+        viewModel.note = "我就住在附近。"
+        viewModel.agreeContact = true
+
+        let submission = Task { await viewModel.submitResponse() }
+        await mockAPI.waitUntilStarted()
+        await mockAPI.completeRequest(with: .failure(GratiaAPIError.unauthorized(message: "登录已失效，请重新登录")))
+        await submission.value
+
+        XCTAssertEqual(viewModel.state, .requiresSignIn)
+        XCTAssertEqual(viewModel.note, "我就住在附近。", "草稿必须保留")
+    }
+}
+
+actor ResponseMockAPI: WishAPIProtocol, AccountAPIProtocol {
     private struct PendingRequest: Sendable {
         let continuation: CheckedContinuation<CreateWishResponseResult, any Error>
     }
@@ -226,6 +327,7 @@ actor ResponseMockAPI: WishAPIProtocol {
     private var pendingRequest: PendingRequest? = nil
     private(set) var lastWishId: String? = nil
     private(set) var lastRequest: CreateWishResponseRequest? = nil
+    private(set) var lastToken: String? = nil
     private(set) var wasCancelled = false
     private var startContinuation: CheckedContinuation<Void, Never>? = nil
     private var cancelContinuation: CheckedContinuation<Void, Never>? = nil
@@ -253,8 +355,29 @@ actor ResponseMockAPI: WishAPIProtocol {
     }
 
     func createWishResponse(wishId: String, request: CreateWishResponseRequest) async throws -> CreateWishResponseResult {
+        fatalError("响应必须走已登录的账户端点")
+    }
+
+    func createAccountWish(request: CreateWishRequest, token: String) async throws -> CreateWishResult {
+        fatalError("Not used")
+    }
+
+    func accountActivity(token: String) async throws -> AccountActivityDTO {
+        fatalError("Not used")
+    }
+
+    func confirmWishCompletion(wishId: String, token: String) async throws -> AccountWishDTO {
+        fatalError("Not used")
+    }
+
+    func createAccountWishResponse(
+        wishId: String,
+        request: CreateWishResponseRequest,
+        token: String
+    ) async throws -> CreateWishResponseResult {
         lastWishId = wishId
         lastRequest = request
+        lastToken = token
 
         if Task.isCancelled {
             wasCancelled = true

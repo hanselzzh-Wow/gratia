@@ -294,7 +294,8 @@ struct WishDetailView: View {
     let wish: PublicWishDTO
     @State private var showApplySheet = false
     @State private var showSuccess = false
-    @Environment(\.wishAPIClient) private var apiClient
+    @Environment(\.accountAPIClient) private var accountAPI
+    @EnvironmentObject private var accountViewModel: AccountViewModel
 
     var body: some View {
         VStack(spacing: 0) {
@@ -321,8 +322,15 @@ struct WishDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .warmBackground()
         .sheet(isPresented: $showApplySheet) {
-            ApplyResponseSheet(wish: wish, isPresented: $showApplySheet, showSuccess: $showSuccess, apiClient: apiClient)
-                .presentationDetents([.large])
+            ApplyResponseSheet(
+                wish: wish,
+                isPresented: $showApplySheet,
+                showSuccess: $showSuccess,
+                accountAPI: accountAPI,
+                accessToken: { [weak accountViewModel] in accountViewModel?.accessToken }
+            )
+            .environmentObject(accountViewModel)
+            .presentationDetents([.large])
         }
         .navigationDestination(isPresented: $showSuccess) {
             ApplySuccessView(wish: wish)
@@ -421,13 +429,24 @@ struct ApplyResponseSheet: View {
     @Binding var isPresented: Bool
     @Binding var showSuccess: Bool
     @StateObject private var viewModel: WishResponseViewModel
+    @EnvironmentObject private var accountViewModel: AccountViewModel
     @FocusState private var focusedField: ResponseField?
 
-    init(wish: PublicWishDTO, isPresented: Binding<Bool>, showSuccess: Binding<Bool>, apiClient: WishAPIProtocol) {
+    init(
+        wish: PublicWishDTO,
+        isPresented: Binding<Bool>,
+        showSuccess: Binding<Bool>,
+        accountAPI: AccountAPIProtocol,
+        accessToken: @escaping @MainActor () -> String?
+    ) {
         self.wish = wish
         _isPresented = isPresented
         _showSuccess = showSuccess
-        _viewModel = StateObject(wrappedValue: WishResponseViewModel(wishId: wish.id, apiClient: apiClient))
+        _viewModel = StateObject(wrappedValue: WishResponseViewModel(
+            wishId: wish.id,
+            accountAPI: accountAPI,
+            accessToken: accessToken
+        ))
     }
 
     private var isFormValid: Bool {
@@ -443,6 +462,12 @@ struct ApplyResponseSheet: View {
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
                     summary
+                    if viewModel.state == .requiresSignIn {
+                        SignInPromptView(
+                            viewModel: accountViewModel,
+                            reason: "登录后才能提交帮助响应。你填写的内容已经保留，登录后再点一次「确认提交」即可。"
+                        )
+                    }
                     if case .failed(let message) = viewModel.state { failure(message) }
                     textField(label: "您的称呼", placeholder: "如：小张", text: $viewModel.name, field: .name, error: viewModel.validationErrors["responderName"])
                     textField(label: "联系方式（仅运营可见）", placeholder: "微信号或手机号", text: $viewModel.contact, field: .contact, error: viewModel.validationErrors["responderContact"])

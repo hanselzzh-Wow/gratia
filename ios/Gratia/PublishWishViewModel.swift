@@ -6,6 +6,8 @@ public enum PublishState: Sendable, Equatable {
     case submitting
     case success(publicCode: String)
     case failed(String)
+    /// 校验已通过但尚未登录：草稿完整保留，登录后可直接重试提交。
+    case requiresSignIn
 }
 
 @MainActor
@@ -26,11 +28,17 @@ public final class PublishWishViewModel: ObservableObject {
     @Published public private(set) var state: PublishState = .idle
     @Published public private(set) var validationErrors: [String: String] = [:]
 
-    private let apiClient: WishAPIProtocol
+    private let accountAPI: AccountAPIProtocol
+    /// 取当前会话 token。发布必须归属到账户，所以没有 token 就不发请求。
+    private let accessToken: @MainActor () -> String?
     private var currentTask: Task<Void, Never>? = nil
 
-    public init(apiClient: WishAPIProtocol) {
-        self.apiClient = apiClient
+    public init(
+        accountAPI: AccountAPIProtocol,
+        accessToken: @escaping @MainActor () -> String?
+    ) {
+        self.accountAPI = accountAPI
+        self.accessToken = accessToken
     }
 
     private var formattedDeadlineText: String {
@@ -111,6 +119,13 @@ public final class PublishWishViewModel: ObservableObject {
             return
         }
 
+        // 发布必须归属到账户，否则换设备后本人无法找回记录。
+        // 此时草稿完整保留，登录后再点一次提交即可。
+        guard let token = accessToken() else {
+            state = .requiresSignIn
+            return
+        }
+
         state = .submitting
 
         let request = CreateWishRequest(
@@ -128,7 +143,7 @@ public final class PublishWishViewModel: ObservableObject {
 
         let task = Task {
             do {
-                let result = try await apiClient.createWish(request: request)
+                let result = try await accountAPI.createAccountWish(request: request, token: token)
                 guard !Task.isCancelled else {
                     self.state = .idle
                     return
@@ -151,7 +166,10 @@ public final class PublishWishViewModel: ObservableObject {
                     return
                 }
 
-                if let apiErr = error as? GratiaAPIError, case .badRequest(let message, let fields) = apiErr {
+                if let apiErr = error as? GratiaAPIError, case .unauthorized = apiErr {
+                    // 会话在提交途中失效：保留草稿并回到登录引导，不报成通用失败。
+                    self.state = .requiresSignIn
+                } else if let apiErr = error as? GratiaAPIError, case .badRequest(let message, let fields) = apiErr {
                     if let fields = fields {
                         self.validationErrors = fields
                     }
