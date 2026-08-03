@@ -103,6 +103,7 @@ const schemaStatements = [
     user_id TEXT NOT NULL,
     provider TEXT NOT NULL,
     provider_subject TEXT NOT NULL,
+    refresh_token TEXT,
     created_at INTEGER NOT NULL,
     deleted_at INTEGER,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT
@@ -153,6 +154,11 @@ async function addCompatibilityColumns(db: D1Database) {
   const wishColumns = await db.prepare("PRAGMA table_info(wishes)").all<{ name: string }>();
   if (!wishColumns.results.some((column) => column.name === "user_id")) {
     await db.prepare("ALTER TABLE wishes ADD COLUMN user_id TEXT").run();
+  }
+
+  const identityColumns = await db.prepare("PRAGMA table_info(account_identities)").all<{ name: string }>();
+  if (!identityColumns.results.some((column) => column.name === "refresh_token")) {
+    await db.prepare("ALTER TABLE account_identities ADD COLUMN refresh_token TEXT").run();
   }
 
   const responseColumns = await db.prepare("PRAGMA table_info(wish_responses)").all<{ name: string }>();

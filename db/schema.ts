@@ -153,6 +153,7 @@ export const accountIdentities = sqliteTable(
       .references(() => users.id, { onDelete: "restrict" }),
     provider: text("provider").notNull(),
     providerSubject: text("provider_subject").notNull(),
+    refreshToken: text("refresh_token"),
     createdAt: integer("created_at").notNull(),
     deletedAt: integer("deleted_at"),
   },

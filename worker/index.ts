@@ -29,10 +29,17 @@ import {
   WishWorkflowError,
 } from "../server/wishes-repository";
 import {
+  createAppleSession,
   createWechatSession,
   deleteAuthenticatedAccount,
   getAuthenticatedUser,
 } from "../server/accounts-repository";
+import {
+  exchangeAppleAuthorizationCode,
+  revokeAppleRefreshToken,
+  verifyAppleIdentityToken,
+  type AppleAuthConfig,
+} from "../server/apple-identity";
 import { consumeRateLimit, RateLimitError } from "../server/rate-limit";
 
 interface Env {
@@ -44,6 +51,10 @@ interface Env {
   RATE_LIMIT_SALT?: string;
   WECHAT_MINI_PROGRAM_APP_ID?: string;
   WECHAT_MINI_PROGRAM_APP_SECRET?: string;
+  APPLE_BUNDLE_ID?: string;
+  APPLE_TEAM_ID?: string;
+  APPLE_KEY_ID?: string;
+  APPLE_PRIVATE_KEY?: string;
   IMAGES: {
     input(stream: ReadableStream): {
       transform(options: Record<string, unknown>): {
@@ -158,6 +169,15 @@ async function requireAccount(request: Request, env: Env) {
   return getAuthenticatedUser(env.DB, bearerToken(request));
 }
 
+function appleAuthConfig(env: Env): AppleAuthConfig {
+  return {
+    bundleId: env.APPLE_BUNDLE_ID ?? "com.hanselzzh.gratia",
+    teamId: env.APPLE_TEAM_ID,
+    keyId: env.APPLE_KEY_ID,
+    privateKey: env.APPLE_PRIVATE_KEY,
+  };
+}
+
 async function exchangeWechatCode(env: Env, code: string) {
   if (!env.WECHAT_MINI_PROGRAM_APP_ID || !env.WECHAT_MINI_PROGRAM_APP_SECRET) {
     throw new WishWorkflowError("微信登录暂未配置，请稍后重试", 503);
@@ -239,6 +259,41 @@ async function handleWishApi(request: Request, env: Env) {
       }, 201);
     }
 
+    if (url.pathname === "/api/auth/apple" && request.method === "POST") {
+      await enforceRateLimit(request, env, "apple_login", 20, 10 * 60_000);
+      const contentType = request.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        return json(request, env, { error: "仅接受 JSON 请求" }, 415);
+      }
+      const payload = (await request.json()) as {
+        identityToken?: unknown;
+        rawNonce?: unknown;
+        authorizationCode?: unknown;
+      };
+      const identityToken = typeof payload.identityToken === "string" ? payload.identityToken.trim() : "";
+      if (identityToken.length < 16 || identityToken.length > 8192) {
+        return json(request, env, { error: "Apple 登录凭证无效，请重新尝试" }, 400);
+      }
+      const rawNonce = typeof payload.rawNonce === "string" ? payload.rawNonce.trim() : "";
+      const config = appleAuthConfig(env);
+      const subject = await verifyAppleIdentityToken(identityToken, config, {
+        rawNonce: rawNonce || undefined,
+      });
+
+      const authorizationCode =
+        typeof payload.authorizationCode === "string" ? payload.authorizationCode.trim() : "";
+      const refreshToken = authorizationCode
+        ? await exchangeAppleAuthorizationCode(authorizationCode, config)
+        : null;
+
+      const session = await createAppleSession(env.DB, subject, refreshToken);
+      return json(request, env, {
+        token: session.token,
+        expiresAt: session.expiresAt,
+        user: session.user,
+      }, 201);
+    }
+
     if (url.pathname === "/api/me" && request.method === "GET") {
       const user = await requireAccount(request, env);
       return json(request, env, { user });
@@ -247,7 +302,18 @@ async function handleWishApi(request: Request, env: Env) {
     if (url.pathname === "/api/me" && request.method === "DELETE") {
       const user = await requireAccount(request, env);
       const result = await deleteAuthenticatedAccount(env.DB, user.id);
-      return json(request, env, { deletedAt: result.deletedAt });
+
+      // Apple 要求删除账户时撤销登录令牌。撤销失败不回滚删除，
+      // 只在响应里如实标注，避免把平台故障变成用户无法注销。
+      let appleTokensRevoked = true;
+      const config = appleAuthConfig(env);
+      for (const identity of result.revokedIdentities) {
+        if (identity.provider !== "apple") continue;
+        const revoked = await revokeAppleRefreshToken(identity.refreshToken, config);
+        if (!revoked) appleTokensRevoked = false;
+      }
+
+      return json(request, env, { deletedAt: result.deletedAt, appleTokensRevoked });
     }
 
     if (url.pathname === "/api/account/wishes" && request.method === "GET") {

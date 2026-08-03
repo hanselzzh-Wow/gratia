@@ -30,14 +30,25 @@ function toAccountUser(row: UserRow): AccountUser {
   return { id: row.id, createdAt: row.created_at };
 }
 
-export async function createWechatSession(db: D1Database, openId: string) {
+export type AccountProvider = "wechat" | "apple";
+
+/**
+ * 按 provider + subject 建立或复用账户，并签发本服务会话。
+ * 账户层与登录方式解耦：微信、Apple 以及未来的 provider 共用同一套 users/订单归属。
+ */
+export async function createProviderSession(
+  db: D1Database,
+  provider: AccountProvider,
+  subject: string,
+  refreshToken: string | null = null,
+) {
   await ensureWishSchema(db);
   const now = Date.now();
   let identity = await db
     .prepare(
-      "SELECT id, user_id FROM account_identities WHERE provider = 'wechat' AND provider_subject = ? AND deleted_at IS NULL LIMIT 1",
+      "SELECT id, user_id FROM account_identities WHERE provider = ? AND provider_subject = ? AND deleted_at IS NULL LIMIT 1",
     )
-    .bind(openId)
+    .bind(provider, subject)
     .first<IdentityRow>();
 
   let user: UserRow | null = null;
@@ -54,10 +65,15 @@ export async function createWechatSession(db: D1Database, openId: string) {
       db.prepare("INSERT INTO users (id, created_at) VALUES (?, ?)").bind(userId, now),
       db
         .prepare(
-          "INSERT INTO account_identities (id, user_id, provider, provider_subject, created_at) VALUES (?, ?, 'wechat', ?, ?)",
+          "INSERT INTO account_identities (id, user_id, provider, provider_subject, refresh_token, created_at) VALUES (?, ?, ?, ?, ?, ?)",
         )
-        .bind(identityId, userId, openId, now),
+        .bind(identityId, userId, provider, subject, refreshToken, now),
     ]);
+  } else if (refreshToken) {
+    await db
+      .prepare("UPDATE account_identities SET refresh_token = ? WHERE id = ?")
+      .bind(refreshToken, identity!.id)
+      .run();
   }
 
   const token = newToken();
@@ -73,9 +89,17 @@ export async function createWechatSession(db: D1Database, openId: string) {
   return { token, expiresAt, user: toAccountUser(user) };
 }
 
+export function createWechatSession(db: D1Database, openId: string) {
+  return createProviderSession(db, "wechat", openId);
+}
+
+export function createAppleSession(db: D1Database, subject: string, refreshToken: string | null = null) {
+  return createProviderSession(db, "apple", subject, refreshToken);
+}
+
 export async function getAuthenticatedUser(db: D1Database, token: string) {
   await ensureWishSchema(db);
-  if (!token || token.length < 32) throw new WishWorkflowError("请先登录微信账号", 401);
+  if (!token || token.length < 32) throw new WishWorkflowError("请先登录后再操作", 401);
   const tokenHash = await hashToken(token);
   const now = Date.now();
   const row = await db
@@ -101,11 +125,18 @@ export async function deleteAuthenticatedAccount(db: D1Database, userId: string)
     .first<UserRow>();
   if (!current || current.deleted_at !== null) throw new WishWorkflowError("账户不存在或已删除", 404);
 
+  const revocable = await db
+    .prepare(
+      "SELECT provider, refresh_token FROM account_identities WHERE user_id = ? AND deleted_at IS NULL AND refresh_token IS NOT NULL",
+    )
+    .bind(userId)
+    .all<{ provider: string; refresh_token: string }>();
+
   await db.batch([
     db.prepare("UPDATE users SET deleted_at = ? WHERE id = ? AND deleted_at IS NULL").bind(now, userId),
     db
       .prepare(
-        "UPDATE account_identities SET provider_subject = 'deleted:' || id, deleted_at = ? WHERE user_id = ? AND deleted_at IS NULL",
+        "UPDATE account_identities SET provider_subject = 'deleted:' || id, refresh_token = NULL, deleted_at = ? WHERE user_id = ? AND deleted_at IS NULL",
       )
       .bind(now, userId),
     db.prepare("UPDATE account_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL").bind(now, userId),
@@ -120,5 +151,12 @@ export async function deleteAuthenticatedAccount(db: D1Database, userId: string)
       )
       .bind(now, userId),
   ]);
-  return { deletedAt: now };
+
+  return {
+    deletedAt: now,
+    revokedIdentities: revocable.results.map((row) => ({
+      provider: row.provider,
+      refreshToken: row.refresh_token,
+    })),
+  };
 }
