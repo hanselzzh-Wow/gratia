@@ -9,6 +9,8 @@ struct PublishView: View {
     @Binding var selectedTab: Int
     @Environment(\.dismiss) private var dismiss
     @State private var currentStep = 1
+    /// 步骤推进的方向，决定新旧页面从哪一侧进出。前进为从右侧进入。
+    @State private var stepForward = true
     @FocusState private var focusedField: PublishField?
 
     private let scenes = ["生日祝福", "加油鼓励", "毕业祝福", "浪漫表白", "节日问候", "其他小心愿"]
@@ -38,6 +40,7 @@ struct PublishView: View {
             sheetHeader
             if case .success(let publicCode) = viewModel.state {
                 successView(publicCode: publicCode)
+                    .motionTransition(.opacity.combined(with: .scale(scale: 0.96)))
             } else {
                 progressIndicator
                 if viewModel.state == .requiresSignIn {
@@ -51,11 +54,20 @@ struct PublishView: View {
                 if case .failed(let message) = viewModel.state { failureBanner(message) }
                 ScrollView {
                     VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
-                        switch currentStep {
-                        case 1: step1View
-                        case 2: step2View
-                        default: step3View
+                        Group {
+                            switch currentStep {
+                            case 1: step1View
+                            case 2: step2View
+                            default: step3View
+                            }
                         }
+                        .id(currentStep)
+                        .motionTransition(
+                            .asymmetric(
+                                insertion: .move(edge: stepForward ? .trailing : .leading).combined(with: .opacity),
+                                removal: .move(edge: stepForward ? .leading : .trailing).combined(with: .opacity)
+                            )
+                        )
                     }
                     .padding(DesignSystem.spacing20)
                 }
@@ -63,6 +75,13 @@ struct PublishView: View {
             }
         }
         .warmBackground()
+        // 成功是全 App 唯一允许"弹"的时刻，配一次成功触感。
+        .motion(DesignSystem.Motion.celebrate, value: isSuccess)
+        .sensoryFeedback(.success, trigger: isSuccess) { _, success in success }
+        .sensoryFeedback(.error, trigger: viewModel.state) { _, state in
+            if case .failed = state { return true }
+            return false
+        }
     }
 
     private var sheetHeader: some View {
@@ -103,6 +122,7 @@ struct PublishView: View {
                 ForEach(1...3, id: \.self) { index in
                     Capsule()
                         .fill(index <= currentStep ? DesignSystem.accent : DesignSystem.hairline)
+                        .motion(DesignSystem.Motion.navigation, value: currentStep)
                         .frame(height: 4)
                 }
             }
@@ -137,12 +157,20 @@ struct PublishView: View {
     private var navigationControls: some View {
         HStack(spacing: DesignSystem.spacing16) {
             if currentStep > 1 {
-                Button("返回") { withAnimation { currentStep -= 1 } }
-                    .buttonStyle(SecondaryButtonStyle())
-                    .frame(width: 108)
+                Button("返回") {
+                    stepForward = false
+                    withAnimation(DesignSystem.Motion.navigation) { currentStep -= 1 }
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .frame(width: 108)
             }
             Button {
-                if currentStep < 3 { withAnimation { currentStep += 1 } } else { submitWish() }
+                if currentStep < 3 {
+                    stepForward = true
+                    withAnimation(DesignSystem.Motion.navigation) { currentStep += 1 }
+                } else {
+                    submitWish()
+                }
             } label: {
                 if isSubmitting { SwiftUI.ProgressView().tint(.white) }
                 else { Text(currentStep == 3 ? "确认并提交" : "继续") }

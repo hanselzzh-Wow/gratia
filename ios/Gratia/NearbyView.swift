@@ -7,6 +7,8 @@ struct NearbyView: View {
     @State private var selectedDeliveryFilter = "全部"
     @State private var showFilterSheet = false
     @State private var localCity = "全国"
+    /// 卡片 → 详情的原地展开转场，源与目标必须共享同一个命名空间。
+    @Namespace private var cardNamespace
 
     private let deliveryTypes = ["全部", "口播视频", "景色配音", "手写卡片"]
 
@@ -27,6 +29,7 @@ struct NearbyView: View {
                 searchAndFilter
                 filterChips
                 content
+                    .motion(DesignSystem.Motion.content, value: viewModel.state)
             }
             .navigationTitle("等待帮助的心愿")
             .navigationBarTitleDisplayMode(.inline)
@@ -120,6 +123,7 @@ struct NearbyView: View {
             SwiftUI.ProgressView("正在加载心愿")
                 .tint(DesignSystem.accent)
                 .font(DesignSystem.metadataFont)
+                .motionTransition(.opacity)
             Spacer()
         case .failed(let error):
             Spacer()
@@ -136,9 +140,11 @@ struct NearbyView: View {
                     .frame(width: 120)
             }
             .padding(.horizontal, DesignSystem.spacing32)
+            .motionTransition(.opacity)
             Spacer()
         case .empty:
             emptyState
+                .motionTransition(.opacity)
         case .loaded:
             VStack(spacing: 0) {
                 HStack {
@@ -154,9 +160,13 @@ struct NearbyView: View {
                     emptyState
                 } else {
                     List(filteredWishes) { wish in
-                        NavigationLink(destination: WishDetailView(wish: wish)) {
+                        NavigationLink {
+                            WishDetailView(wish: wish)
+                                .navigationTransition(.zoom(sourceID: wish.id, in: cardNamespace))
+                        } label: {
                             WishRowView(wish: wish)
                         }
+                        .matchedTransitionSource(id: wish.id, in: cardNamespace)
                         .buttonStyle(.plain)
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)

@@ -41,7 +41,7 @@ struct ProgressView: View {
                                         .foregroundColor(DesignSystem.primaryBlue)
                                     Spacer()
                                     Button("切换单号") {
-                                        withAnimation {
+                                        withAnimation(DesignSystem.Motion.navigation) {
                                             viewModel.resetQuery()
                                         }
                                     }
@@ -251,6 +251,7 @@ struct ProgressView: View {
                     }
                 }
             }
+            .motion(DesignSystem.Motion.content, value: viewModel.state)
             .navigationTitle("进度追踪")
             .navigationBarTitleDisplayMode(.inline)
             .warmBackground()
