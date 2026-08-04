@@ -64,7 +64,7 @@ struct AccountSectionView: View {
 
             if viewModel.state == .signingIn {
                 HStack(spacing: DesignSystem.spacing8) {
-                    ProgressView().controlSize(.small)
+                    SwiftUI.ProgressView().controlSize(.small)
                     Text("正在登录…").font(DesignSystem.metadataFont).foregroundStyle(DesignSystem.Rose.ink2)
                 }
             }
@@ -213,7 +213,7 @@ struct AccountSettingsView: View {
                 HStack {
                     Spacer()
                     if viewModel.state == .deleting {
-                        ProgressView().controlSize(.small)
+                        SwiftUI.ProgressView().controlSize(.small)
                     } else {
                         Text("删除我的账户").font(DesignSystem.bodyFont.weight(.semibold))
                     }
