@@ -7,14 +7,24 @@ import GratiaCore
 struct AccountSectionView: View {
     @ObservedObject var viewModel: AccountViewModel
     @Environment(\.colorScheme) private var colorScheme
-    @State private var showAccountSettings = false
+    /// 同一个 View 上挂多个 `.sheet` 在 SwiftUI 里会互相干扰，
+    /// 统一收敛成一个由 item 驱动的弹层。
+    private enum ActiveSheet: String, Identifiable {
+        case signIn
+        case accountSettings
+        var id: String { rawValue }
+    }
+
+    @State private var activeSheet: ActiveSheet?
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
             if viewModel.isSignedIn {
                 signedInCard
+                    .motionTransition(.opacity.combined(with: .scale(scale: 0.97)))
             } else {
                 signedOutCard
+                    .motionTransition(.opacity.combined(with: .scale(scale: 0.97)))
             }
 
             if let errorMessage = viewModel.errorMessage {
@@ -22,10 +32,18 @@ struct AccountSectionView: View {
                     .font(DesignSystem.metadataFont)
                     .foregroundStyle(DesignSystem.danger)
                     .accessibilityLabel("登录提示：\(errorMessage)")
+                    .motionTransition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .sheet(isPresented: $showAccountSettings) {
-            AccountSettingsView(viewModel: viewModel)
+        .motion(DesignSystem.Motion.content, value: viewModel.isSignedIn)
+        .motion(DesignSystem.Motion.content, value: viewModel.errorMessage)
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .signIn:
+                SignInSheet(viewModel: viewModel)
+            case .accountSettings:
+                AccountSettingsView(viewModel: viewModel)
+            }
         }
     }
 
@@ -51,25 +69,11 @@ struct AccountSectionView: View {
                 }
             }
 
-            SignInWithAppleButton(.signIn) { request in
-                viewModel.prepareAppleRequest(request)
-            } onCompletion: { result in
-                Task { await viewModel.completeAppleSignIn(with: result) }
-            }
-            .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
-            .frame(height: 48)
-            .disabled(viewModel.isBusy)
-            .opacity(viewModel.isBusy ? 0.5 : 1)
-            .accessibilityLabel("通过 Apple 登录")
+            Button("登录") { activeSheet = .signIn }
+                .buttonStyle(PrimaryButtonStyle())
+                .disabled(viewModel.isBusy)
 
-            if viewModel.state == .signingIn {
-                HStack(spacing: DesignSystem.spacing8) {
-                    SwiftUI.ProgressView().controlSize(.small)
-                    Text("正在登录…").font(DesignSystem.metadataFont).foregroundStyle(DesignSystem.Rose.ink2)
-                }
-            }
-
-            Text("我们只接收 Apple 提供的匿名用户标识，不获取你的姓名和邮箱。")
+            Text("登录方式为「通过 Apple 登录」，我们只接收 Apple 提供的匿名用户标识，不获取你的姓名和邮箱。")
                 .font(DesignSystem.captionFont)
                 .foregroundStyle(DesignSystem.Rose.ink3)
                 .fixedSize(horizontal: false, vertical: true)
@@ -81,7 +85,7 @@ struct AccountSectionView: View {
 
     private var signedInCard: some View {
         Button {
-            showAccountSettings = true
+            activeSheet = .accountSettings
         } label: {
             HStack(spacing: DesignSystem.spacing16) {
                 Circle()
@@ -253,10 +257,12 @@ struct AccountSettingsView: View {
 }
 
 /// 需要登录才能继续时使用的轻量登录提示。
+/// 这里只呈现品牌入口，Apple 官方按钮留到 `SignInSheet` 里——
+/// 一进页面就甩一个黑色系统按钮既突兀，也浪费了品牌表达的位置。
 struct SignInPromptView: View {
     @ObservedObject var viewModel: AccountViewModel
     let reason: String
-    @Environment(\.colorScheme) private var colorScheme
+    @State private var showSignIn = false
 
     var body: some View {
         VStack(spacing: DesignSystem.spacing16) {
@@ -266,24 +272,128 @@ struct SignInPromptView: View {
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
 
-            SignInWithAppleButton(.continue) { request in
-                viewModel.prepareAppleRequest(request)
-            } onCompletion: { result in
-                Task { await viewModel.completeAppleSignIn(with: result) }
-            }
-            .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
-            .frame(height: 48)
-            .disabled(viewModel.isBusy)
+            Button("登录后继续") { showSignIn = true }
+                .buttonStyle(PrimaryButtonStyle())
+                .disabled(viewModel.isBusy)
 
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
                     .font(DesignSystem.metadataFont)
                     .foregroundStyle(DesignSystem.danger)
                     .multilineTextAlignment(.center)
+                    .motionTransition(.opacity.combined(with: .move(edge: .top)))
             }
         }
+        .motion(DesignSystem.Motion.content, value: viewModel.errorMessage)
         .padding(DesignSystem.spacing20)
         .frame(maxWidth: .infinity)
         .roseCard(radius: DesignSystem.radiusLarge)
+        .sheet(isPresented: $showSignIn) {
+            SignInSheet(viewModel: viewModel, reason: reason)
+        }
+    }
+}
+
+/// 全 App 共用的登录弹层。品牌先行，Apple 官方按钮按其设计规范原样呈现——
+/// 规范允许先放自有入口再呈现官方按钮，但不允许改造按钮本身。
+struct SignInSheet: View {
+    @ObservedObject var viewModel: AccountViewModel
+    var reason: String?
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+
+    private let benefits = [
+        ("paperplane", "发布你的心愿，交给当地的人完成"),
+        ("hands.sparkles", "响应别人的心愿，替他走一趟"),
+        ("clock.arrow.circlepath", "换设备后仍能找回自己的记录"),
+    ]
+
+    var body: some View {
+        VStack(spacing: DesignSystem.spacing24) {
+            BrandMark()
+                .frame(width: 64, height: 64)
+                .padding(.top, DesignSystem.spacing32)
+                .accessibilityHidden(true)
+
+            VStack(spacing: DesignSystem.spacing8) {
+                Text("登录哈喽卧得")
+                    .font(DesignSystem.titleFont)
+                    .foregroundStyle(DesignSystem.Rose.ink)
+                Text(reason ?? "浏览不需要登录。只有发布心愿和响应帮助时，才需要一个账户。")
+                    .font(DesignSystem.metadataFont)
+                    .foregroundStyle(DesignSystem.Rose.ink2)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, DesignSystem.spacing24)
+
+            VStack(alignment: .leading, spacing: DesignSystem.spacing16) {
+                ForEach(benefits, id: \.0) { icon, text in
+                    HStack(spacing: DesignSystem.spacing12) {
+                        Image(systemName: icon)
+                            .font(.body)
+                            .foregroundStyle(DesignSystem.Rose.primary)
+                            .frame(width: 26)
+                            .accessibilityHidden(true)
+                        Text(text)
+                            .font(DesignSystem.bodyFont)
+                            .foregroundStyle(DesignSystem.Rose.ink)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, DesignSystem.spacing32)
+
+            Spacer(minLength: 0)
+
+            VStack(spacing: DesignSystem.spacing12) {
+                SignInWithAppleButton(.signIn) { request in
+                    viewModel.prepareAppleRequest(request)
+                } onCompletion: { result in
+                    Task { await viewModel.completeAppleSignIn(with: result) }
+                }
+                .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+                .frame(height: 50)
+                .disabled(viewModel.isBusy)
+                .opacity(viewModel.isBusy ? 0.5 : 1)
+                .accessibilityLabel("通过 Apple 登录")
+
+                if viewModel.state == .signingIn {
+                    HStack(spacing: DesignSystem.spacing8) {
+                        SwiftUI.ProgressView().controlSize(.small)
+                        Text("正在登录…")
+                            .font(DesignSystem.metadataFont)
+                            .foregroundStyle(DesignSystem.Rose.ink2)
+                    }
+                    .motionTransition(.opacity)
+                }
+
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .font(DesignSystem.metadataFont)
+                        .foregroundStyle(DesignSystem.danger)
+                        .multilineTextAlignment(.center)
+                        .motionTransition(.opacity.combined(with: .move(edge: .bottom)))
+                }
+
+                Text("我们只接收 Apple 提供的匿名用户标识，不获取你的姓名和邮箱。")
+                    .font(DesignSystem.captionFont)
+                    .foregroundStyle(DesignSystem.Rose.ink3)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .motion(DesignSystem.Motion.content, value: viewModel.state)
+            .padding(.horizontal, DesignSystem.spacing24)
+            .padding(.bottom, DesignSystem.spacing32)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(DesignSystem.canvas.ignoresSafeArea())
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .sensoryFeedback(.success, trigger: viewModel.isSignedIn) { _, signedIn in signedIn }
+        .onChange(of: viewModel.isSignedIn) { _, signedIn in
+            if signedIn { dismiss() }
+        }
     }
 }

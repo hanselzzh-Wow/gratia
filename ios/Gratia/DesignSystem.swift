@@ -86,8 +86,8 @@ struct PrimaryButtonStyle: ButtonStyle {
                     .fill(isDisabled ? DesignSystem.accent.opacity(0.45) : DesignSystem.accent)
             )
             .opacity(configuration.isPressed ? 0.9 : 1.0)
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
-            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .motion(DesignSystem.Motion.control, value: configuration.isPressed)
     }
 }
 
@@ -107,14 +107,75 @@ struct SecondaryButtonStyle: ButtonStyle {
                     )
             )
             .opacity(configuration.isPressed ? 0.8 : 1.0)
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
-            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .motion(DesignSystem.Motion.control, value: configuration.isPressed)
     }
 }
 
 struct WarmBackgroundModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.background(DesignSystem.canvasWarm.ignoresSafeArea())
+    }
+}
+
+// MARK: - Motion
+
+extension DesignSystem {
+    /// 动效语义层。全部使用弹簧而非时长曲线：系统动画是可中断的物理运动，
+    /// 用户能在半路抓住它往回拖，`easeInOut` 做不到这件事。
+    /// 各处一律引用这里的语义，不要散落手写数值。
+    enum Motion {
+        /// 层级与页面切换。
+        static let navigation = Animation.snappy(duration: 0.42, extraBounce: 0.02)
+        /// 内容出现、替换、列表变化。
+        static let content = Animation.smooth(duration: 0.32)
+        /// 控件的即时反馈，需要跟手。
+        static let control = Animation.snappy(duration: 0.22)
+        /// 仅用于成功时刻，是全 App 唯一允许"弹"的地方。
+        static let celebrate = Animation.bouncy(duration: 0.5, extraBounce: 0.18)
+
+        /// Reduce Motion 下退化为短促淡入，而不是取消动画——
+        /// 直接取消会丢失"状态发生了变化"这一提示，反而更不可用。
+        static func adaptive(_ animation: Animation, reduceMotion: Bool) -> Animation {
+            reduceMotion ? .easeOut(duration: 0.18) : animation
+        }
+
+        /// Reduce Motion 下一律交叉淡入，与系统自身的降级方式一致。
+        static func transition(_ transition: AnyTransition, reduceMotion: Bool) -> AnyTransition {
+            reduceMotion ? .opacity : transition
+        }
+    }
+}
+
+/// 按语义施加动画，并自动处理 Reduce Motion。
+private struct MotionModifier<V: Equatable>: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let animation: Animation
+    let value: V
+
+    func body(content: Content) -> some View {
+        content.animation(DesignSystem.Motion.adaptive(animation, reduceMotion: reduceMotion), value: value)
+    }
+}
+
+extension View {
+    /// 用法：`.motion(.content, value: items)`
+    func motion<V: Equatable>(_ animation: Animation, value: V) -> some View {
+        modifier(MotionModifier(animation: animation, value: value))
+    }
+
+    /// Reduce Motion 下自动降级为淡入的转场。
+    func motionTransition(_ transition: AnyTransition) -> some View {
+        modifier(MotionTransitionModifier(transition: transition))
+    }
+}
+
+private struct MotionTransitionModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let transition: AnyTransition
+
+    func body(content: Content) -> some View {
+        content.transition(DesignSystem.Motion.transition(transition, reduceMotion: reduceMotion))
     }
 }
 
