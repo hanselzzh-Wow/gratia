@@ -86,7 +86,7 @@ function main() {
     const apiArgument = process.argv.slice(2).find((argument) => !argument.startsWith("--"));
     const apiBase = normalizeApiBase(
       apiArgument ??
-        process.env.HALUOWODE_API_BASE_URL ??
+        process.env.GRATIA_API_BASE_URL ??
         process.env.NEXT_PUBLIC_API_BASE_URL,
     );
     resetGithubPagesOutput();

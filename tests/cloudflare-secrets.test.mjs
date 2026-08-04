@@ -32,7 +32,7 @@ test("rejects placeholder, short, or reused Cloudflare secrets", () => {
 });
 
 test("generates strong local-only Cloudflare secrets without overwriting them", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "haluowode-secrets-"));
+  const directory = await mkdtemp(join(tmpdir(), "gratia-secrets-"));
   const path = join(directory, ".cloudflare.secrets");
   const first = initializeCloudflareSecrets(path);
   const original = await readFile(path, "utf8");

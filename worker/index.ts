@@ -132,7 +132,7 @@ async function secureEqual(left: string, right: string) {
 
 async function requestFingerprint(request: Request, env: Env) {
   const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for") ?? "local";
-  const salt = env.RATE_LIMIT_SALT ?? env.ADMIN_API_KEY ?? "haluowode-local";
+  const salt = env.RATE_LIMIT_SALT ?? env.ADMIN_API_KEY ?? "gratia-local";
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${salt}|${ip}`));
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
@@ -234,7 +234,7 @@ async function handleWishApi(request: Request, env: Env) {
     if (url.pathname === "/api/health" && request.method === "GET") {
       return json(request, env, {
         ok: true,
-        service: "haluowode-wishes",
+        service: "gratia-wishes",
         ...(await getWishHealth(env.DB)),
       });
     }
@@ -469,7 +469,7 @@ async function handleWishApi(request: Request, env: Env) {
       return new Response(csv, {
         headers: {
           "content-type": "text/csv; charset=utf-8",
-          "content-disposition": `attachment; filename="haluowode-ops-${new Date().toISOString().slice(0, 10)}.csv"`,
+          "content-disposition": `attachment; filename="gratia-ops-${new Date().toISOString().slice(0, 10)}.csv"`,
           "cache-control": "private, no-store",
           ...corsHeaders(request, env),
         },

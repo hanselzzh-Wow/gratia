@@ -175,7 +175,7 @@ export default function OperationsPage() {
       const objectUrl = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = objectUrl;
-      anchor.download = `haluowode-ops-${new Date().toISOString().slice(0, 10)}.csv`;
+      anchor.download = `gratia-ops-${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.append(anchor);
       anchor.click();
       anchor.remove();
@@ -213,7 +213,7 @@ export default function OperationsPage() {
       <main className="ops-login-shell">
         <Link className="ops-back-link" href="/">← 返回产品</Link>
         <form className="ops-login-card" onSubmit={connect}>
-          <span className="ops-kicker">HALUOWODE · OPERATIONS</span>
+          <span className="ops-kicker">GRATIA · OPERATIONS</span>
           <h1>心愿运营台</h1>
           <p>审核新心愿、手工匹配响应者，并跟踪交付状态。</p>
           <label>

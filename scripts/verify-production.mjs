@@ -11,7 +11,7 @@ import {
 const argumentsList = process.argv.slice(2);
 const full = argumentsList.includes("--full");
 const baseArgument = argumentsList.find((argument) => !argument.startsWith("--"));
-const configuredBase = baseArgument ?? process.env.HALUOWODE_BASE_URL;
+const configuredBase = baseArgument ?? process.env.GRATIA_BASE_URL;
 
 if (!configuredBase) {
   console.error(
@@ -37,7 +37,7 @@ baseUrl.search = "";
 baseUrl.hash = "";
 const isLocal = ["localhost", "127.0.0.1", "::1"].includes(baseUrl.hostname);
 const allowedOrigin =
-  process.env.HALUOWODE_PUBLIC_ORIGIN?.replace(/\/$/, "") ??
+  process.env.GRATIA_PUBLIC_ORIGIN?.replace(/\/$/, "") ??
   (isLocal ? baseUrl.origin : "https://hanselzzh-wow.github.io");
 
 function endpoint(path) {
@@ -89,11 +89,11 @@ async function adminAction(adminKey, wishId, action) {
 }
 
 function getAdminKey() {
-  const fromEnvironment = process.env.HALUOWODE_ADMIN_API_KEY?.trim();
+  const fromEnvironment = process.env.GRATIA_ADMIN_API_KEY?.trim();
   if (fromEnvironment) return fromEnvironment;
   if (!existsSync(defaultCloudflareSecretsPath)) {
     throw new Error(
-      "完整验收需要 HALUOWODE_ADMIN_API_KEY，或本地有效的 .cloudflare.secrets。",
+      "完整验收需要 GRATIA_ADMIN_API_KEY，或本地有效的 .cloudflare.secrets。",
     );
   }
   const values = validateCloudflareSecrets(
@@ -109,7 +109,7 @@ function logCheck(message) {
 async function verifyReadOnly() {
   const { response: healthResponse, payload: health } = await jsonRequest("/api/health");
   assert.equal(health.ok, true);
-  assert.equal(health.service, "haluowode-wishes");
+  assert.equal(health.service, "gratia-wishes");
   assert.equal(health.database, "ready");
   assert.equal(healthResponse.headers.get("cache-control"), "no-store");
   logCheck("Worker 与 D1 健康检查通过");
@@ -249,7 +249,7 @@ async function verifyFullWorkflow() {
     form.set(
       "file",
       new Blob([imageBytes], { type: "image/png" }),
-      `haluowode-production-check-${stamp}.png`,
+      `gratia-production-check-${stamp}.png`,
     );
     form.set("note", "自动化 R2 文件交付验收");
     const { payload: uploadPayload } = await jsonRequest(

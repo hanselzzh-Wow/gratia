@@ -11,8 +11,8 @@ import {
 
 test("accepts only a root HTTPS API outside chatgpt.site", () => {
   assert.equal(
-    normalizeApiBase("https://haluowode-mvp.example.workers.dev/"),
-    "https://haluowode-mvp.example.workers.dev",
+    normalizeApiBase("https://gratia-mvp.example.workers.dev/"),
+    "https://gratia-mvp.example.workers.dev",
   );
   assert.throws(() => normalizeApiBase("http://example.com"), /HTTPS/);
   assert.throws(
@@ -26,20 +26,20 @@ test("accepts only a root HTTPS API outside chatgpt.site", () => {
 });
 
 test("checks the GitHub Pages handoff before publication", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "haluowode-pages-"));
+  const directory = await mkdtemp(join(tmpdir(), "gratia-pages-"));
   await mkdir(join(directory, "ops"), { recursive: true });
   await mkdir(join(directory, "_next"), { recursive: true });
   await writeFile(join(directory, "index.html"), "<title>哈喽卧得</title>");
   await writeFile(join(directory, "ops/index.html"), "<title>心愿运营台</title>");
   await writeFile(
     join(directory, "_next/app.js"),
-    'const api = "https://haluowode.example.workers.dev";',
+    'const api = "https://gratia.example.workers.dev";',
   );
 
   assert.doesNotThrow(() =>
     verifyGithubPagesExport(
       directory,
-      "https://haluowode.example.workers.dev",
+      "https://gratia.example.workers.dev",
     ),
   );
   await writeFile(
@@ -50,14 +50,14 @@ test("checks the GitHub Pages handoff before publication", async () => {
     () =>
       verifyGithubPagesExport(
         directory,
-        "https://haluowode.example.workers.dev",
+        "https://gratia.example.workers.dev",
       ),
     /chatgpt\.site/,
   );
 });
 
 test("removes stale files before creating a new GitHub Pages export", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "haluowode-pages-stale-"));
+  const directory = await mkdtemp(join(tmpdir(), "gratia-pages-stale-"));
   const staleFile = join(directory, "index 3.html");
   await writeFile(staleFile, "stale build");
 
