@@ -1412,8 +1412,22 @@ export async function listPublishedStories(db: D1Database, limit = 30) {
 
 const defaultDisplayName = "哈喽卧得用户";
 
+/// 头像地址必须是**绝对** URL，`origin` 取调用方请求的来源。
+///
+/// 这个接口没有任何同源的消费者：运营台是 GitHub Pages 上的静态页，
+/// iOS 直接把字符串交给 `URL(string:)`。返回 `/api/avatars/...` 的话，
+/// 运营台会去 github.io 上取（404），iOS 拿到一个没有 scheme 的 URL
+/// 根本发不出请求——**文件其实好好躺在 R2 里，表现却像「上传功能坏了」**。
+///
+/// 以请求 origin 为准而不是写死域名，这样 workers.dev 与将来的自定义域都对。
+function avatarUrlFor(key: string | null | undefined, origin: string): string | null {
+  if (!key) return null;
+  return new URL(`/api/avatars/${encodeURIComponent(key)}`, origin).toString();
+}
+
 export type UserProfile = {
   displayName: string;
+  /// 绝对 URL（见 avatarUrlFor）；没有头像时为 null
   avatarUrl: string | null;
   /// 待审核时为 true，用于在「我的」上给本人一个明确提示
   pendingReview: boolean;
@@ -1421,7 +1435,7 @@ export type UserProfile = {
 };
 
 /// 本人视角：看到自己刚提交的版本
-export async function getOwnProfile(db: D1Database, userId: string): Promise<UserProfile> {
+export async function getOwnProfile(db: D1Database, userId: string, origin: string): Promise<UserProfile> {
   await ensureWishSchema(db);
   const row = await db
     .prepare("SELECT display_name, avatar_key, profile_status, profile_note FROM users WHERE id = ? LIMIT 1")
@@ -1430,21 +1444,21 @@ export async function getOwnProfile(db: D1Database, userId: string): Promise<Use
   if (!row) throw new WishWorkflowError("未找到账户", 404);
   return {
     displayName: row.display_name || defaultDisplayName,
-    avatarUrl: row.avatar_key ? `/api/avatars/${encodeURIComponent(row.avatar_key)}` : null,
+    avatarUrl: avatarUrlFor(row.avatar_key, origin),
     pendingReview: row.profile_status === "pending",
     reviewNote: row.profile_note,
   };
 }
 
 /// 他人视角：只返回已通过审核的版本
-export async function getPublicProfile(db: D1Database, userId: string): Promise<UserProfile> {
+export async function getPublicProfile(db: D1Database, userId: string, origin: string): Promise<UserProfile> {
   const row = await db
     .prepare("SELECT approved_display_name, approved_avatar_key FROM users WHERE id = ? LIMIT 1")
     .bind(userId)
     .first<{ approved_display_name: string | null; approved_avatar_key: string | null }>();
   return {
     displayName: row?.approved_display_name || defaultDisplayName,
-    avatarUrl: row?.approved_avatar_key ? `/api/avatars/${encodeURIComponent(row.approved_avatar_key)}` : null,
+    avatarUrl: avatarUrlFor(row?.approved_avatar_key, origin),
     pendingReview: false,
     reviewNote: null,
   };
@@ -1455,6 +1469,7 @@ export async function submitProfile(
   db: D1Database,
   userId: string,
   input: { displayName?: string; avatarKey?: string },
+  origin: string,
 ) {
   await ensureWishSchema(db);
   const now = Date.now();
@@ -1478,7 +1493,7 @@ export async function submitProfile(
   updates.push("profile_status = 'pending'", "profile_note = NULL", "profile_updated_at = ?");
   values.push(now, userId);
   await db.prepare(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`).bind(...values).run();
-  return getOwnProfile(db, userId);
+  return getOwnProfile(db, userId, origin);
 }
 
 /// 运营审核用户资料。通过则把待审内容提升为对外可见版本。
@@ -1486,7 +1501,8 @@ export async function reviewProfile(
   db: D1Database,
   userId: string,
   action: "approve" | "reject",
-  note?: string,
+  note: string | undefined,
+  origin: string,
 ) {
   await ensureWishSchema(db);
   if (action === "approve") {
@@ -1507,11 +1523,11 @@ export async function reviewProfile(
       .bind(note ?? "资料未通过审核，请修改后重新提交", userId)
       .run();
   }
-  return getOwnProfile(db, userId);
+  return getOwnProfile(db, userId, origin);
 }
 
 /// 运营待办：待审核的用户资料
-export async function listPendingProfiles(db: D1Database) {
+export async function listPendingProfiles(db: D1Database, origin: string) {
   await ensureWishSchema(db);
   const rows = await db
     .prepare(
@@ -1523,7 +1539,8 @@ export async function listPendingProfiles(db: D1Database) {
     profiles: rows.results.map((row) => ({
       userId: row.id,
       displayName: row.display_name,
-      avatarUrl: row.avatar_key ? `/api/avatars/${encodeURIComponent(row.avatar_key)}` : null,
+      // 运营台是 GitHub Pages 上的静态页，相对地址会被解析到 github.io 上去
+      avatarUrl: avatarUrlFor(row.avatar_key, origin),
       submittedAt: row.profile_updated_at,
     })),
   };

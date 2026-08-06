@@ -388,7 +388,7 @@ async function handleWishApi(request: Request, env: Env) {
     // 本人资料：始终返回自己刚提交的版本，并告知是否在审核中
     if (url.pathname === "/api/account/profile" && request.method === "GET") {
       const user = await requireAccount(request, env);
-      return json(request, env, await getOwnProfile(env.DB, user.id));
+      return json(request, env, await getOwnProfile(env.DB, user.id, url.origin));
     }
 
     // 提交昵称或头像。提交即进入待审核，他人仍看上一版通过的资料。
@@ -420,7 +420,7 @@ async function handleWishApi(request: Request, env: Env) {
         if (typeof payload.displayName === "string") displayName = payload.displayName;
       }
 
-      return json(request, env, await submitProfile(env.DB, user.id, { displayName, avatarKey }));
+      return json(request, env, await submitProfile(env.DB, user.id, { displayName, avatarKey }, url.origin));
     }
 
     // 运营审核公开申请。帮助者上传的影像在此之前从未被审核过，
@@ -474,7 +474,7 @@ async function handleWishApi(request: Request, env: Env) {
     // 运营审核用户资料
     if (url.pathname === "/api/admin/profiles" && request.method === "GET") {
       await requireAdmin(request, env);
-      return json(request, env, await listPendingProfiles(env.DB));
+      return json(request, env, await listPendingProfiles(env.DB, url.origin));
     }
     const profileReviewMatch = url.pathname.match(/^\/api\/admin\/profiles\/([^/]+)$/);
     if (profileReviewMatch && request.method === "PATCH") {
@@ -489,6 +489,7 @@ async function handleWishApi(request: Request, env: Env) {
           decodeURIComponent(profileReviewMatch[1]),
           action,
           typeof payload.note === "string" ? payload.note : undefined,
+          url.origin,
         ),
       );
     }
@@ -620,11 +621,15 @@ async function handleWishApi(request: Request, env: Env) {
           const accessToken = crypto.randomUUID().replace(/-/g, "");
           const storageKey = `deliveries/${wishId}/${deliverableId}-${safeFilename(file.name)}`;
           await env.UPLOADS.put(storageKey, file.stream(), { httpMetadata: { contentType: file.type } });
+          // 绝对地址。交付链接会被 iOS 与运营台取用，两者都不同源；
+          // 运营台上传那条路径（本文件下方）一直是对的，这里之前漏了。
+          const deliverableUrl = new URL(`/api/deliverables/${deliverableId}`, request.url);
+          deliverableUrl.searchParams.set("token", accessToken);
           stored.push({
             deliverableId,
             storageKey,
             accessToken,
-            url: `/api/deliverables/${deliverableId}?token=${accessToken}`,
+            url: deliverableUrl.toString(),
           });
         }
         const wish = await recordResponderDeliverable(env.DB, wishId, user.id, {

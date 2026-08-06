@@ -951,3 +951,13 @@ Cloudflare Worker API
 - 签名参数已固定写入 `ios/project.yml` 的 Release 配置（Manual + Apple Distribution + Gratia App Store），Debug 不受影响；实测 Release 与 Debug 的 `-showBuildSettings` 分别正确，iOS 测试仍 41/41 通过。
 - 新增 `scripts/ios-release.mjs`：核对构建号 → 生成工程 → 归档 → 强制校验产物（签名主体/Team ID/applesignin/构建号）→ 导出 → 验证 → 可选上传。撞号检查已实测：`CURRENT_PROJECT_VERSION: 7` 时正确中断并提示改用 8。`CURRENT_PROJECT_VERSION` 已推进至 8。
 - 未验证：撤销路径只在一个账户上验证过一次；构建 7 未做真机长期安装验证；证书与描述文件过期（均 2027-08）后的表现未验证；脚本假定描述文件已存在于本机，未覆盖在 ASC 上重建描述文件的路径。
+
+## 2026-08-06｜修复头像与交付文件地址：返回相对路径导致跨源客户端取不到
+
+- 现象是「上传图像功能不可用、运营台读不到头像」，实测**上传链路本身是好的**：生产库 `users` 实测 2 条记录、`avatar_key` 与 `approved_avatar_key` 均非空；取一条真实 key 直接请求 Worker 得到 `HTTP 200 image/jpeg 1689601 字节`，文件完好存于 R2 桶 `haluowode-mvp-uploads`。
+- 根因是 `server/wishes-repository.ts` 返回的 `avatarUrl` 为**相对路径** `/api/avatars/<key>`，而该接口没有任何同源消费者：运营台是 GitHub Pages 静态页（`app/ops/page.tsx:367` 直接 `<img src={profile.avatarUrl}>`，绕过了 `lib/wishes-client.ts:29` 的 `endpoint()` 基址拼接），iOS 则把字符串交给 `URL(string:)`（`AccountSectionView.swift:109`、`DirectLoopSheets.swift:406`）。实测同一相对路径在 `https://hanselzzh-wow.github.io/api/avatars/<key>` 返回 404，在 Worker 域返回 200，两者对照确证。
+- 一并发现 `worker/index.ts` 帮助者提交交付那条路径同样返回相对地址，而运营台上传那条（同文件下方）用的是 `new URL(..., request.url)` 绝对地址——同一仓库两种写法并存，前者已改为绝对。
+- 修复采用服务端返回绝对地址（以请求 `url.origin` 为准，非写死域名，兼容将来自定义域）：新增 `avatarUrlFor()`，`getOwnProfile`/`getPublicProfile`/`listPendingProfiles`/`submitProfile`/`reviewProfile` 增加 `origin` 参数。**此修复不需要重新发布 iOS 构建**，已上架的构建 7 拿到绝对地址即可正常加载。
+- 该链路此前**完全没有测试**，这正是缺陷长期未被发现的原因。新增 `tests/api-workflow.test.mjs` 用例「returns absolute avatar URLs so off-origin clients can load them」：上传头像 → 断言 `avatarUrl` 匹配 `^https?://` → 用该地址实际取回文件并校验 `content-type` → 断言运营待办列表中的地址同样为绝对。新增测试在初次运行时即抓出 `submitProfile`/`reviewProfile` 两处漏改（`new URL(path, undefined)` 抛 `ERR_INVALID_URL`）。
+- 验证：`npm test` 实际 31/31 通过（原 30 + 新增 1）；`npm run lint` 零输出；`npx tsc --noEmit` 在 `server/`、`worker/` 未新增类型错误（既有的 `Cannot find name 'D1Database'` 等环境类型缺失为历史问题）。部署前已导出生产库到 `~/Developer/gratia-backups/d1-20260806-223318.sql`；`npm run deploy:cloudflare` 成功，Version ID `713d5b11-1c66-4492-969c-d02a3ac1644c`，部署后 `wrangler secret list` 实测六个密钥齐全（Apple 三项未被 `--secrets-file` 覆盖）。
+- 未验证且不得误报：生产上当前无待审资料（`/api/admin/profiles` 实测返回 `{"profiles":[]}`），因此生产环境的 `avatarUrl` 绝对地址未取得线上样本，需在 App 内提交一次头像后由运营台实际确认。另发现 iOS 端头像**未做任何压缩**即上传（`DirectLoopSheets.swift:492` 直接使用 `loadTransferable` 的原始 Data），线上已存在 1.69 MB 的头像原图，属独立的性能问题，本次未处理。

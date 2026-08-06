@@ -957,6 +957,68 @@ test("holds nickname and avatar changes for review before others can see them", 
   }
 });
 
+// 这条链此前完全没有测试，于是「头像地址返回相对路径」一直没被发现：
+// 文件确实进了 R2、键也写进了库，但运营台（GitHub Pages 静态页）会把
+// /api/avatars/... 解析到 github.io 上拿到 404，iOS 的 URL(string:) 则
+// 根本构造不出可请求的地址——表现就像上传功能坏掉。
+test("returns absolute avatar URLs so off-origin clients can load them", async () => {
+  const { request, env } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) =>
+    Response.json({ openid: `openid-${new URL(String(url)).searchParams.get("js_code")}` });
+
+  try {
+    const token = (await json(
+      await request("/api/auth/wechat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code: "avatar-code" }),
+      }),
+    )).token;
+
+    const pixel = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const form = new FormData();
+    form.set("displayName", "晚风电台");
+    form.set("avatar", new Blob([pixel], { type: "image/png" }), "avatar.png");
+
+    const submitted = await json(
+      await request("/api/account/profile", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}` },
+        body: form,
+      }),
+    );
+
+    assert.ok(submitted.avatarUrl, "上传头像后应返回地址");
+    assert.match(
+      submitted.avatarUrl,
+      /^https?:\/\//,
+      "avatarUrl 必须是绝对地址，本接口没有同源的消费者",
+    );
+
+    // 返回的地址必须真的能取到文件，而不只是长得像个地址
+    const parsed = new URL(submitted.avatarUrl);
+    const fetched = await request(parsed.pathname + parsed.search);
+    assert.equal(fetched.status, 200, "返回的头像地址应可直接取回文件");
+    assert.equal(fetched.headers.get("content-type"), "image/png");
+
+    // 运营台读的是这个列表，同样不能是相对地址
+    const pending = await json(
+      await request("/api/admin/profiles", { headers: { "x-admin-key": "test-admin-pin" } }),
+    );
+    assert.equal(pending.profiles.length, 1);
+    assert.match(
+      pending.profiles[0].avatarUrl,
+      /^https?:\/\//,
+      "运营待办里的 avatarUrl 必须是绝对地址",
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("counts unread messages per participant and clears them on open", async () => {
   const { request, env, database } = await setup();
   env.WECHAT_MINI_PROGRAM_APP_ID = "id";
