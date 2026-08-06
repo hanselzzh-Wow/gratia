@@ -10,6 +10,7 @@ struct ProfileView: View {
     @Environment(\.openURL) private var openURL
     @State private var showHelpView = false
     @State private var showPrivacyView = false
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
         NavigationStack {
@@ -19,6 +20,9 @@ struct ProfileView: View {
                     activitySection
                     supportSection
                     aboutCard
+                    // 退出与删除是低频且危险的动作，放在页面末尾，
+                    // 不与个人资料争夺顶部的视觉权重。
+                    if accountViewModel.isSignedIn { accountActionsSection }
                 }
                 .padding(DesignSystem.spacing20)
             }
@@ -27,6 +31,53 @@ struct ProfileView: View {
             .background(DesignSystem.Rose.canvas.ignoresSafeArea())
             .sheet(isPresented: $showHelpView) { HelpAndSafetyView() }
             .sheet(isPresented: $showPrivacyView) { PrivacyPolicyView() }
+            .confirmationDialog("确定要删除账户吗？", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+                Button("删除账户", role: .destructive) { Task { _ = await accountViewModel.deleteAccount() } }
+                Button("取消", role: .cancel) {}
+            } message: {
+                Text("删除后无法撤销。你将立即退出登录，之后无法再通过此账户查看自己的心愿与帮助记录。")
+            }
+        }
+    }
+
+    private var accountActionsSection: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
+            Text("账户").font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.Rose.ink)
+
+            Button { accountViewModel.signOut() } label: {
+                HStack {
+                    Text("退出登录").font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.Rose.ink)
+                    Spacer()
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .font(DesignSystem.captionFont)
+                        .foregroundStyle(DesignSystem.Rose.ink3)
+                }
+                .padding(DesignSystem.spacing16)
+                .frame(maxWidth: .infinity)
+                .roseCard()
+            }
+            .buttonStyle(.plain)
+
+            Button { showDeleteConfirmation = true } label: {
+                HStack {
+                    Text("删除我的账户").font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.danger)
+                    Spacer()
+                    if accountViewModel.state == .deleting {
+                        SwiftUI.ProgressView().controlSize(.small)
+                    }
+                }
+                .padding(DesignSystem.spacing16)
+                .frame(maxWidth: .infinity)
+                .roseCard()
+            }
+            .buttonStyle(.plain)
+            .disabled(accountViewModel.isBusy)
+
+            Text("删除后无法撤销。登录身份会被清除，所有会话立即失效，记录中的称呼会被匿名化。")
+                .font(DesignSystem.captionFont)
+                .foregroundStyle(DesignSystem.Rose.ink3)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, DesignSystem.spacing4)
         }
     }
 
