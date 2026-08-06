@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.hansangbai.keep-awake-while-codex</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>-c</string>
+    <string>while true; do pid=$(/usr/bin/pgrep -x ChatGPT | /usr/bin/head -n 1); if [[ -n "$pid" ]]; then /usr/bin/caffeinate -i -w "$pid"; fi; /bin/sleep 10; done</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+
+  <key>StandardOutPath</key>
+  <string>/Users/hansangbai/Documents/New project/feishu-codex-bridge/keep-awake.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/hansangbai/Documents/New project/feishu-codex-bridge/keep-awake.error.log</string>
+</dict>
+</plist>

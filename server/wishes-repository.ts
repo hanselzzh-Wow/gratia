@@ -251,11 +251,14 @@ export async function createWish(db: D1Database, input: CreateWishInput, userId?
   await ensureWishSchema(db);
   const now = Date.now();
 
+  // 不再向用户索取联系方式。contact 列是 NOT NULL，用账号标识占位既满足
+  // 约束，也让防重复提交改为按账号判断；无账号的历史路径保持原行为。
+  const contactKey = userId ? `account:${userId}` : input.contact;
   const duplicate = await db
     .prepare(
       "SELECT * FROM wishes WHERE contact = ? AND message = ? AND created_at >= ? ORDER BY created_at DESC LIMIT 1",
     )
-    .bind(input.contact, input.message, now - 60_000)
+    .bind(contactKey, input.message, now - 60_000)
     .first<WishRow>();
 
   if (duplicate) {
@@ -277,7 +280,7 @@ export async function createWish(db: D1Database, input: CreateWishInput, userId?
         id,
         publicCode,
         input.requesterName,
-        input.contact,
+        contactKey,
         input.city,
         input.landmark,
         input.occasion,
@@ -410,9 +413,17 @@ export async function createWishResponse(
     throw new WishWorkflowError("该心愿目前不再接受新的响应", 409);
   }
 
+  // 不再向用户索取联系方式，因此去重改为按账号。responder_contact 列有
+  // NOT NULL 与 (wish_id, responder_contact) 唯一约束，用账号标识占位既能
+  // 满足约束，又不落任何真实联系方式；无账号的历史路径仍按原值去重。
+  const dedupeKey = userId ? `account:${userId}` : input.responderContact;
   const duplicate = await db
-    .prepare("SELECT * FROM wish_responses WHERE wish_id = ? AND responder_contact = ? LIMIT 1")
-    .bind(wishId, input.responderContact)
+    .prepare(
+      userId
+        ? "SELECT * FROM wish_responses WHERE wish_id = ? AND user_id = ? LIMIT 1"
+        : "SELECT * FROM wish_responses WHERE wish_id = ? AND responder_contact = ? LIMIT 1",
+    )
+    .bind(wishId, userId ?? input.responderContact)
     .first<WishResponseRow>();
   if (duplicate) return { response: toWishResponse(duplicate), created: false };
 
@@ -423,7 +434,7 @@ export async function createWishResponse(
       .prepare(
         "INSERT INTO wish_responses (id, wish_id, responder_name, responder_contact, note, status, user_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?)",
       )
-      .bind(id, wishId, input.responderName, input.responderContact, input.note ?? null, userId ?? null, now, now),
+      .bind(id, wishId, input.responderName, dedupeKey, input.note ?? null, userId ?? null, now, now),
     db
       .prepare(
         "INSERT INTO wish_events (wish_id, event_type, from_status, to_status, actor, note, created_at) VALUES (?, 'response_submitted', 'matching', 'matching', 'responder', ?, ?)",
@@ -435,7 +446,7 @@ export async function createWishResponse(
     response: {
       id,
       responderName: input.responderName,
-      responderContact: input.responderContact,
+      responderContact: dedupeKey,
       note: input.note ?? null,
       status: "pending" as const,
       createdAt: now,

@@ -100,4 +100,16 @@
 
 ---
 
+## 8. v3 视觉修订（2026-07-18，用户直接反馈，追加于 `STATUS` 之后）
+
+在本任务发出 `STATUS` 之后，用户直接给出三条视觉方向修正：App 内不得出现任何 Emoji（图标需参照 WhatsApp/X/Threads 的单色线性图标语言）、参考 Airbnb 的温暖柔和感（更大的圆角、更柔和的阴影、更舒展的字号字重）、色彩规则不变（零渐变，鲜艳色彩只留给用户上传内容）。这条反馈同时适用于已冻结的 `CL-001` 页面，详细决策记录写在 [`CL-001-claude-design.md` §11](./CL-001-claude-design.md#11-v3-视觉修订附录2026-07-18用户直接反馈)，此处不重复，仅记录本任务范围内的执行结果：
+
+- 新增 [`design-system/02_Icon_System.html`](./CL-002-assets/design-system/02_Icon_System.html)（统一线性图标库 + 5 栏真实 Tab Bar 图标）和 [`design-system/00_Foundations_v3.html`](./CL-002-assets/design-system/00_Foundations_v3.html)（暖灰色阶、22/28pt 圆角、柔和阴影 Token、600 字重标题），两者是当前唯一权威的 Design System 参考，取代本任务原先隐式引用的 `CL-001` v2.1 数值。
+- 本文档 §1 列出的全部 8 组页面（`21`/`23`/`24`/`41`×2/`42`/`50`/`51`）与 App Icon 已按 v3 重新生成 HTML 与 PNG，信息结构、字段、状态覆盖和 SwiftUI 备注均不变，只有视觉表现层（颜色、圆角、阴影、图标）更新；App Icon 主稿仍为品牌蓝 `#2F6FE0`，图形本身在 v2.1 阶段就未使用 Emoji，本轮无需更换。
+- 未额外产出新页面或新状态，`§1`–`§7` 的内容描述、决策依据和 SwiftUI/无障碍备注全部有效，仅需要按 v3 资产重新截图核对时以 `screens/**` 和 `png/**` 当前文件为准（已覆盖本次修订）。
+
+需要 Codex 裁决的事项与 `CL-001-claude-design.md` §11 相同：v3 是否正式替换冻结文档的 Token 章节，以及是否需要回填给已开始实现的 `AG-003` 等任务。
+
+---
+
 *完成后停止：本任务不修改任何 SwiftUI、后端、`.ai/TASKS.md`、项目日志或 Git 状态，等待 `CODEX-PM` 评审后再决定是否冻结进入实现阶段。*

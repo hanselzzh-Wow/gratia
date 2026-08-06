@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>哈喽卧得 · v3 Foundations（CL-003 检查点）</title>
+<style>
+  :root{
+    --ink-900:#171310; --ink-700:#4A443C; --ink-500:#847C6F; --ink-300:#C4BBAC;
+    --hairline:#E9E1D2; --hairline-strong:#D8CDB8;
+    --canvas:#FFFFFF; --canvas-warm:#FBF6EC; --canvas-sunk:#F3ECDD;
+    --accent:#3E6B92; --accent-prev:#2F6FE0;
+    --danger:#B3452F; --success:#4C7A52;
+    --r-xs:6px; --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+    --shadow-float:0 2px 8px rgba(23,19,16,0.08);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; padding:44px 56px 120px; background:var(--canvas-warm); font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; color:var(--ink-900);}
+  h1{font-size:26px; font-weight:700; margin:0 0 6px;}
+  .sub{color:var(--ink-500); font-size:14px; margin:0 0 40px; max-width:780px; line-height:1.7;}
+  h2{font-size:19px; font-weight:600; margin:0 0 4px; padding-top:8px;}
+  h2 .tag{font-size:11px; font-weight:700; color:var(--accent); border:1px solid var(--hairline-strong); border-radius:var(--r-pill); padding:2px 9px; margin-left:10px; vertical-align:middle;}
+  .note{color:var(--ink-500); font-size:13px; line-height:1.7; max-width:760px; margin:0 0 20px;}
+  section{margin-bottom:56px; padding-bottom:40px; border-bottom:1px solid var(--hairline);}
+  section:last-child{border-bottom:none;}
+
+  table{border-collapse:collapse; width:100%; max-width:920px; font-size:13px;}
+  th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-500); font-weight:600; padding:8px 14px; border-bottom:1px solid var(--hairline-strong);}
+  td{padding:12px 14px; border-bottom:1px solid var(--hairline); vertical-align:middle;}
+  code{background:var(--canvas-sunk); padding:2px 6px; border-radius:5px; font-size:12px;}
+
+  .swatch-row{display:flex; gap:20px; flex-wrap:wrap; margin-bottom:8px;}
+  .swatch{width:150px;}
+  .swatch .chip{height:64px; border-radius:var(--r-md); border:1px solid var(--hairline);}
+  .swatch .meta{margin-top:8px; font-size:12px; color:var(--ink-700);}
+  .swatch .meta b{display:block; font-size:13px; color:var(--ink-900);}
+
+  .radius-row{display:flex; gap:26px; flex-wrap:wrap; align-items:flex-end; margin-bottom:10px;}
+  .radius-cell{text-align:center;}
+  .radius-cell .box{width:88px; height:88px; background:var(--canvas); border:1.5px solid var(--ink-900);}
+  .radius-cell .label{margin-top:8px; font-size:12px; color:var(--ink-700);}
+  .radius-cell .use{font-size:11px; color:var(--ink-500); max-width:110px; margin-top:2px; line-height:1.5;}
+
+  .type-row{display:flex; align-items:baseline; gap:18px; padding:14px 0; border-bottom:1px solid var(--hairline);}
+  .type-row:last-child{border-bottom:none;}
+  .type-sample{flex:0 0 320px;}
+  .type-meta{font-size:12px; color:var(--ink-500); line-height:1.6;}
+
+  .spacing-row{display:flex; align-items:center; gap:14px; margin-bottom:10px;}
+  .spacing-bar{height:16px; background:var(--accent); border-radius:3px;}
+  .spacing-label{font-size:12px; color:var(--ink-700); width:220px;}
+
+  .icon-row{display:flex; gap:28px; flex-wrap:wrap; margin-bottom:8px;}
+  .icon-cell{text-align:center; width:76px;}
+  .icon-cell svg{display:block; margin:0 auto;}
+  .icon-cell .label{font-size:11px; color:var(--ink-500); margin-top:6px;}
+
+  .shadow-demo{display:flex; gap:28px; align-items:flex-start; margin-bottom:8px;}
+  .card-flat{width:220px; padding:18px; background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--r-md);}
+  .card-float{width:220px; padding:18px; background:var(--canvas); border-radius:var(--r-lg); box-shadow:var(--shadow-float);}
+  .card-flat .t, .card-float .t{font-size:13px; font-weight:600; margin-bottom:4px;}
+  .card-flat .d, .card-float .d{font-size:12px; color:var(--ink-500);}
+
+  .btn-row{display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  .btn{font-size:15px; font-weight:600; padding:12px 22px; border-radius:var(--r-md); border:none; cursor:default;}
+  .btn-primary{background:var(--ink-900); color:#fff;}
+  .btn-secondary{background:transparent; color:var(--ink-900); border:1px solid var(--hairline-strong);}
+  .btn-disabled{background:var(--canvas-sunk); color:var(--ink-300);}
+  .chip{font-size:13px; font-weight:500; padding:8px 16px; border-radius:var(--r-pill); border:1px solid var(--hairline-strong); color:var(--ink-700); background:var(--canvas);}
+  .chip.active{background:var(--ink-900); color:#fff; border-color:var(--ink-900);}
+  .input-demo{width:280px; padding:12px 14px; border-radius:var(--r-sm); border:1px solid var(--hairline-strong); font-size:14px; color:var(--ink-500); background:var(--canvas);}
+</style>
+</head>
+<body>
+  <h1>v3 Foundations — CL-003 检查点</h1>
+  <p class="sub">替代 <code>docs/ios-design-freeze-v1.md</code> 中冻结的 v2.1 视觉 token，依据 <code>docs/ios-visual-direction-v3.md</code> 的硬性约束重建：零渐变、原则上无阴影、温暖柔和、内容主导。本页是后续所有检查点页面（首页/附近/详情+响应/复杂信息页）唯一的 token 来源，任何页面中的圆角、字号、间距、描边、图标线宽都应能在本页找到对应项。</p>
+
+  <section>
+    <h2>1. 色彩</h2>
+    <p class="note">中性色统一偏暖（非纯灰），背景用暖白 <code>canvas-warm</code> 而非纯白，制造"纸感"而非"屏幕感"。强调色是本检查点唯一的开放决策：旧品牌蓝 <code>#2F6FE0</code> 已在 <code>icon/App_Icon_Directions.html</code> 中与降饱和暖蓝 <code>#3E6B92</code> 对比；本稿采用暖蓝作为界面强调色的推荐值，因为旧蓝在暖白背景上偏冷、偏"科技感"，与"温暖治愈"的产品气质冲突。此项变更需要 Codex/用户在检查点评审中确认是否覆盖 v2.1 冻结值。</p>
+    <div class="swatch-row">
+      <div class="swatch"><div class="chip" style="background:var(--ink-900)"></div><div class="meta"><b>ink-900</b>#171310 · 主文字/主按钮</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--ink-700)"></div><div class="meta"><b>ink-700</b>#4A443C · 次要文字</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--ink-500)"></div><div class="meta"><b>ink-500</b>#847C6F · 三级文字/占位符</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--ink-300)"></div><div class="meta"><b>ink-300</b>#C4BBAC · 禁用态</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--canvas); border:1px solid var(--hairline-strong)"></div><div class="meta"><b>canvas</b>#FFFFFF · 卡片</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--canvas-warm)"></div><div class="meta"><b>canvas-warm</b>#FBF6EC · 页面底色</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--canvas-sunk)"></div><div class="meta"><b>canvas-sunk</b>#F3ECDD · 输入框/禁用底色</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--accent)"></div><div class="meta"><b>accent（推荐）</b>#3E6B92 · 唯一强调色</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--accent-prev)"></div><div class="meta"><b>accent-prev（对照）</b>#2F6FE0 · v2.1 冻结值，仅作对比保留</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--danger)"></div><div class="meta"><b>danger</b>#B3452F · 错误/拒绝态，非鲜红</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--success)"></div><div class="meta"><b>success</b>#4C7A52 · 完成态，非鲜绿</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. 圆角</h2>
+    <p class="note">五级圆角，每级都绑定具体用途，禁止随意取值。<code>r-pill</code> 仅用于筛选 Chip 和确有必要的单个主操作按钮（例如响应弹层里唯一的"提交响应"按钮），不作为默认按钮圆角。</p>
+    <div class="radius-row">
+      <div class="radius-cell"><div class="box" style="border-radius:var(--r-xs)"></div><div class="label">r-xs · 6px</div><div class="use">小标签、图标按钮</div></div>
+      <div class="radius-cell"><div class="box" style="border-radius:var(--r-sm)"></div><div class="label">r-sm · 10px</div><div class="use">输入框、小卡片</div></div>
+      <div class="radius-cell"><div class="box" style="border-radius:var(--r-md)"></div><div class="label">r-md · 14px</div><div class="use">标准卡片、默认按钮</div></div>
+      <div class="radius-cell"><div class="box" style="border-radius:var(--r-lg)"></div><div class="label">r-lg · 20px</div><div class="use">大容器、弹层顶角、Hero 卡片</div></div>
+      <div class="radius-cell"><div class="box" style="border-radius:var(--r-pill); width:88px;"></div><div class="label">r-pill · 999px</div><div class="use">仅筛选 Chip / 唯一主操作</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. 字体分级 <span class="tag">对应 Dynamic Type</span></h2>
+    <p class="note">六级字号，均映射到 iOS Dynamic Type 文本样式，保证系统字号调节生效，不使用任意像素值。</p>
+    <div class="type-row"><div class="type-sample" style="font-size:34px; font-weight:700; line-height:41px;">远方的心愿</div><div class="type-meta"><b>Large Title</b> · 34/41 · 700 · <code>.largeTitle</code><br/>用途：首页顶部标题、空状态大标题</div></div>
+    <div class="type-row"><div class="type-sample" style="font-size:22px; font-weight:600; line-height:28px;">附近的心愿</div><div class="type-meta"><b>Title</b> · 22/28 · 600 · <code>.title2</code><br/>用途：分区标题、页面标题</div></div>
+    <div class="type-row"><div class="type-sample" style="font-size:17px; font-weight:600; line-height:22px;">在西湖断桥录一段生日祝福</div><div class="type-meta"><b>Headline</b> · 17/22 · 600 · <code>.headline</code><br/>用途：卡片主标题、列表主文字</div></div>
+    <div class="type-row"><div class="type-sample" style="font-size:15px; font-weight:400; line-height:21px;">想请恰好在场的人帮忙录一段对着断桥说的祝福话，越自然越好。</div><div class="type-meta"><b>Body</b> · 15/21 · 400 · <code>.subheadline</code>（正文段落）<br/>用途：描述文字、正文内容</div></div>
+    <div class="type-row"><div class="type-sample" style="font-size:13px; font-weight:400; line-height:18px; color:var(--ink-500);">2 公里 · 3 小时前发布</div><div class="type-meta"><b>Subhead</b> · 13/18 · 400 · <code>.footnote</code><br/>用途：元信息、次要说明</div></div>
+    <div class="type-row"><div class="type-sample" style="font-size:11px; font-weight:500; line-height:14px; color:var(--ink-500); letter-spacing:0.02em;">待确认</div><div class="type-meta"><b>Caption</b> · 11/14 · 500 · <code>.caption2</code><br/>用途：状态徽标、时间戳、按钮内小字</div></div>
+  </section>
+
+  <section>
+    <h2>4. 间距</h2>
+    <p class="note">8pt 基准网格，特殊场景允许 4pt 微调，禁止使用网格外的任意数值。</p>
+    <div class="spacing-row"><div class="spacing-bar" style="width:4px;"></div><div class="spacing-label">4 · 图标与文字微间距</div></div>
+    <div class="spacing-row"><div class="spacing-bar" style="width:8px;"></div><div class="spacing-label">8 · 卡片内元素间距</div></div>
+    <div class="spacing-row"><div class="spacing-bar" style="width:12px;"></div><div class="spacing-label">12 · 表单字段间距</div></div>
+    <div class="spacing-row"><div class="spacing-bar" style="width:16px;"></div><div class="spacing-label">16 · 卡片内边距</div></div>
+    <div class="spacing-row"><div class="spacing-bar" style="width:20px;"></div><div class="spacing-label">20 · 页面左右边距</div></div>
+    <div class="spacing-row"><div class="spacing-bar" style="width:24px;"></div><div class="spacing-label">24 · 卡片之间的垂直间距</div></div>
+    <div class="spacing-row"><div class="spacing-bar" style="width:32px;"></div><div class="spacing-label">32 · 分区之间</div></div>
+    <div class="spacing-row"><div class="spacing-bar" style="width:40px;"></div><div class="spacing-label">40 · 页面顶部安全间距</div></div>
+  </section>
+
+  <section>
+    <h2>5. 图标系统</h2>
+    <p class="note">全部图标使用 SF Symbols，统一 Regular 粗细、约 1.75pt 描边（对应 24pt 画布），禁止任何 Emoji 出现在界面任何位置（含空状态、提示、帮助页）。以下为本项目高频用到的符号示例（线性风格模拟，实机直接用系统 SF Symbols 渲染）。</p>
+    <div class="icon-row">
+      <div class="icon-cell"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#171310" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg><div class="label">house</div></div>
+      <div class="icon-cell"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#171310" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21c-4-4.5-7-8-7-11a7 7 0 0 1 14 0c0 3-3 6.5-7 11z"/></svg><div class="label">location</div></div>
+      <div class="icon-cell"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#171310" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.25"/><path d="M12 8v4l3 2"/></svg><div class="label">plus.circle</div></div>
+      <div class="icon-cell"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#171310" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg><div class="label">person</div></div>
+      <div class="icon-cell"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#171310" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg><div class="label">lock</div></div>
+      <div class="icon-cell"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#171310" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg><div class="label">bell</div></div>
+      <div class="icon-cell"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#171310" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M4 8l8 6 8-6"/></svg><div class="label">envelope</div></div>
+      <div class="icon-cell"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#171310" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="12" rx="2"/><path d="M9 20h6M12 17.5V20"/><circle cx="12" cy="11" r="2.6"/></svg><div class="label">video</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>6. 阴影策略 <span class="tag">原则上关闭</span></h2>
+    <p class="note"><b>默认所有卡片、按钮、输入框零阴影</b>，层级关系只靠色块（canvas / canvas-warm / canvas-sunk）和 1px 描边（hairline）表达，这是与之前草稿版本最大的区别。<b>唯一允许的例外</b>：响应 Bottom Sheet 在拖拽/半展开过程中，需要与底部背景内容（可能是照片、视频缩略图等鲜艳用户内容）有更强的即时视觉分离，此时才使用 <code>shadow-float</code>（<code>0 2px 8px rgba(23,19,16,0.08)</code>，极轻，仅 8% 不透明度）。除此之外任何页面、任何卡片都不得添加阴影。</p>
+    <div class="shadow-demo">
+      <div class="card-flat"><div class="t">默认卡片（无阴影）</div><div class="d">仅 1px hairline 描边分隔，用于首页/附近列表、详情页信息块等一切默认场景。</div></div>
+      <div class="card-float"><div class="t">唯一例外：Bottom Sheet</div><div class="d">shadow-float 极轻阴影，仅用于半展开/拖拽中的响应弹层顶部，与底部滚动内容做即时区分。</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>7. 组件状态示例</h2>
+    <p class="note">按钮默认 <code>r-md</code>，禁止默认使用胶囊形；Chip 是唯一默认使用 <code>r-pill</code> 的组件。</p>
+    <div class="btn-row">
+      <button class="btn btn-primary">发布心愿</button>
+      <button class="btn btn-secondary">稍后再说</button>
+      <button class="btn btn-disabled" disabled>请先完善信息</button>
+    </div>
+    <div class="btn-row">
+      <span class="chip active">全部</span>
+      <span class="chip">视频祝福</span>
+      <span class="chip">风景配音</span>
+      <span class="chip">手写卡片</span>
+    </div>
+    <div class="btn-row">
+      <input class="input-demo" placeholder="写下你想说的话（160 字以内）" disabled />
+    </div>
+  </section>
+</body>
+</html>

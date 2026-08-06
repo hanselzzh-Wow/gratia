@@ -53,7 +53,9 @@ export function normalizeCreateWish(payload: unknown): CreateWishInput {
 
   const fields: Record<string, string> = {};
   const requesterName = boundedText(input.requesterName, "requesterName", "称呼", 1, 30, fields);
-  const contact = boundedText(input.contact, "contact", "联系方式", 3, 80, fields);
+  // 不再向用户索取联系方式：沟通与交付都在应用内完成，双方也互不可见对方
+  // 的联系方式。仍接受历史客户端传入的值，但不作要求。
+  const contact = cleanText(input.contact);
   const city = boundedText(input.city, "city", "城市", 2, 24, fields);
   const landmark = boundedText(input.landmark, "landmark", "地标", 2, 40, fields);
   const occasion = boundedText(input.occasion, "occasion", "心愿场景", 2, 24, fields);
@@ -101,17 +103,11 @@ export function normalizeWishResponse(payload: unknown): CreateWishResponseInput
 
   const fields: Record<string, string> = {};
   const responderName = boundedText(input.responderName, "responderName", "称呼", 1, 30, fields);
-  const responderContact = boundedText(
-    input.responderContact,
-    "responderContact",
-    "联系方式",
-    3,
-    80,
-    fields,
-  );
+  // 同上：响应者也不再需要提供联系方式。
+  const responderContact = cleanText(input.responderContact);
   const note = cleanText(input.note).slice(0, 160);
   if (input.contactConsent !== true) {
-    fields.contactConsent = "请确认允许运营人员为撮合联系你";
+    fields.contactConsent = "请确认你已知晓并同意内容授权说明";
   }
   if (Object.keys(fields).length > 0) {
     throw new WishInputError("请检查响应信息", fields);
@@ -143,6 +139,8 @@ export function normalizeCreateProvider(payload: unknown): CreateProviderInput {
   const input = payload as Record<string, unknown>;
   const fields: Record<string, string> = {};
   const name = boundedText(input.name, "name", "称呼", 1, 40, fields);
+  // 供应者名册由运营手工维护，不是用户提交的内容；运营需要能联系到他们，
+  // 因此这里仍要求联系方式。
   const contact = boundedText(input.contact, "contact", "联系方式", 3, 80, fields);
   const city = boundedText(input.city, "city", "城市", 2, 24, fields);
   const landmarks = boundedText(input.landmarks, "landmarks", "常驻地标", 2, 200, fields);

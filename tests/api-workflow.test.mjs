@@ -795,3 +795,72 @@ test("scopes conversations to the two parties and supports report and block", as
     globalThis.fetch = originalFetch;
   }
 });
+
+test("accepts publish and respond without any contact information", async () => {
+  const { request, env, database } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) =>
+    Response.json({ openid: `openid-${new URL(String(url)).searchParams.get("js_code")}` });
+
+  try {
+    const login = async (code) =>
+      (await json(
+        await request("/api/auth/wechat", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ code }),
+        }),
+      )).token;
+    const ownerToken = await login("owner-code");
+    const helperToken = await login("helper-code");
+    const h = (t) => ({ "content-type": "application/json", authorization: `Bearer ${t}` });
+
+    // 完全不传 contact
+    const created = await request("/api/account/wishes", {
+      method: "POST",
+      headers: h(ownerToken),
+      body: JSON.stringify({
+        requesterName: "发布者", city: "杭州", landmark: "西湖断桥", occasion: "生日祝福",
+        message: "请替我在断桥说一声生日快乐。", deliveryType: "spoken_video",
+        deadlineText: "本周内", rewardFen: 0, contactConsent: true,
+      }),
+    });
+    const createdPayload = await json(created);
+    assert.equal(created.status, 201, `发布应成功：${JSON.stringify(createdPayload)}`);
+    const wishId = createdPayload.wish.id;
+
+    await request(`/api/admin/wishes/${wishId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+      body: JSON.stringify({ action: "approve" }),
+    });
+
+    // 响应也完全不传 responderContact
+    const responded = await request(`/api/account/wishes/${wishId}/responses`, {
+      method: "POST",
+      headers: h(helperToken),
+      body: JSON.stringify({ responderName: "帮助者", note: "我就在附近", contactConsent: true }),
+    });
+    const respondedPayload = await json(responded);
+    assert.equal(responded.status, 201, `响应应成功：${JSON.stringify(respondedPayload)}`);
+
+    // 同一账号重复响应不会新建
+    const again = await request(`/api/account/wishes/${wishId}/responses`, {
+      method: "POST",
+      headers: h(helperToken),
+      body: JSON.stringify({ responderName: "帮助者", contactConsent: true }),
+    });
+    assert.equal((await json(again)).created, false, "同一账号重复响应应被去重");
+
+    // 落库的只有账号占位，不含任何真实联系方式
+    const rows = database.database.prepare("SELECT contact FROM wishes WHERE id = ?").all(wishId);
+    assert.ok(rows[0].contact.startsWith("account:"), `contact 应为账号占位，实际 ${rows[0].contact}`);
+    const responseRows = database.database.prepare("SELECT responder_contact FROM wish_responses WHERE wish_id = ?").all(wishId);
+    assert.equal(responseRows.length, 1);
+    assert.ok(responseRows[0].responder_contact.startsWith("account:"));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

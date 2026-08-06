@@ -2,7 +2,7 @@ import SwiftUI
 import GratiaCore
 
 struct PublishView: View {
-    private enum PublishField: Hashable { case landmark, words, name, contact }
+    private enum PublishField: Hashable { case landmark, words, name }
 
     @ObservedObject var viewModel: PublishWishViewModel
     @EnvironmentObject private var accountViewModel: AccountViewModel
@@ -19,8 +19,7 @@ struct PublishView: View {
     private var isStep1Valid: Bool { !viewModel.landmark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     private var isStep2Valid: Bool { !viewModel.words.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && viewModel.words.count <= 120 }
     private var isStep3Valid: Bool {
-        !viewModel.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            !viewModel.contact.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && viewModel.agreeContact
+        !viewModel.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && viewModel.agreeContact
     }
     private var isSubmitting: Bool { viewModel.state == .submitting }
     private var isSuccess: Bool { if case .success = viewModel.state { return true }; return false }
@@ -244,11 +243,10 @@ struct PublishView: View {
 
     private var step3View: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
-            stepHeader(title: "确认与联系", subtitle: "留下你的称呼和联系方式。")
+            stepHeader(title: "确认发布", subtitle: "留下一个称呼，其他人会这样称呼你。")
             inputField(label: "您的称呼", placeholder: "如：小白", text: $viewModel.name, field: .name, error: viewModel.validationErrors["requesterName"])
-            inputField(label: "您的联系方式（仅运营可见）", placeholder: "微信或手机号", text: $viewModel.contact, field: .contact, error: viewModel.validationErrors["contact"])
             Toggle(isOn: $viewModel.agreeContact) {
-                Text("我已知晓联系方式仅限运营沟通，并同意审核通过后向附近的人公开心愿内容（不含联系方式）。")
+                Text("我同意在审核通过后，向附近的人公开这条心愿的内容（不含我的身份信息）。有人响应后，我们将在应用内直接沟通。")
                     .font(DesignSystem.metadataFont)
                     .foregroundStyle(DesignSystem.ink700)
                     .lineSpacing(2)

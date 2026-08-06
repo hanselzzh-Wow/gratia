@@ -14,7 +14,6 @@ public enum ResponseState: Sendable, Equatable {
 public final class WishResponseViewModel: ObservableObject {
     // Inputs (Draft Fields)
     @Published var name = ""
-    @Published var contact = ""
     @Published var note = ""
     @Published var agreeContact = false
 
@@ -46,10 +45,6 @@ public final class WishResponseViewModel: ObservableObject {
             validationErrors["responderName"] = "称呼必须为1-30个字符"
         }
 
-        let trimmedContact = contact.trimmingCharacters(in: .whitespaces)
-        if trimmedContact.count < 3 || trimmedContact.count > 80 {
-            validationErrors["responderContact"] = "联系方式必须为3-80个字符"
-        }
 
         let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmedNote.count > 160 {
@@ -83,7 +78,8 @@ public final class WishResponseViewModel: ObservableObject {
 
         let request = CreateWishResponseRequest(
             responderName: name.trimmingCharacters(in: .whitespaces),
-            responderContact: contact.trimmingCharacters(in: .whitespaces),
+            // 不再向用户索取联系方式：沟通与交付都在应用内完成。
+            responderContact: "",
             note: noteValue,
             contactConsent: agreeContact
         )
@@ -151,7 +147,6 @@ public final class WishResponseViewModel: ObservableObject {
         currentTask?.cancel()
         currentTask = nil
         name = ""
-        contact = ""
         note = ""
         agreeContact = false
         state = .idle

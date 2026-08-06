@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>CL-003 · 22 心愿详情 + 响应弹层</title>
+<style>
+  :root{
+    --ink-900:#171310; --ink-700:#4A443C; --ink-500:#847C6F; --ink-300:#C4BBAC;
+    --hairline:#E9E1D2; --hairline-strong:#D8CDB8;
+    --canvas:#FFFFFF; --canvas-warm:#FBF6EC; --canvas-sunk:#F3ECDD;
+    --accent:#3E6B92; --danger:#B3452F;
+    --r-xs:6px; --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+    --shadow-float:0 2px 8px rgba(23,19,16,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0; background:#EFE7D6;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;}
+  .board{display:flex; gap:24px; padding:24px; align-items:flex-start; flex-wrap:wrap;}
+  .col{text-align:center;}
+  .col .label{margin:10px 0 0; font-size:12px; color:var(--ink-700); font-weight:600; max-width:393px;}
+
+  .screen{width:393px; height:852px; position:relative; background:var(--canvas-warm); display:flex; flex-direction:column; overflow:hidden;}
+  .statusbar{height:47px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:var(--ink-900);}
+  .navbar{flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:2px 20px 10px; font-size:14px; font-weight:600; color:var(--ink-900);}
+  .navbar .side{width:24px; height:24px; color:var(--ink-700);}
+  .navbar .side svg{width:100%; height:100%;}
+
+  .content{flex:1; overflow:hidden; padding:0 20px;}
+  .visual{height:170px; border-radius:var(--r-lg); background:var(--canvas-sunk); margin-bottom:14px; position:relative; overflow:hidden;}
+  .visual svg{position:absolute; inset:0; width:100%; height:100%;}
+
+  .row1{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .status-tag{font-size:12px; font-weight:700; color:var(--ink-700); border:1px solid var(--hairline-strong); padding:5px 12px; border-radius:var(--r-pill);}
+  .price{font-size:20px; font-weight:700; color:var(--ink-900);}
+
+  h1{font-size:20px; font-weight:600; margin:0 0 10px; color:var(--ink-900);}
+
+  .body-card{background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--r-lg); padding:16px; font-size:15px; line-height:23px; color:var(--ink-900); margin-bottom:14px;}
+
+  .meta{display:flex; gap:10px; margin-bottom:16px;}
+  .meta .item{flex:1; background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--r-md); padding:10px 12px;}
+  .meta .label{font-size:11px; color:var(--ink-500); margin-bottom:3px;}
+  .meta .value{font-size:13px; font-weight:600; color:var(--ink-900);}
+
+  h2{font-size:14px; font-weight:600; margin:0 0 10px; color:var(--ink-900);}
+  .steps{display:flex; gap:10px; margin-bottom:16px;}
+  .step{flex:1; text-align:center; font-size:11.5px; color:var(--ink-700);}
+  .step .n{width:24px; height:24px; border-radius:var(--r-pill); border:1px solid var(--ink-900); color:var(--ink-900); font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;}
+
+  .privacy{display:flex; gap:8px; background:var(--canvas-sunk); border-radius:var(--r-md); padding:12px 14px; font-size:12px; line-height:17px; color:var(--ink-700); margin-bottom:16px;}
+  .privacy svg{width:16px; height:16px; color:var(--ink-500); flex:0 0 auto; margin-top:1px;}
+
+  .footer{flex:0 0 auto; padding:14px 20px 22px; background:var(--canvas); border-top:1px solid var(--hairline);}
+  .cta{width:100%; background:var(--ink-900); color:#fff; font-size:16px; font-weight:600; padding:15px; border-radius:var(--r-md); text-align:center; margin-bottom:8px;}
+  .disclaimer{font-size:11px; color:var(--ink-500); text-align:center;}
+
+  .scrim{position:absolute; inset:0; background:rgba(23,19,16,.32);}
+  .sheet{position:absolute; left:0; right:0; bottom:0; background:var(--canvas); border-radius:var(--r-lg) var(--r-lg) 0 0; padding:12px 20px 24px; box-shadow:var(--shadow-float);}
+  .handle{width:36px; height:4px; border-radius:2px; background:var(--hairline-strong); margin:0 auto 14px;}
+  .sheet-title{font-size:17px; font-weight:600; color:var(--ink-900); margin:0 0 4px;}
+  .sheet-sub{font-size:12.5px; color:var(--ink-500); margin:0 0 16px;}
+
+  .field{margin-bottom:14px;}
+  .field label{display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; color:var(--ink-700); margin-bottom:7px;}
+  .field .count{font-weight:400; color:var(--ink-300);}
+  .input{width:100%; font-size:15px; padding:12px 13px; border-radius:var(--r-sm); border:1px solid var(--hairline-strong); background:var(--canvas); color:var(--ink-900);}
+  .input.focused{border:2px solid var(--accent); padding:11px 12px;}
+  .input.error{border-color:var(--danger);}
+  .err-msg{font-size:11.5px; color:var(--danger); margin-top:6px;}
+  .help{font-size:11px; color:var(--ink-500); margin-top:6px;}
+
+  .agree{display:flex; align-items:flex-start; gap:8px; font-size:11.5px; color:var(--ink-700); line-height:16px; margin:14px 0;}
+  .box{width:16px; height:16px; border-radius:var(--r-xs); border:1px solid var(--ink-900); background:var(--ink-900); flex:0 0 auto; margin-top:1px;}
+  .box.unchecked{background:var(--canvas);}
+
+  .btn{width:100%; text-align:center; font-size:16px; font-weight:600; padding:14px; border-radius:var(--r-md); background:var(--ink-900); color:#fff; display:flex; align-items:center; justify-content:center; gap:8px;}
+  .btn.disabled{background:var(--canvas-sunk); color:var(--ink-300);}
+  .spinner{width:15px; height:15px; border-radius:50%; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .kb{position:absolute; left:0; right:0; bottom:0; height:216px; background:#E3DAC5; border-top:1px solid var(--hairline-strong);}
+</style>
+</head>
+<body>
+  <div class="board">
+
+    <div class="col">
+      <div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="navbar">
+          <span class="side"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 5.5l-6 5.5 6 5.5"/></svg></span>
+          <span>上海 · 外滩</span>
+          <span class="side"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.2v10.3"/><path d="M7.3 6.9L11 3.2l3.7 3.7"/><path d="M5 11v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-6"/></svg></span>
+        </div>
+        <div class="content">
+          <div class="visual">
+            <svg viewBox="0 0 393 170"><path d="M -10 130 Q 120 80 200 90 T 420 30" fill="none" stroke="#171310" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 18" opacity=".18"/></svg>
+          </div>
+          <div class="row1"><span class="status-tag">待匹配</span><span class="price">¥18</span></div>
+          <h1>对着外滩夜景，说一句生日快乐</h1>
+          <div class="body-card">想请恰好在外滩的朋友，帮我对着黄浦江夜景录一段 20 秒左右的祝福，说一句"生日快乐"，给远方的她一个惊喜。不需要露脸，声音清楚就好。</div>
+          <div class="meta">
+            <div class="item"><div class="label">交付方式</div><div class="value">口播视频</div></div>
+            <div class="item"><div class="label">期望时间</div><div class="value">本周内</div></div>
+          </div>
+          <h2>这次帮助如何完成</h2>
+          <div class="steps">
+            <div class="step"><div class="n">1</div>提交响应</div>
+            <div class="step"><div class="n">2</div>人工确认</div>
+            <div class="step"><div class="n">3</div>现场拍摄交付</div>
+          </div>
+          <div class="privacy">
+            <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="10" width="10" height="8" rx="2"/><path d="M8.5 10V7.5a2.5 2.5 0 0 1 5 0V10"/></svg>
+            发布者的联系方式和真实姓名不会展示给你；确认匹配后由运营人员居中联系。
+          </div>
+        </div>
+        <div class="footer">
+          <div class="cta">我刚好在这里，可以帮忙</div>
+          <div class="disclaimer">提交响应后由运营人员确认，不会自动接单</div>
+        </div>
+      </div>
+      <div class="label">22 心愿详情：默认无阴影，仅靠卡片色块与 1px 描边分层</div>
+    </div>
+
+    <div class="col">
+      <div class="screen">
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="handle"></div>
+          <div class="sheet-title">提交响应</div>
+          <div class="sheet-sub">外滩 · 陈毅广场 · ¥18 感谢金</div>
+          <div class="field"><label>怎么称呼你</label><div class="input">路过的旅人</div></div>
+          <div class="field"><label>微信或手机号</label><div class="input">138****1234</div><div class="help">仅运营可见，用于确认匹配</div></div>
+          <div class="field"><label>补充说明（选填） <span class="count">18/160</span></label><div class="input" style="height:52px;">周六下午在外滩附近，可以拍 30 秒视频。</div></div>
+          <div class="agree"><div class="box"></div>我同意运营人员在匹配过程中通过以上方式联系我</div>
+          <div class="btn">提交响应</div>
+        </div>
+      </div>
+      <div class="label">23a 正常态：弹层是全应用唯一允许使用 shadow-float 的地方</div>
+    </div>
+
+    <div class="col">
+      <div class="screen">
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="handle"></div>
+          <div class="sheet-title">提交响应</div>
+          <div class="sheet-sub">外滩 · 陈毅广场 · ¥18 感谢金</div>
+          <div class="field"><label>怎么称呼你</label><div class="input">路过的旅人</div></div>
+          <div class="field"><label>微信或手机号</label><div class="input focused">138</div></div>
+        </div>
+        <div class="kb"></div>
+      </div>
+      <div class="label">23b 输入聚焦态：字段描边变为强调色，键盘弹出后内容可滚动</div>
+    </div>
+
+    <div class="col">
+      <div class="screen">
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="handle"></div>
+          <div class="sheet-title">提交响应</div>
+          <div class="sheet-sub">外滩 · 陈毅广场 · ¥18 感谢金</div>
+          <div class="field"><label>怎么称呼你</label><div class="input">路过的旅人</div></div>
+          <div class="field"><label>微信或手机号</label><div class="input error">138</div><div class="err-msg">请输入完整的手机号或微信号（3–80 位）</div></div>
+          <div class="field"><label>补充说明（选填） <span class="count">0/160</span></label><div class="input" style="height:52px; color:var(--ink-300);">周六下午在外滩附近，可以拍 30 秒视频。</div></div>
+          <div class="agree"><div class="box"></div>我同意运营人员在匹配过程中通过以上方式联系我</div>
+          <div class="btn disabled">提交响应</div>
+        </div>
+      </div>
+      <div class="label">23c 字段错误态：联系方式校验失败，按钮保持禁用直到修正</div>
+    </div>
+
+    <div class="col">
+      <div class="screen">
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="handle"></div>
+          <div class="sheet-title">提交响应</div>
+          <div class="sheet-sub">外滩 · 陈毅广场 · ¥18 感谢金</div>
+          <div class="field"><label>怎么称呼你</label><div class="input" style="color:var(--ink-300);">路过的旅人</div></div>
+          <div class="field"><label>微信或手机号</label><div class="input" style="color:var(--ink-300);">138****1234</div></div>
+          <div class="field"><label>补充说明（选填） <span class="count">18/160</span></label><div class="input" style="height:52px; color:var(--ink-300);">周六下午在外滩附近，可以拍 30 秒视频。</div></div>
+          <div class="agree" style="color:var(--ink-300);"><div class="box"></div>我同意运营人员在匹配过程中通过以上方式联系我</div>
+          <div class="btn"><span class="spinner"></span>提交中</div>
+        </div>
+      </div>
+      <div class="label">23d 提交中态：字段禁用、按钮显示 spinner，禁止重复点击</div>
+    </div>
+
+  </div>
+</body>
+</html>

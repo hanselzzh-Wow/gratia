@@ -16,7 +16,6 @@ final class WishResponseViewModelTests: XCTestCase {
 
         // Set invalid fields
         viewModel.name = "" // responderName too short
-        viewModel.contact = "12" // responderContact too short
         viewModel.note = String(repeating: "A", count: 161) // note too long
         viewModel.agreeContact = false // must be true
 
@@ -30,7 +29,6 @@ final class WishResponseViewModelTests: XCTestCase {
         XCTAssertNil(lastId, "API should not have been called for invalid input")
 
         XCTAssertNotNil(viewModel.validationErrors["responderName"])
-        XCTAssertNotNil(viewModel.validationErrors["responderContact"])
         XCTAssertNotNil(viewModel.validationErrors["note"])
         XCTAssertNotNil(viewModel.validationErrors["contactConsent"])
     }
@@ -46,7 +44,6 @@ final class WishResponseViewModelTests: XCTestCase {
         )
 
         viewModel.name = "张三"
-        viewModel.contact = "13800000000"
         viewModel.note = "  " // empty note should become nil
         viewModel.agreeContact = true
 
@@ -79,7 +76,8 @@ final class WishResponseViewModelTests: XCTestCase {
 
         XCTAssertEqual(lastId, "wish-abc-real-id") // Assert correct real id used, not publicCode
         XCTAssertEqual(lastRequest?.responderName, "张三")
-        XCTAssertEqual(lastRequest?.responderContact, "13800000000")
+        // 不再向用户索取联系方式：请求里该字段恒为空
+        XCTAssertEqual(lastRequest?.responderContact, "")
         XCTAssertNil(lastRequest?.note) // Empty note mapped to nil
         XCTAssertEqual(lastRequest?.contactConsent, true)
     }
@@ -95,7 +93,6 @@ final class WishResponseViewModelTests: XCTestCase {
         )
 
         viewModel.name = "张三"
-        viewModel.contact = "13800000000"
         viewModel.note = "  可以帮忙  "
         viewModel.agreeContact = true
 
@@ -134,7 +131,6 @@ final class WishResponseViewModelTests: XCTestCase {
         )
 
         viewModel.name = "张三"
-        viewModel.contact = "13800000000"
         viewModel.note = "可以帮忙"
         viewModel.agreeContact = true
 
@@ -152,7 +148,6 @@ final class WishResponseViewModelTests: XCTestCase {
 
         // Draft values must be preserved
         XCTAssertEqual(viewModel.name, "张三")
-        XCTAssertEqual(viewModel.contact, "13800000000")
         XCTAssertEqual(viewModel.note, "可以帮忙")
         XCTAssertTrue(viewModel.agreeContact)
     }
@@ -168,7 +163,6 @@ final class WishResponseViewModelTests: XCTestCase {
         )
 
         viewModel.name = "张三"
-        viewModel.contact = "13800000000"
         viewModel.agreeContact = true
 
         let task1 = Task {
@@ -210,7 +204,6 @@ final class WishResponseViewModelTests: XCTestCase {
         )
 
         viewModel.name = "张三"
-        viewModel.contact = "13800000000"
         viewModel.agreeContact = true
 
         let callerTask = Task {
@@ -236,7 +229,6 @@ final class WishResponseViewModelTests: XCTestCase {
 
         // Draft values must remain intact
         XCTAssertEqual(viewModel.name, "张三")
-        XCTAssertEqual(viewModel.contact, "13800000000")
         XCTAssertTrue(viewModel.agreeContact)
     }
 }
@@ -255,7 +247,6 @@ extension WishResponseViewModelTests {
         )
 
         viewModel.name = "阿远"
-        viewModel.contact = "13900000000"
         viewModel.note = "我就住在附近，明早可以去。"
         viewModel.agreeContact = true
 
@@ -279,7 +270,6 @@ extension WishResponseViewModelTests {
         )
 
         viewModel.name = "阿远"
-        viewModel.contact = "13900000000"
         viewModel.agreeContact = true
 
         let submission = Task { await viewModel.submitResponse() }
@@ -305,7 +295,6 @@ extension WishResponseViewModelTests {
         )
 
         viewModel.name = "阿远"
-        viewModel.contact = "13900000000"
         viewModel.note = "我就住在附近。"
         viewModel.agreeContact = true
 

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>哈喽卧得 · App Icon 三个原创方向（v3）</title>
+<style>
+  :root{
+    --ink-900:#171310; --ink-700:#4A443C; --ink-500:#847C6F; --ink-300:#C4BBAC;
+    --hairline:#E9E1D2; --canvas:#FFFFFF; --canvas-warm:#FBF6EC;
+    --blue-old:#2F6FE0; --blue-warm:#3E6B92;
+    --radius-md:16px; --radius-lg:24px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; padding:44px; background:var(--canvas-warm); font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; color:var(--ink-900);}
+  h1{font-size:24px; font-weight:600; margin:0 0 6px;}
+  .sub{color:var(--ink-500); font-size:14px; margin:0 0 8px; max-width:760px; line-height:1.7;}
+  .rule{background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--radius-md); padding:16px 18px; font-size:13px; line-height:1.8; color:var(--ink-700); max-width:780px; margin:18px 0 40px;}
+  .rule b{color:var(--ink-900);}
+  section{margin-bottom:52px;}
+  .dir-head{display:flex; align-items:baseline; gap:12px; margin-bottom:6px;}
+  .dir-head h2{font-size:19px; font-weight:600; margin:0;}
+  .dir-head .badge{font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; background:var(--ink-900); color:#fff;}
+  .dir-head .badge.alt{background:transparent; border:1px solid var(--hairline); color:var(--ink-500);}
+  .concept{font-size:13.5px; color:var(--ink-700); line-height:1.8; max-width:740px; margin:0 0 18px;}
+  .row{display:flex; gap:22px; align-items:flex-end; flex-wrap:wrap; margin-bottom:14px;}
+  .cell{text-align:center;}
+  .cell .label{margin-top:8px; font-size:11px; color:var(--ink-500);}
+  svg{display:block;}
+  .s1024{width:180px; height:180px; border-radius:var(--radius-lg); overflow:hidden;}
+  .s60{width:60px; height:60px; border-radius:14px; overflow:hidden;}
+  .s40{width:40px; height:40px; border-radius:10px; overflow:hidden;}
+  .s29{width:29px; height:29px; border-radius:7px; overflow:hidden;}
+  .s20{width:20px; height:20px; border-radius:5px; overflow:hidden;}
+  .compare{display:flex; gap:32px; margin-bottom:8px;}
+</style>
+</head>
+<body>
+  <h1>App Icon 三个原创方向</h1>
+  <p class="sub">按 <code>docs/ios-visual-direction-v3.md</code> 的硬性约束制作：无 Emoji、无文字、无渐变，每个方向最多一个底色 + 一个前景色，20–60pt 仍需清晰，黑白剪影可识别。三个方向从不同角度抽象"远方、抵达、在场"，不复制 WhatsApp / X / Threads / Instagram 的具体商标图形，只借鉴"单一符号、极简轮廓、小尺寸可辨识"的原则。</p>
+
+  <div class="rule"><b>颜色测试说明：</b>每个方向都用旧品牌蓝 <code>#2F6FE0</code> 渲染一次；方向 A（推荐方案）额外并排提供一个克制的替代色 <code>#3E6B92</code>（降低饱和度、略带暖调的蓝灰色）供对比——旧蓝更鲜亮醒目，替代色在暖白背景上更柔和、更不易和界面里的品牌蓝强调色互相争夺注意力。是否更换以此对比为准，本稿不额外扩展第三种配色。</p></div>
+
+  <section>
+    <div class="dir-head"><h2>方向 A · 路径与抵达点</h2><span class="badge">推荐</span></div>
+    <p class="concept">一个小圆点（远方的人、心愿的起点）与一段渐次变粗的弧线相连，弧线的另一端是一个更大的实心圆点（抵达、在场、被完成的心意）。整个图形是一次连续的手势——从小到大、从远到近，直接对应"心愿从远方出发，被恰好在场的人接住"。三个关键词（远方/抵达/在场）被压缩进同一个连续动作里，而不是三个并列的符号，这是推荐它作为主方案的原因：足够抽象、不会被认成地图应用或聊天软件，同时在 20pt 依然能看出"一头小一头大、中间一条弧线"的核心结构。</p>
+    <div class="row">
+      <div class="cell"><div class="s1024" id="a1024"></div><div class="label">1024pt · #2F6FE0</div></div>
+      <div class="cell"><div class="s60" id="a60"></div><div class="label">60pt</div></div>
+      <div class="cell"><div class="s40" id="a40"></div><div class="label">40pt</div></div>
+      <div class="cell"><div class="s29" id="a29"></div><div class="label">29pt</div></div>
+      <div class="cell"><div class="s20" id="a20"></div><div class="label">20pt</div></div>
+    </div>
+    <div class="compare">
+      <div class="cell"><div class="s1024" id="a1024old"></div><div class="label">旧蓝 #2F6FE0</div></div>
+      <div class="cell"><div class="s1024" id="a1024warm"></div><div class="label">替代暖蓝 #3E6B92</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="dir-head"><h2>方向 B · 相遇（两个重叠的圆）</h2><span class="badge alt">备选</span></div>
+    <p class="concept">两个大小不同的实心圆部分重叠，较大的圆在重叠处留出一圈极细的底色缝隙，让较小的圆始终保持完整、清晰地"浮"在上面。抽象表达两个原本不相关的人（发布者与恰好在场的响应者）在同一个地点相遇。识别度高、几何极简，但风险是容易让人联想到通用的"用户群组/社交"图标语言，原创性弱于方向 A。</p>
+    <div class="row">
+      <div class="cell"><div class="s1024" id="b1024"></div><div class="label">1024pt</div></div>
+      <div class="cell"><div class="s60" id="b60"></div><div class="label">60pt</div></div>
+      <div class="cell"><div class="s40" id="b40"></div><div class="label">40pt</div></div>
+      <div class="cell"><div class="s29" id="b29"></div><div class="label">29pt</div></div>
+      <div class="cell"><div class="s20" id="b20"></div><div class="label">20pt</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="dir-head"><h2>方向 C · 地标旗帜</h2><span class="badge alt">备选</span></div>
+    <p class="concept">一根竖直的杆，底端是一个实心圆点（落地、扎根、在场），杆的上段伸出一面简单的三角旗（心意被"标记"在这个具体地点，像插旗一样宣告"这里有一个心愿"）。三个关键词里"在场"表达最直接，但"远方"和"抵达"的动态感较弱，更偏静态的"标记一个地点"，识别度依赖旗帜三角形，在 20pt 时旗面容易和杆糊在一起，是三个方向里小尺寸风险最高的一个。</p>
+    <div class="row">
+      <div class="cell"><div class="s1024" id="c1024"></div><div class="label">1024pt</div></div>
+      <div class="cell"><div class="s60" id="c60"></div><div class="label">60pt</div></div>
+      <div class="cell"><div class="s40" id="c40"></div><div class="label">40pt</div></div>
+      <div class="cell"><div class="s29" id="c29"></div><div class="label">29pt</div></div>
+      <div class="cell"><div class="s20" id="c20"></div><div class="label">20pt</div></div>
+    </div>
+  </section>
+
+  <script>
+    function svgA(bg,fg){
+      return '<svg viewBox="0 0 1024 1024" width="100%" height="100%"><rect width="1024" height="1024" fill="'+bg+'"/><path d="M 300 730 Q 470 640 560 520 T 705 330" fill="none" stroke="'+fg+'" stroke-width="88" stroke-linecap="round"/><circle cx="300" cy="730" r="62" fill="'+fg+'"/><circle cx="705" cy="330" r="112" fill="'+fg+'"/></svg>';
+    }
+    function svgB(bg,fg){
+      return '<svg viewBox="0 0 1024 1024" width="100%" height="100%"><rect width="1024" height="1024" fill="'+bg+'"/><circle cx="620" cy="580" r="260" fill="'+fg+'"/><circle cx="430" cy="420" r="205" fill="'+bg+'"/><circle cx="430" cy="420" r="178" fill="'+fg+'"/></svg>';
+    }
+    function svgC(bg,fg){
+      return '<svg viewBox="0 0 1024 1024" width="100%" height="100%"><rect width="1024" height="1024" fill="'+bg+'"/><rect x="452" y="260" width="42" height="560" rx="21" fill="'+fg+'"/><path d="M 494 300 L 760 388 L 494 476 Z" fill="'+fg+'"/><circle cx="473" cy="822" r="34" fill="'+fg+'"/></svg>';
+    }
+    var BLUE='#2F6FE0', WARM='#3E6B92', WHITE='#FFFFFF';
+    ['a1024','a60','a40','a29','a20'].forEach(function(id){ document.getElementById(id).innerHTML = svgA(BLUE, WHITE); });
+    document.getElementById('a1024old').innerHTML = svgA(BLUE, WHITE);
+    document.getElementById('a1024warm').innerHTML = svgA(WARM, WHITE);
+    ['b1024','b60','b40','b29','b20'].forEach(function(id){ document.getElementById(id).innerHTML = svgB(BLUE, WHITE); });
+    ['c1024','c60','c40','c29','c20'].forEach(function(id){ document.getElementById(id).innerHTML = svgC(BLUE, WHITE); });
+  </script>
+</body>
+</html>

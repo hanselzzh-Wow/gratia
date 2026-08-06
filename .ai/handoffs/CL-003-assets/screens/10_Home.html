@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>CL-003 · 10 首页</title>
+<style>
+  :root{
+    --ink-900:#171310; --ink-700:#4A443C; --ink-500:#847C6F; --ink-300:#C4BBAC;
+    --hairline:#E9E1D2; --hairline-strong:#D8CDB8;
+    --canvas:#FFFFFF; --canvas-warm:#FBF6EC; --canvas-sunk:#F3ECDD;
+    --accent:#3E6B92;
+    --r-xs:6px; --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0;}
+  body{width:393px; height:852px; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; overflow:hidden;}
+  .screen{width:393px; height:852px; position:relative; background:var(--canvas-warm); display:flex; flex-direction:column;}
+  .statusbar{height:47px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:var(--ink-900);}
+  .content{flex:1; overflow:hidden; padding:0 20px;}
+
+  .topbar{display:flex; align-items:center; justify-content:space-between; padding:4px 0 16px;}
+  .city-pill{display:flex; align-items:center; gap:4px; font-size:15px; font-weight:600; color:var(--ink-900);}
+  .city-pill svg{width:12px; height:12px; color:var(--ink-500);}
+  .brandmark{font-size:15px; font-weight:600; color:var(--ink-900);}
+  .bell{width:34px; height:34px; border-radius:var(--r-pill); background:var(--canvas); border:1px solid var(--hairline); display:flex; align-items:center; justify-content:center;}
+  .bell svg{width:16px; height:16px; color:var(--ink-700);}
+
+  .hero{background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--r-lg); margin-bottom:16px; padding:22px;}
+  .hero h1{color:var(--ink-900); font-size:19px; font-weight:600; margin:0 0 5px; line-height:26px;}
+  .hero p{color:var(--ink-500); font-size:13px; margin:0 0 14px; line-height:18px;}
+  .hero .cta{display:inline-block; background:var(--ink-900); color:#fff; font-size:14px; font-weight:600; padding:11px 20px; border-radius:var(--r-md);}
+
+  .entries{display:flex; gap:12px; margin-bottom:24px;}
+  .entry{flex:1; border-radius:var(--r-lg); padding:14px; display:flex; flex-direction:column; gap:2px;}
+  .entry.a{background:var(--ink-900); color:#fff;}
+  .entry.b{background:var(--canvas); color:var(--ink-900); border:1px solid var(--hairline);}
+  .entry .t{font-size:14px; font-weight:600;}
+  .entry .s{font-size:11.5px; opacity:.75;}
+  .entry.a .s{color:rgba(255,255,255,.75);}
+  .entry.b .s{color:var(--ink-500);}
+
+  .section-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;}
+  .section-head h2{font-size:16px; font-weight:600; margin:0; color:var(--ink-900);}
+  .section-head .more{font-size:12px; color:var(--accent); font-weight:600;}
+
+  /* .wishes 显式声明 353px = 屏幕 393pt 减去 .content 左右各 20pt 内边距，
+     与卡片宽度/间距精确计算，确保第三张卡真实可见 40–56pt（而非仅代码意图上的 peek）。
+     140*2(卡) + 12*2(间距) = 304，容器 353 - 304 = 49px 是第三张卡实际露出的宽度。 */
+  .wishes{display:flex; gap:12px; overflow:hidden; width:353px; margin-bottom:24px;}
+  .wcard{width:140px; flex:0 0 auto; background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--r-lg); padding:14px;}
+  .wcard .top{display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-500); margin-bottom:8px;}
+  .wcard .price{color:var(--ink-900); font-weight:700;}
+  .wcard .tag{display:inline-block; font-size:11px; border:1px solid var(--hairline-strong); color:var(--ink-700); padding:3px 9px; border-radius:var(--r-pill); margin-bottom:8px;}
+  .wcard .body{font-size:13px; line-height:18px; color:var(--ink-900); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+  /* 第三张卡是有意的横向浏览提示（peek）：包裹宽度 56px，但真正决定可见宽度的是 .wishes
+     容器 353px 的 overflow:hidden 边界（左边两张卡 + 间距共占 304px，剩余 49px 落在此包裹内）。
+     对应 SwiftUI 里 ScrollView(.horizontal) 内容在 trailing 方向自然超出屏幕，不是意外裁切。 */
+  .wcard-peek{width:56px; flex:0 0 auto; overflow:hidden; border-radius:var(--r-lg) 0 0 var(--r-lg);}
+  .wcard-peek .wcard{width:140px;}
+
+  .steps{display:flex; justify-content:space-between; margin-bottom:20px;}
+  .step{flex:1; text-align:center;}
+  .step .n{width:26px; height:26px; border-radius:var(--r-pill); border:1px solid var(--ink-900); color:var(--ink-900); font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;}
+  .step .t{font-size:12px; color:var(--ink-700); font-weight:600;}
+
+  .trust{display:flex; gap:10px; align-items:flex-start; background:var(--canvas-sunk); border-radius:var(--r-md); padding:13px 14px; margin-bottom:16px;}
+  .trust svg{width:17px; height:17px; color:var(--ink-500); flex:0 0 auto; margin-top:1px;}
+  .trust .t{font-size:12px; line-height:17px; color:var(--ink-700);}
+
+  .tabbar{flex:0 0 auto; display:flex; padding:8px 4px 26px; background:var(--canvas); border-top:1px solid var(--hairline);}
+  .tabbar .item{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; font-size:10.5px; color:var(--ink-300); font-weight:500;}
+  .tabbar .item svg{width:24px; height:24px;}
+  .tabbar .item.active{color:var(--ink-900); font-weight:600;}
+</style>
+</head>
+<body>
+  <div class="screen">
+    <div class="statusbar">9:41</div>
+    <div class="content">
+      <div class="topbar">
+        <div class="city-pill">上海 <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8.5l5.5 5.5 5.5-5.5"/></svg></div>
+        <div class="brandmark">哈喽卧得</div>
+        <div class="bell"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15V9.6a4 4 0 0 1 8 0V15l1.4 1.4H5.6L7 15Z"/><path d="M9.6 17.6a1.4 1.4 0 0 0 2.8 0"/></svg></div>
+      </div>
+
+      <div class="hero">
+        <h1>把想说的话，交给恰好在场的人</h1>
+        <p>人工审核 · 真实响应 · 过程可追踪</p>
+        <div class="cta">发布一个心愿</div>
+      </div>
+
+      <div class="entries">
+        <div class="entry a"><div class="t">我要发布 ›</div><div class="s">许一个小心愿</div></div>
+        <div class="entry b"><div class="t">我刚好在这里</div><div class="s">帮别人完成心愿</div></div>
+      </div>
+
+      <div class="section-head"><h2>附近正在等待的心愿</h2><span class="more">查看全部 ›</span></div>
+      <div class="wishes">
+        <div class="wcard">
+          <div class="top"><span>外滩 · 2 公里</span><span class="price">¥18</span></div>
+          <span class="tag">生日祝福</span>
+          <div class="body">想请路过的朋友对着夜景说一句生日快乐，给远方的她一个惊喜。</div>
+        </div>
+        <div class="wcard">
+          <div class="top"><span>东方明珠 · 3 公里</span><span class="price">¥12</span></div>
+          <span class="tag">加油鼓励</span>
+          <div class="body">帮我在塔下录一段"你可以的"，明天她要参加一场重要考试。</div>
+        </div>
+        <div class="wcard-peek">
+          <div class="wcard">
+            <div class="top"><span>豫园 · 5 公里</span><span class="price">¥28</span></div>
+            <span class="tag">毕业祝福</span>
+            <div class="body">想请路过的朋友帮忙写一张手写卡片，字迹工整就好。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-head"><h2>如何完成一个心愿</h2></div>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div class="t">发布心愿</div></div>
+        <div class="step"><div class="n">2</div><div class="t">人工匹配</div></div>
+        <div class="step"><div class="n">3</div><div class="t">现场交付</div></div>
+      </div>
+
+      <div class="trust">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="10" width="10" height="8" rx="2"/><path d="M8.5 10V7.5a2.5 2.5 0 0 1 5 0V10"/></svg>
+        <div class="t"><b>联系方式不公开，内容先审核后发布。</b>遇到问题可随时联系客服。</div>
+      </div>
+    </div>
+
+    <div class="tabbar">
+      <div class="item active">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l7-6 7 6"/><path d="M6 10v8a1 1 0 0 0 1 1h3v-5h2v5h3a1 1 0 0 0 1-1v-8"/></svg>
+        首页
+      </div>
+      <div class="item">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20s6-5.7 6-10.2A6 6 0 0 0 5 9.8C5 14.3 11 20 11 20Z"/><circle cx="11" cy="9.6" r="2.1"/></svg>
+        附近
+      </div>
+      <div class="item">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="9.25"/><path d="M11 6.5v9M6.5 11h9"/></svg>
+        发布
+      </div>
+      <div class="item">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="12" r="7.3"/><path d="M11 8.2V12l2.6 1.8"/><path d="M4.6 8.3a7.3 7.3 0 0 1 2-4.1"/></svg>
+        进度
+      </div>
+      <div class="item">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="7.8" r="3.3"/><path d="M4.3 19c1-3.7 4-5.8 6.7-5.8s5.7 2.1 6.7 5.8"/></svg>
+        我的
+      </div>
+    </div>
+  </div>
+</body>
+</html>

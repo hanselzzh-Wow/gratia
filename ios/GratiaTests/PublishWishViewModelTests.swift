@@ -15,7 +15,6 @@ final class PublishWishViewModelTests: XCTestCase {
 
         // Set invalid fields
         viewModel.name = "" // requesterName too short
-        viewModel.contact = "12" // contact too short
         viewModel.landmark = "A" // landmark too short
         viewModel.words = "Hi" // message too short
         viewModel.agreeContact = false // must be true
@@ -32,7 +31,6 @@ final class PublishWishViewModelTests: XCTestCase {
 
         // Check specific validation error keys
         XCTAssertNotNil(viewModel.validationErrors["requesterName"])
-        XCTAssertNotNil(viewModel.validationErrors["contact"])
         XCTAssertNotNil(viewModel.validationErrors["landmark"])
         XCTAssertNotNil(viewModel.validationErrors["message"])
         XCTAssertNotNil(viewModel.validationErrors["contactConsent"])
@@ -49,7 +47,6 @@ final class PublishWishViewModelTests: XCTestCase {
 
         // Set valid inputs
         viewModel.name = "小白"
-        viewModel.contact = "wx_12345"
         viewModel.city = "杭州"
         viewModel.landmark = "西湖断桥"
         viewModel.scene = "生日祝福"
@@ -90,7 +87,8 @@ final class PublishWishViewModelTests: XCTestCase {
         let request = await mockAPI.lastRequest
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.requesterName, "小白")
-        XCTAssertEqual(request?.contact, "wx_12345")
+        // 不再向用户索取联系方式：请求里该字段恒为空
+        XCTAssertEqual(request?.contact, "")
         XCTAssertEqual(request?.city, "杭州")
         XCTAssertEqual(request?.landmark, "西湖断桥")
         XCTAssertEqual(request?.occasion, "生日祝福")
@@ -110,7 +108,6 @@ final class PublishWishViewModelTests: XCTestCase {
         )
 
         viewModel.name = "小白"
-        viewModel.contact = "wx_12345"
         viewModel.city = "杭州"
         viewModel.landmark = "西湖断桥"
         viewModel.scene = "生日祝福"
@@ -156,7 +153,6 @@ final class PublishWishViewModelTests: XCTestCase {
         )
 
         viewModel.name = "小白"
-        viewModel.contact = "wx_12345"
         viewModel.city = "杭州"
         viewModel.landmark = "西湖断桥"
         viewModel.scene = "生日祝福"
@@ -180,7 +176,6 @@ final class PublishWishViewModelTests: XCTestCase {
 
         // Draft values MUST remain intact!
         XCTAssertEqual(viewModel.name, "小白")
-        XCTAssertEqual(viewModel.contact, "wx_12345")
         XCTAssertEqual(viewModel.city, "杭州")
         XCTAssertEqual(viewModel.landmark, "西湖断桥")
         XCTAssertEqual(viewModel.scene, "生日祝福")
@@ -199,7 +194,6 @@ final class PublishWishViewModelTests: XCTestCase {
         )
 
         viewModel.name = "小白"
-        viewModel.contact = "wx_12345"
         viewModel.city = "杭州"
         viewModel.landmark = "西湖断桥"
         viewModel.scene = "生日祝福"
@@ -251,7 +245,6 @@ final class PublishWishViewModelTests: XCTestCase {
         )
 
         viewModel.name = "小白"
-        viewModel.contact = "wx_12345"
         viewModel.city = "杭州"
         viewModel.landmark = "西湖断桥"
         viewModel.scene = "生日祝福"
@@ -282,7 +275,6 @@ final class PublishWishViewModelTests: XCTestCase {
 
         // Draft values MUST remain intact!
         XCTAssertEqual(viewModel.name, "小白")
-        XCTAssertEqual(viewModel.contact, "wx_12345")
         XCTAssertEqual(viewModel.landmark, "西湖断桥")
         XCTAssertEqual(viewModel.words, "生日快乐，天天开心！")
     }
@@ -301,7 +293,6 @@ extension PublishWishViewModelTests {
         )
 
         viewModel.name = "小白"
-        viewModel.contact = "13800000000"
         viewModel.landmark = "西湖断桥"
         viewModel.words = "请替我在断桥上说一声生日快乐。"
         viewModel.agreeContact = true
@@ -326,7 +317,6 @@ extension PublishWishViewModelTests {
         )
 
         viewModel.name = "小白"
-        viewModel.contact = "13800000000"
         viewModel.landmark = "西湖断桥"
         viewModel.words = "请替我在断桥上说一声生日快乐。"
         viewModel.agreeContact = true
@@ -351,7 +341,6 @@ extension PublishWishViewModelTests {
         )
 
         viewModel.name = "小白"
-        viewModel.contact = "13800000000"
         viewModel.landmark = "西湖断桥"
         viewModel.words = "请替我在断桥上说一声生日快乐。"
         viewModel.agreeContact = true

@@ -187,4 +187,26 @@ Large Title 28/34·600、Title2 22/28·600、Title3 18/24·600、Headline 17/22�
 
 ---
 
+## 11. v3 视觉修订附录（2026-07-18，用户直接反馈）
+
+用户在 `CL-001`/`CL-002` 均已提交、`CL-001` 已冻结为 v2.1 之后，直接给出三条明确的视觉方向修正，覆盖范围超出单个任务卡，因此作为附录记录在两份交接文档中，供 `CODEX-PM` 决定是否需要正式重新评审、更新 `docs/ios-design-freeze-v1.md`：
+
+1. **App 内不得出现任何 Emoji**，图标须参照 WhatsApp / X / Threads 一类的单色线性图标语言。原 v2.1 设计中用 Emoji（🔒🔔🎬🕊️📡 等）作为图标占位符，用户明确否决。
+2. **参考 Airbnb 的温暖柔和感**：卡片圆角与阴影要更柔和，字号字重要更舒展，不是纯 Threads 式的冷峻扁平。
+3. **色彩规则不变**：继续零渐变、强调色克制，鲜艳花哨的颜色只留给用户上传的照片/视频内容，不用于系统 UI。
+
+### 已执行的修订（v3，已应用到本文档全部 12 个已交付页面）
+
+- 新增统一图标系统，见 [`CL-002-assets/design-system/02_Icon_System.html`](./CL-002-assets/design-system/02_Icon_System.html)：22×22 网格、1.6–1.8pt 描边、圆角端点，覆盖锁、铃铛、搜索、交付方式、空状态、错误、播放、关闭、分享、客服、安全、文档、信息、勾选、复制、下载、举报等场景；5 栏 Tab Bar 从抽象色块图标升级为真实的 house / location / plus.circle.fill / clock.arrow.circlepath / person 线性图标。
+- Design Tokens 从"零投影 + 冷灰"调整为"柔和阴影 + 暖灰"，完整定义见 [`CL-002-assets/design-system/00_Foundations_v3.html`](./CL-002-assets/design-system/00_Foundations_v3.html)：页面底色 `#FEFCF9`→`#FBF7F0`，卡片圆角 16pt→22pt（弹层顶部 20pt→28pt），文字灰阶转暖，标题字重 700→600、行距普遍加宽；卡片类容器（Hero、心愿卡、摘要卡、Bottom Sheet）改用低透明度柔和阴影 `shadow-card`，列表行分隔线、Tab Bar、固定表单底栏仍保留 1px hairline，不是所有层级都加阴影。
+- 本文档 §3 列出的全部 8 组页面已按上述 v3 token 和图标系统重新导出 HTML 与 1x/3x PNG（`CL-001-assets/screens/**`、`CL-001-assets/png/**`），设计结构、信息层级、文案和交互流程与 v2.1 冻结版本保持一致，只有视觉表现层变化。
+- `CL-001-assets/design-system/00_Foundations.html`、`01_Components.html` 保留为 v2.1 冻结时的历史记录，不再更新；`CL-002-assets/design-system/00_Foundations_v3.html` 和 `02_Icon_System.html` 是当前唯一权威的 Design System 参考。
+
+### 需要 Codex 裁决
+
+- v3 是否需要正式替换 `docs/ios-design-freeze-v1.md` 中的 Design Tokens 章节（颜色灰阶、圆角、层级），还是仅作为"视觉精修"以变更记录形式追加，不影响已进入实现的 `AG-003` 等任务对 v2.1 数值的引用。
+- `AG-003`（首页/附近纵向切片）等已依据 v2.1 数值实现的代码，是否需要回填 v3 的圆角/阴影/图标改动，或留到下一轮实现任务统一处理。
+
+---
+
 *完成后停止：本任务不修改任何 SwiftUI/后端/项目日志/任务板文件，等待用户与 `CODEX-PM` 评审后再决定是否冻结进入实现阶段。*

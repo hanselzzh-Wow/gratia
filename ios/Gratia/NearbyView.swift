@@ -422,7 +422,7 @@ struct WishDetailView: View {
 }
 
 struct ApplyResponseSheet: View {
-    private enum ResponseField: Hashable { case name, contact, note }
+    private enum ResponseField: Hashable { case name, note }
 
     let wish: PublicWishDTO
     @Binding var isPresented: Bool
@@ -450,7 +450,6 @@ struct ApplyResponseSheet: View {
 
     private var isFormValid: Bool {
         !viewModel.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            !viewModel.contact.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
             viewModel.agreeContact && viewModel.state != .submitting
     }
 
@@ -469,7 +468,6 @@ struct ApplyResponseSheet: View {
                     }
                     if case .failed(let message) = viewModel.state { failure(message) }
                     textField(label: "您的称呼", placeholder: "如：小张", text: $viewModel.name, field: .name, error: viewModel.validationErrors["responderName"])
-                    textField(label: "联系方式（仅平台可见，不对发布者展示）", placeholder: "微信号或手机号", text: $viewModel.contact, field: .contact, error: viewModel.validationErrors["responderContact"])
                     noteField
                     consent
                     if let error = viewModel.validationErrors["contactConsent"] {

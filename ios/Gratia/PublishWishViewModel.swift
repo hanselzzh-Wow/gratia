@@ -20,7 +20,6 @@ public final class PublishWishViewModel: ObservableObject {
     @Published public var deliveryType = "口播视频"
     @Published public var date = Date()
     @Published public var name = ""
-    @Published public var contact = ""
     @Published public var agreeContact = false
 
     // State
@@ -68,10 +67,6 @@ public final class PublishWishViewModel: ObservableObject {
             validationErrors["requesterName"] = "称呼必须为1-30个字符"
         }
 
-        let trimmedContact = contact.trimmingCharacters(in: .whitespaces)
-        if trimmedContact.count < 3 || trimmedContact.count > 80 {
-            validationErrors["contact"] = "联系方式必须为3-80个字符"
-        }
 
         let trimmedCity = city.trimmingCharacters(in: .whitespaces)
         if trimmedCity.count < 2 || trimmedCity.count > 24 {
@@ -124,7 +119,8 @@ public final class PublishWishViewModel: ObservableObject {
 
         let request = CreateWishRequest(
             requesterName: name.trimmingCharacters(in: .whitespaces),
-            contact: contact.trimmingCharacters(in: .whitespaces),
+            // 不再向用户索取联系方式：沟通与交付都在应用内完成。
+            contact: "",
             city: city.trimmingCharacters(in: .whitespaces),
             landmark: landmark.trimmingCharacters(in: .whitespaces),
             occasion: scene.trimmingCharacters(in: .whitespaces),
@@ -196,7 +192,6 @@ public final class PublishWishViewModel: ObservableObject {
         deliveryType = "口播视频"
         date = Date()
         name = ""
-        contact = ""
         agreeContact = false
         state = .idle
         validationErrors.removeAll()
