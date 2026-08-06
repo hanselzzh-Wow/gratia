@@ -24,6 +24,7 @@ App 内**不涉及任何金额**，**不收集任何联系方式**。
 | 数据库迁移 | `0000`–`0010` 全部已应用 |
 | 运营台 | `https://hanselzzh-wow.github.io/ops/` |
 | 法务页面 | `/legal/privacy/`、`/legal/terms/` 已公开 |
+| Apple 令牌撤销 | 密钥已配齐；**端到端未验证**，见第八节 |
 | TestFlight | 构建 6 已上传；内部测试可用（**不含地点搜索改动**） |
 | 后端测试 | 30/30 |
 | iOS 测试 | 41/41 |
@@ -172,19 +173,34 @@ iOS (SwiftUI, iOS 18+)          运营台 (Next/vinext → GitHub Pages)
 
 ## 八、还没做完的
 
-### 阻塞正式提审
+### 提审前必须验证（不再是配置阻塞）
 
-**Apple 令牌撤销未配置。** 线上缺 `APPLE_TEAM_ID`、`APPLE_KEY_ID`、`APPLE_PRIVATE_KEY`。代码路径是通的（`worker/index.ts:331`），但没有密钥必定失败。
+**Apple 令牌撤销：密钥已配置，端到端未验证。** 2026-08-06 已写入 `APPLE_TEAM_ID`、`APPLE_KEY_ID`（`YB5V2N9R2W`）、`APPLE_PRIVATE_KEY`，线上六个密钥齐全。
 
 Apple 要求使用 Sign in with Apple 且支持账户删除的 App **必须在删除时撤销令牌**，审核会实测。
 
-补法：在 [developer.apple.com/account/resources/authkeys/add](https://developer.apple.com/account/resources/authkeys/add) 新建密钥，勾选 Sign in with Apple，关联 `com.hanselzzh.gratia`，下载 `.p8`（**只能下一次**），然后：
+已经验证的：用与 `server/apple-identity.ts` 完全相同的方式构造 client_secret 打 Apple 真实端点，返回 `invalid_grant` 而**不是** `invalid_client`——即 Team ID、Key ID、私钥、bundle 四项匹配。Worker 侧的 PEM 解析与 ES256 签名有真实 P-256 密钥的测试覆盖（`tests/apple-auth.test.mjs:293`，Apple 端点是 mock）。
 
-```bash
-echo -n "HH9LKGK7DA" | npx wrangler secret put APPLE_TEAM_ID --name haluowode-mvp
-echo -n "<KeyID>"     | npx wrangler secret put APPLE_KEY_ID  --name haluowode-mvp
-cat /path/to/AuthKey_XXX.p8 | npx wrangler secret put APPLE_PRIVATE_KEY --name haluowode-mvp
-```
+**尚未发生过的是：生产 Worker 用这三个真实密钥打 Apple 真实端点。**
+
+#### ⚠️ 直接删旧账户会得到假绿灯
+
+`refresh_token` 是**登录时**用 `authorizationCode` 换来的（`worker/index.ts:305`）。密钥配置之前登录的账户，这一列是 NULL。而删除时的查询只取 `refresh_token IS NOT NULL` 的 identity（`server/accounts-repository.ts:130`），`appleTokensRevoked` 又初始化为 `true`（`worker/index.ts:328`）——于是循环一次都不进，响应照样是 `appleTokensRevoked: true`，**但一次 Apple 调用都没发生**。
+
+这不是 bug（没有令牌就没有要撤销的东西），但拿它当验收证据必然误判。2026-08-06 时生产库里那唯一一个 apple identity 正是这种状态。
+
+正确的验收顺序：
+
+1. **重新登录一次**（配好密钥之后的登录才会换到并存下 refresh token）；
+2. 确认真的存下了：
+   ```bash
+   npx wrangler d1 execute haluowode-mvp-db --remote --command "SELECT provider, COUNT(*) AS n, SUM(CASE WHEN refresh_token IS NOT NULL THEN 1 ELSE 0 END) AS with_token FROM account_identities WHERE deleted_at IS NULL GROUP BY provider"
+   ```
+   `with_token` 必须 ≥ 1，否则后面测的还是空转；
+3. 在 App 内删除该账户，响应里的 `appleTokensRevoked` 必须为 `true`；
+4. 到 Apple ID 设置 →「使用您 Apple ID 的 App」里确认 Gratia 已消失。第 4 步才是真正的证据,第 3 步只说明 Worker 认为自己成功了。
+
+> 换新密钥时：在 [developer.apple.com/account/resources/authkeys/add](https://developer.apple.com/account/resources/authkeys/add) 新建，勾选 Sign in with Apple，关联 `com.hanselzzh.gratia`，下载 `.p8`（**只能下一次**），然后把上面三个 secret 重新 `npx wrangler secret put` 一遍。`APPLE_PRIVATE_KEY` 可以把 `.p8` 整份管道进去，PEM 头尾与换行都会被剥掉（`server/apple-identity.ts:126`）；另两个要用 `echo -n`，尾部换行会一起存进去。
 
 ### 不阻塞但已知
 
