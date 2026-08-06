@@ -289,9 +289,6 @@ struct MyActivityView: View {
                 .font(DesignSystem.metadataFont)
                 .foregroundStyle(DesignSystem.Rose.ink2)
                 .lineLimit(2)
-            Text("感谢金 ¥\(Int(wish.rewardYuan))")
-                .font(DesignSystem.captionFont)
-                .foregroundStyle(DesignSystem.Rose.ink3)
 
             if wish.canConfirmCompletion {
                 Button {
@@ -499,7 +496,7 @@ struct HelpAndSafetyView: View {
     private var faqCard: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
             Text("常见问题").font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.Rose.ink)
-            DisclosureGroup("提交心愿后多久能完成？") { Text("心愿提交后会先进行安全审核，再依据地标与感谢金匹配附近响应者。") }
+            DisclosureGroup("提交心愿后多久能完成？") { Text("心愿提交后会先进行安全审核，再依据城市与地标匹配附近愿意帮忙的人。") }
             DisclosureGroup("响应者没有按时完成怎么办？") { Text("如发生异常，平台会协调更新状态或重新进入匹配队列。") }
             DisclosureGroup("交付的文件格式是什么？") { Text("交付形式依心愿约定而定，链接仅在对应查询结果中安全预览。") }
         }
@@ -524,7 +521,7 @@ struct PrivacyPolicyView: View {
                     policySection("系统权限", "仅在你主动点击「保存到相册」时申请相册的「仅添加」权限，用于保存你收到的交付照片。该权限在技术上无法读取你相册中的既有内容。本版本不申请定位、通讯录、相机或麦克风。")
                     policySection("信息共享", "未经明示同意，我们不会向无关第三方披露你的真实身份或联系方式。我们不含广告或分析 SDK，不做跨应用追踪，也不会出售你的数据。")
                     policySection("数据存储", "订单和交付文件由受控服务保存，交付访问链接不在公开页面展示或长期保存。登录凭据只保存在本机钥匙串，不同步到 iCloud。")
-                    policySection("费用说明", "本应用不在应用内收取任何款项。心愿中的「感谢金」只是你申报的金额，实际结算由运营在履约完成后与双方另行确认。我们不收集任何支付信息。")
+                    policySection("费用说明", "本应用完全免费，不涉及任何金额。App 内没有支付、没有应用内购买、没有任何形式的收费或金额申报，也不收集任何支付信息。响应者是自愿提供帮助的个人。")
                     policySection("你的权利", "你可以随时在「我的 → 账户」中退出登录或删除账户。删除后登录身份会被清除、所有会话立即失效，已有记录中的称呼与联系方式会被匿名化；为完成中的履约与审计，去标识后的订单记录会保留。删除不可撤销。")
                     policySection("服务性质", "本平台是信息撮合平台，不是劳务派遣或代购服务商。响应者是自愿提供帮助的个人，不是平台员工。心愿的实际完成结果由响应者本人负责，平台负责审核、撮合、跟进与争议协调。")
                 }

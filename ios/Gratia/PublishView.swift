@@ -15,7 +15,6 @@ struct PublishView: View {
 
     private let scenes = ["生日祝福", "加油鼓励", "毕业祝福", "浪漫表白", "节日问候", "其他小心愿"]
     private let cities = ["杭州", "上海", "北京", "深圳", "广州"]
-    private let rewards = [12, 18, 28]
 
     private var isStep1Valid: Bool { !viewModel.landmark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     private var isStep2Valid: Bool { !viewModel.words.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && viewModel.words.count <= 120 }
@@ -245,13 +244,7 @@ struct PublishView: View {
 
     private var step3View: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
-            stepHeader(title: "确认与联系", subtitle: "设置感谢金并留下联系方式。")
-            VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
-                fieldLabel("感谢金金额")
-                HStack(spacing: DesignSystem.spacing8) {
-                    ForEach(rewards, id: \.self) { reward in rewardTile(reward) }
-                }
-            }
+            stepHeader(title: "确认与联系", subtitle: "留下你的称呼和联系方式。")
             inputField(label: "您的称呼", placeholder: "如：小白", text: $viewModel.name, field: .name, error: viewModel.validationErrors["requesterName"])
             inputField(label: "您的联系方式（仅运营可见）", placeholder: "微信或手机号", text: $viewModel.contact, field: .contact, error: viewModel.validationErrors["contact"])
             Toggle(isOn: $viewModel.agreeContact) {
@@ -363,22 +356,6 @@ struct PublishView: View {
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
-    private func rewardTile(_ reward: Int) -> some View {
-        let selected = viewModel.reward == reward
-        return Button { viewModel.reward = reward } label: {
-            VStack(spacing: DesignSystem.spacing4) {
-                Text("¥\(reward)").font(DesignSystem.titleFont)
-                Text(reward == 12 ? "基础答谢" : (reward == 18 ? "推荐金额" : "诚意满满"))
-                    .font(DesignSystem.captionFont)
-            }
-            .foregroundStyle(selected ? .white : DesignSystem.ink900)
-            .frame(maxWidth: .infinity, minHeight: 76)
-            .background(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).fill(selected ? DesignSystem.accent : DesignSystem.canvas).overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).stroke(selected ? DesignSystem.accent : DesignSystem.hairline, lineWidth: 1)))
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
-    }
-
     private var summaryCard: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
             Text("心愿发布摘要").font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.ink900)
@@ -386,7 +363,6 @@ struct PublishView: View {
             Text("目标：\(viewModel.city) · \(viewModel.landmark)（\(viewModel.scene)）")
             Text("形式：\(viewModel.deliveryType)")
             Text("内容：\(viewModel.words)").lineLimit(3)
-            Text("金额：¥\(viewModel.reward)").foregroundStyle(DesignSystem.ink900)
         }
         .font(DesignSystem.metadataFont)
         .foregroundStyle(DesignSystem.ink700)

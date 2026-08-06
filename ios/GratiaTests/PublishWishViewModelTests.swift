@@ -55,7 +55,6 @@ final class PublishWishViewModelTests: XCTestCase {
         viewModel.scene = "生日祝福"
         viewModel.words = "生日快乐，天天开心！"
         viewModel.deliveryType = "景色配音"
-        viewModel.reward = 18 // 18 Yuan
         viewModel.agreeContact = true
 
         let isValid = viewModel.validate()
@@ -77,7 +76,7 @@ final class PublishWishViewModelTests: XCTestCase {
             message: "生日快乐，天天开心！",
             deliveryType: .sceneryVoiceover,
             deadlineText: "2026-07-18",
-            rewardFen: 1800,
+            rewardFen: 0,
             status: .pendingReview,
             createdAt: 1718000000000
         )
@@ -97,7 +96,7 @@ final class PublishWishViewModelTests: XCTestCase {
         XCTAssertEqual(request?.occasion, "生日祝福")
         XCTAssertEqual(request?.message, "生日快乐，天天开心！")
         XCTAssertEqual(request?.deliveryType, .sceneryVoiceover) // English DTO Enum mapping
-        XCTAssertEqual(request?.rewardFen, 1800) // Correct Yuan-to-Fen conversion
+        XCTAssertEqual(request?.rewardFen, 0) // App 内无金额概念，提交时恒为 0
         XCTAssertEqual(request?.contactConsent, true)
     }
 
@@ -117,7 +116,6 @@ final class PublishWishViewModelTests: XCTestCase {
         viewModel.scene = "生日祝福"
         viewModel.words = "生日快乐，天天开心！"
         viewModel.deliveryType = "口播视频"
-        viewModel.reward = 12
         viewModel.agreeContact = true
 
         let task = Task {
@@ -135,7 +133,7 @@ final class PublishWishViewModelTests: XCTestCase {
             message: "生日快乐，天天开心！",
             deliveryType: .spokenVideo,
             deadlineText: "2026-07-18",
-            rewardFen: 1200,
+            rewardFen: 0,
             status: .matching,
             createdAt: 1718000000000
         )
@@ -164,7 +162,6 @@ final class PublishWishViewModelTests: XCTestCase {
         viewModel.scene = "生日祝福"
         viewModel.words = "生日快乐，天天开心！"
         viewModel.deliveryType = "手写卡片"
-        viewModel.reward = 28
         viewModel.agreeContact = true
 
         let task = Task {
@@ -189,7 +186,6 @@ final class PublishWishViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.scene, "生日祝福")
         XCTAssertEqual(viewModel.words, "生日快乐，天天开心！")
         XCTAssertEqual(viewModel.deliveryType, "手写卡片")
-        XCTAssertEqual(viewModel.reward, 28)
         XCTAssertTrue(viewModel.agreeContact)
     }
 
@@ -209,7 +205,6 @@ final class PublishWishViewModelTests: XCTestCase {
         viewModel.scene = "生日祝福"
         viewModel.words = "生日快乐，天天开心！"
         viewModel.deliveryType = "口播视频"
-        viewModel.reward = 18
         viewModel.agreeContact = true
 
         let task1 = Task {
@@ -235,7 +230,7 @@ final class PublishWishViewModelTests: XCTestCase {
             message: "生日快乐，天天开心！",
             deliveryType: .spokenVideo,
             deadlineText: "2026-07-18",
-            rewardFen: 1800,
+            rewardFen: 0,
             status: .pendingReview,
             createdAt: 1718000000000
         )
@@ -262,7 +257,6 @@ final class PublishWishViewModelTests: XCTestCase {
         viewModel.scene = "生日祝福"
         viewModel.words = "生日快乐，天天开心！"
         viewModel.deliveryType = "口播视频"
-        viewModel.reward = 18
         viewModel.agreeContact = true
 
         let callerTask = Task {

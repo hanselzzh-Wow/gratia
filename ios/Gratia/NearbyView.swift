@@ -208,9 +208,6 @@ struct WishRowView: View {
                     .foregroundStyle(DesignSystem.ink900)
                     .lineLimit(1)
                 Spacer(minLength: DesignSystem.spacing8)
-                Text("¥\(Int(wish.rewardYuan))")
-                    .font(DesignSystem.headlineFont)
-                    .foregroundStyle(DesignSystem.ink900)
             }
 
             Text(wish.message)
@@ -359,14 +356,6 @@ struct WishDetailView: View {
             Text("\(wish.city) · \(wish.landmark)")
                 .font(DesignSystem.titleFont)
                 .foregroundStyle(DesignSystem.ink900)
-            HStack(spacing: DesignSystem.spacing4) {
-                Text("感谢金")
-                    .font(DesignSystem.bodyFont)
-                    .foregroundStyle(DesignSystem.ink700)
-                Text("¥\(Int(wish.rewardYuan))")
-                    .font(DesignSystem.titleFont)
-                    .foregroundStyle(DesignSystem.ink900)
-            }
         }
         .padding(DesignSystem.spacing20)
         .v3Card(radius: DesignSystem.radiusLarge)
@@ -521,9 +510,6 @@ struct ApplyResponseSheet: View {
                 Text("\(wish.city) · \(wish.landmark)")
                     .font(DesignSystem.headlineFont)
                     .foregroundStyle(DesignSystem.ink900)
-                Text("感谢金 ¥\(Int(wish.rewardYuan))")
-                    .font(DesignSystem.metadataFont)
-                    .foregroundStyle(DesignSystem.ink700)
             }
             Spacer()
         }

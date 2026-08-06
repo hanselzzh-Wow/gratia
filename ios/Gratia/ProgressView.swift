@@ -114,7 +114,6 @@ struct ProgressView: View {
                                 Divider()
                                 Text("心愿描述: \(wish.message)")
                                 Text("交付形式: \(wish.deliveryType.label)")
-                                Text("感谢金: ¥\(Int(wish.rewardYuan))")
                             }
                             .font(.system(size: 13))
                             .foregroundColor(DesignSystem.textSecondary)

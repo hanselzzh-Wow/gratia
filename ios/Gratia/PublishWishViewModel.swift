@@ -19,7 +19,6 @@ public final class PublishWishViewModel: ObservableObject {
     @Published public var words = ""
     @Published public var deliveryType = "口播视频"
     @Published public var date = Date()
-    @Published public var reward = 18
     @Published public var name = ""
     @Published public var contact = ""
     @Published public var agreeContact = false
@@ -99,11 +98,6 @@ public final class PublishWishViewModel: ObservableObject {
             validationErrors["deadlineText"] = "期望时间格式不正确"
         }
 
-        let rewardFen = reward * 100
-        if rewardFen < 0 || rewardFen > 100000 {
-            validationErrors["rewardFen"] = "感谢金金额超出允许范围(0-1000元)"
-        }
-
         if !agreeContact {
             validationErrors["contactConsent"] = "您必须同意公开心愿且已知晓联系方式使用规则"
         }
@@ -137,7 +131,9 @@ public final class PublishWishViewModel: ObservableObject {
             message: words.trimmingCharacters(in: .whitespaces),
             deliveryType: mappedDeliveryType,
             deadlineText: formattedDeadlineText,
-            rewardFen: reward * 100,
+            // App 内不涉及任何金额。服务端契约仍要求该字段，固定传 0，
+            // 表示本次发布不申报任何金额，避免在客户端留下支付相关的表达空间。
+            rewardFen: 0,
             contactConsent: agreeContact
         )
 
@@ -199,7 +195,6 @@ public final class PublishWishViewModel: ObservableObject {
         words = ""
         deliveryType = "口播视频"
         date = Date()
-        reward = 18
         name = ""
         contact = ""
         agreeContact = false
