@@ -12,6 +12,7 @@ struct AccountSectionView: View {
     private enum ActiveSheet: String, Identifiable {
         case signIn
         case accountSettings
+        case profile
         var id: String { rawValue }
     }
 
@@ -43,6 +44,8 @@ struct AccountSectionView: View {
                 SignInSheet(viewModel: viewModel)
             case .accountSettings:
                 AccountSettingsView(viewModel: viewModel)
+            case .profile:
+                ProfileEditSheet()
             }
         }
     }
@@ -84,6 +87,50 @@ struct AccountSectionView: View {
     }
 
     private var signedInCard: some View {
+        VStack(spacing: DesignSystem.spacing8) {
+            profileEntry
+            accountEntry
+        }
+    }
+
+    /// 昵称与头像入口。放在账户设置之前——改资料是高频动作，
+    /// 注销是低频且危险的动作，不该并列。
+    private var profileEntry: some View {
+        Button {
+            activeSheet = .profile
+        } label: {
+            HStack(spacing: DesignSystem.spacing16) {
+                Circle()
+                    .fill(DesignSystem.Rose.soft)
+                    .frame(width: 52, height: 52)
+                    .overlay(
+                        Image(systemName: "person.crop.circle")
+                            .font(.title3.weight(.medium))
+                            .foregroundStyle(DesignSystem.Rose.deep)
+                    )
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
+                    Text("个人资料")
+                        .font(DesignSystem.titleFont)
+                        .foregroundStyle(DesignSystem.Rose.ink)
+                    Text("设置昵称与头像")
+                        .font(DesignSystem.metadataFont)
+                        .foregroundStyle(DesignSystem.Rose.ink2)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(DesignSystem.captionFont)
+                    .foregroundStyle(DesignSystem.Rose.ink3)
+            }
+            .padding(DesignSystem.spacing20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .roseCard(radius: DesignSystem.radiusLarge)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("个人资料，设置昵称与头像")
+    }
+
+    private var accountEntry: some View {
         Button {
             activeSheet = .accountSettings
         } label: {
@@ -98,10 +145,10 @@ struct AccountSectionView: View {
                     )
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
-                    Text("已通过 Apple 登录")
+                    Text("账户")
                         .font(DesignSystem.titleFont)
                         .foregroundStyle(DesignSystem.Rose.ink)
-                    Text("管理账户与注销")
+                    Text("已通过 Apple 登录 · 管理与注销")
                         .font(DesignSystem.metadataFont)
                         .foregroundStyle(DesignSystem.Rose.ink2)
                 }

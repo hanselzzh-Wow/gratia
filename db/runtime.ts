@@ -218,6 +218,24 @@ async function addCompatibilityColumns(db: D1Database) {
     await db.prepare("ALTER TABLE wishes ADD COLUMN story_nickname TEXT").run();
   }
 
+  // 用户资料：昵称与头像会出现在私聊、响应列表与公开故事里，属于公开可见的
+  // 用户生成内容，必须先审后可见。approved_* 是当前对他人可见的版本。
+  const userColumns = await db.prepare("PRAGMA table_info(users)").all<{ name: string }>();
+  const userAdds: Array<[string, string]> = [
+    ["display_name", "TEXT"],
+    ["avatar_key", "TEXT"],
+    ["approved_display_name", "TEXT"],
+    ["approved_avatar_key", "TEXT"],
+    ["profile_status", "TEXT NOT NULL DEFAULT 'approved'"],
+    ["profile_note", "TEXT"],
+    ["profile_updated_at", "INTEGER"],
+  ];
+  for (const [column, definition] of userAdds) {
+    if (!userColumns.results.some((existing) => existing.name === column)) {
+      await db.prepare(`ALTER TABLE users ADD COLUMN ${column} ${definition}`).run();
+    }
+  }
+
   await db.batch([
     db.prepare("CREATE INDEX IF NOT EXISTS wishes_user_created_idx ON wishes(user_id, created_at)"),
     db.prepare("CREATE INDEX IF NOT EXISTS wish_responses_user_created_idx ON wish_responses(user_id, created_at)"),

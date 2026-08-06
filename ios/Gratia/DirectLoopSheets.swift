@@ -361,3 +361,136 @@ struct PublishStorySheet: View {
         }
     }
 }
+
+// MARK: - 个人资料
+
+/// 昵称与头像。两者都会出现在私聊、响应列表与公开故事里，属于公开可见的
+/// 用户生成内容，因此提交后进入人工审核；审核期间本人看到新版本，
+/// 他人看到上一版通过审核的资料。这与心愿正文「先审后公开」的规则一致。
+struct ProfileEditSheet: View {
+    @EnvironmentObject private var accountViewModel: AccountViewModel
+    @Environment(\.accountAPIClient) private var accountAPI
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var profile: UserProfileDTO?
+    @State private var displayName = ""
+    @State private var pickedAvatar: PhotosPickerItem?
+    @State private var avatarPreview: Image?
+    @State private var avatarData: Data?
+    @State private var isSubmitting = false
+    @State private var errorMessage: String?
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: DesignSystem.spacing20) {
+                    PhotosPicker(selection: $pickedAvatar, matching: .images) {
+                        ZStack {
+                            Circle().fill(DesignSystem.Rose.soft).frame(width: 96, height: 96)
+                            if let avatarPreview {
+                                avatarPreview.resizable().scaledToFill()
+                                    .frame(width: 96, height: 96).clipShape(Circle())
+                            } else if let url = profile?.avatarUrl, let remote = URL(string: url) {
+                                AsyncImage(url: remote) { image in
+                                    image.resizable().scaledToFill()
+                                } placeholder: {
+                                    Image(systemName: "person").font(.largeTitle)
+                                        .foregroundStyle(DesignSystem.Rose.deep)
+                                }
+                                .frame(width: 96, height: 96).clipShape(Circle())
+                            } else {
+                                Image(systemName: "person").font(.largeTitle)
+                                    .foregroundStyle(DesignSystem.Rose.deep)
+                            }
+                            Circle()
+                                .fill(DesignSystem.Rose.primary)
+                                .frame(width: 30, height: 30)
+                                .overlay(Image(systemName: "camera").font(.caption).foregroundStyle(.white))
+                                .offset(x: 34, y: 34)
+                        }
+                    }
+                    .accessibilityLabel("更换头像")
+
+                    VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
+                        Text("昵称").font(DesignSystem.headlineFont)
+                        TextField("1–20 个字", text: $displayName)
+                            .padding(DesignSystem.spacing12)
+                            .background(
+                                RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                                    .fill(DesignSystem.Rose.tint)
+                            )
+                    }
+
+                    if profile?.pendingReview == true {
+                        Label("新的昵称或头像正在人工审核，通过后其他人才会看到。", systemImage: "clock")
+                            .font(DesignSystem.metadataFont)
+                            .foregroundStyle(DesignSystem.Rose.primary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    if let note = profile?.reviewNote, !note.isEmpty {
+                        Label(note, systemImage: "exclamationmark.triangle")
+                            .font(DesignSystem.metadataFont)
+                            .foregroundStyle(DesignSystem.danger)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    Text("昵称和头像会出现在私聊、响应列表与公开故事里，因此需要经过人工审核后才对他人可见。")
+                        .font(DesignSystem.captionFont)
+                        .foregroundStyle(DesignSystem.Rose.ink3)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(DesignSystem.metadataFont)
+                            .foregroundStyle(DesignSystem.danger)
+                            .motionTransition(.opacity)
+                    }
+                }
+                .padding(DesignSystem.spacing20)
+            }
+            .motion(DesignSystem.Motion.content, value: errorMessage)
+            .background(DesignSystem.Rose.canvas.ignoresSafeArea())
+            .navigationTitle("个人资料")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) { Button("取消") { dismiss() } }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("保存") { Task { await save() } }.disabled(isSubmitting)
+                }
+            }
+            .task { await load() }
+            .onChange(of: pickedAvatar) { _, _ in Task { await loadAvatarPreview() } }
+        }
+    }
+
+    private func load() async {
+        guard let token = accountViewModel.accessToken else { return }
+        profile = try? await accountAPI.profile(token: token)
+        displayName = profile?.displayName ?? ""
+    }
+
+    private func loadAvatarPreview() async {
+        guard let item = pickedAvatar,
+              let data = try? await item.loadTransferable(type: Data.self),
+              let image = UIImage(data: data) else { return }
+        avatarData = data
+        avatarPreview = Image(uiImage: image)
+    }
+
+    private func save() async {
+        guard let token = accountViewModel.accessToken else { return }
+        isSubmitting = true
+        defer { isSubmitting = false }
+        do {
+            profile = try await accountAPI.updateProfile(
+                displayName: displayName.trimmingCharacters(in: .whitespaces),
+                avatar: avatarData,
+                token: token
+            )
+            dismiss()
+        } catch {
+            errorMessage = (error as? GratiaAPIError)?.errorDescription ?? "保存失败，请重试。"
+        }
+    }
+}

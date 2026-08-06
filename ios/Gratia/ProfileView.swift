@@ -163,6 +163,10 @@ struct MyActivityView: View {
     @State private var showTrackSheet = false
     /// 待公开到首页的心愿；非 nil 时弹出公开确认。
     @State private var storyWish: AccountWishDTO?
+    /// 待选择帮助者的心愿；非 nil 时弹出选人列表。
+    @State private var selectingWish: AccountWishDTO?
+    /// 待提交交付的响应；非 nil 时弹出上传界面。
+    @State private var deliveringResponse: DeliveryTarget?
 
     init(kind: Kind, selectedTab: Binding<Int>, activityViewModel: AccountActivityViewModel) {
         self.kind = kind
@@ -203,6 +207,12 @@ struct MyActivityView: View {
         }
         .sheet(item: $storyWish) { wish in
             PublishStorySheet(wish: wish) { activityViewModel.load() }
+        }
+        .sheet(item: $selectingWish) { wish in
+            SelectResponderSheet(wishId: wish.id)
+        }
+        .sheet(item: $deliveringResponse) { target in
+            DeliverySubmitSheet(wishId: target.wishId)
         }
     }
 
@@ -295,6 +305,30 @@ struct MyActivityView: View {
                 .foregroundStyle(DesignSystem.Rose.ink2)
                 .lineLimit(2)
 
+            // 有人响应时直接给出提示与入口，不让发布者只能靠翻私聊才发现。
+            if let count = wish.responseCount, count > 0 {
+                HStack(spacing: DesignSystem.spacing4) {
+                    Image(systemName: "person.2").font(DesignSystem.captionFont)
+                    Text("\(count) 人已响应")
+                        .font(DesignSystem.metadataFont.weight(.semibold))
+                }
+                .foregroundStyle(DesignSystem.Rose.primary)
+            }
+
+            if wish.canSelectResponder == true {
+                Button { selectingWish = wish } label: {
+                    Text("选择帮助者")
+                        .font(DesignSystem.bodyFont.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                                .fill(DesignSystem.Rose.primary)
+                        )
+                }
+                .accessibilityLabel("为心愿 \(wish.publicCode) 选择帮助者")
+            }
+
             if wish.canConfirmCompletion {
                 Button {
                     Task { await activityViewModel.confirmCompletion(wishId: wish.id) }
@@ -366,11 +400,27 @@ struct MyActivityView: View {
             Text("心愿当前状态：\(response.wish.status.label)")
                 .font(DesignSystem.captionFont)
                 .foregroundStyle(DesignSystem.Rose.ink3)
+
+            // 被选中后直接给出提交交付的入口，不必让帮助者去私聊里翻菜单。
+            if response.canDeliver == true, let responseId = response.responseId {
+                Button { deliveringResponse = DeliveryTarget(wishId: response.wish.id, responseId: responseId) } label: {
+                    Text("完成帮助并提交交付")
+                        .font(DesignSystem.bodyFont.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                                .fill(DesignSystem.Rose.primary)
+                        )
+                }
+                .accessibilityLabel("为心愿 \(response.wish.publicCode) 提交交付")
+            }
         }
         .padding(DesignSystem.spacing16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .roseCard()
     }
+
 
     private var statusChips: some View {
         HStack(spacing: DesignSystem.spacing8) {
@@ -567,4 +617,12 @@ struct PrivacyPolicyView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .roseCard()
     }
+}
+
+
+/// 「我帮助的」里触发交付上传所需的定位信息。
+struct DeliveryTarget: Identifiable {
+    let wishId: String
+    let responseId: String
+    var id: String { responseId }
 }

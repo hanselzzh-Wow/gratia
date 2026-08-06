@@ -56,4 +56,12 @@ extension AccountAPIProtocol {
     ) async throws {
         throw unimplemented()
     }
+
+    public func profile(token: String) async throws -> UserProfileDTO {
+        throw unimplemented()
+    }
+
+    public func updateProfile(displayName: String?, avatar: Data?, token: String) async throws -> UserProfileDTO {
+        throw unimplemented()
+    }
 }

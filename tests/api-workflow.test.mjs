@@ -864,3 +864,78 @@ test("accepts publish and respond without any contact information", async () => 
     globalThis.fetch = originalFetch;
   }
 });
+
+test("holds nickname and avatar changes for review before others can see them", async () => {
+  const { request, env } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) =>
+    Response.json({ openid: `openid-${new URL(String(url)).searchParams.get("js_code")}` });
+
+  try {
+    const login = async (code) =>
+      (await json(
+        await request("/api/auth/wechat", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ code }),
+        }),
+      )).token;
+    const token = await login("profile-code");
+    const h = { "content-type": "application/json", authorization: `Bearer ${token}` };
+
+    // 默认资料
+    const initial = await json(await request("/api/account/profile", { headers: h }));
+    assert.equal(initial.displayName, "哈喽卧得用户");
+    assert.equal(initial.pendingReview, false);
+
+    // 提交新昵称 → 立即进入待审核，本人能看到新值
+    const submitted = await json(
+      await request("/api/account/profile", {
+        method: "POST", headers: h, body: JSON.stringify({ displayName: "晚风电台" }),
+      }),
+    );
+    assert.equal(submitted.displayName, "晚风电台");
+    assert.equal(submitted.pendingReview, true, "提交后应进入待审核");
+
+    // 运营看到待办
+    const pending = await json(
+      await request("/api/admin/profiles", { headers: { "x-admin-key": "test-admin-pin" } }),
+    );
+    assert.equal(pending.profiles.length, 1);
+    const userId = pending.profiles[0].userId;
+
+    // 空昵称与超长昵称被拒
+    const tooLong = await request("/api/account/profile", {
+      method: "POST", headers: h, body: JSON.stringify({ displayName: "一".repeat(21) }),
+    });
+    assert.equal(tooLong.status, 400);
+
+    // 审核通过后成为对外可见版本
+    const approved = await json(
+      await request(`/api/admin/profiles/${userId}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+        body: JSON.stringify({ action: "approve" }),
+      }),
+    );
+    assert.equal(approved.pendingReview, false);
+
+    // 再改一次并退回：待审内容被清掉，回落到上一版通过的资料
+    await request("/api/account/profile", {
+      method: "POST", headers: h, body: JSON.stringify({ displayName: "不合规昵称" }),
+    });
+    const rejected = await json(
+      await request(`/api/admin/profiles/${userId}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+        body: JSON.stringify({ action: "reject", note: "含违规词" }),
+      }),
+    );
+    assert.equal(rejected.displayName, "晚风电台", "退回后应回落到上一版通过的昵称");
+    assert.equal(rejected.reviewNote, "含违规词");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

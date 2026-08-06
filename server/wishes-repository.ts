@@ -495,13 +495,33 @@ export async function listAccountActivity(db: D1Database, userId: string) {
       .all<AdminWishRow>(),
     db
       .prepare(
-        `SELECT w.*, r.status AS response_status, r.created_at AS response_created_at
+        `SELECT w.*, r.id AS response_id, r.status AS response_status, r.created_at AS response_created_at
          FROM wish_responses r JOIN wishes w ON w.id = r.wish_id
          WHERE r.user_id = ? ORDER BY r.updated_at DESC LIMIT 100`,
       )
       .bind(userId)
-      .all<WishRow & { response_status: WishResponse["status"]; response_created_at: number }>(),
+      .all<WishRow & { response_id: string; response_status: WishResponse["status"]; response_created_at: number }>(),
   ]);
+
+  // 每条心愿的响应数，以及已选中的那条响应（供客户端直接跳进会话）
+  const wishIds = requestResult.results.map((row) => row.id);
+  const responseCounts = new Map<string, number>();
+  const selectedResponses = new Map<string, string>();
+  if (wishIds.length > 0) {
+    const placeholders = wishIds.map(() => "?").join(",");
+    const counts = await db
+      .prepare(
+        `SELECT wish_id, COUNT(*) AS total,
+                MAX(CASE WHEN status = 'selected' THEN id END) AS selected_id
+         FROM wish_responses WHERE wish_id IN (${placeholders}) GROUP BY wish_id`,
+      )
+      .bind(...wishIds)
+      .all<{ wish_id: string; total: number; selected_id: string | null }>();
+    for (const row of counts.results) {
+      responseCounts.set(row.wish_id, Number(row.total));
+      if (row.selected_id) selectedResponses.set(row.wish_id, row.selected_id);
+    }
+  }
 
   return {
     requests: requestResult.results.map((row) => ({
@@ -509,11 +529,19 @@ export async function listAccountActivity(db: D1Database, userId: string) {
       updatedAt: row.updated_at,
       hasDeliverable: Boolean(row.deliverable_id),
       canConfirmCompletion: row.status === "delivered",
+      // 发布者需要在「我发布的」直接看到有几个人响应、能不能选人，
+      // 否则只能靠自己去翻私聊，闭环最容易断在这一步。
+      responseCount: responseCounts.get(row.id) ?? 0,
+      canSelectResponder: row.status === "matching" && (responseCounts.get(row.id) ?? 0) > 0,
+      selectedResponseId: selectedResponses.get(row.id) ?? null,
     })),
     responses: responseResult.results.map((row) => ({
       wish: toPublicWish(row),
       responseStatus: row.response_status,
       respondedAt: row.response_created_at,
+      // 帮助者需要在「我帮助的」直接看到自己被没被选中、能不能提交交付
+      responseId: row.response_id,
+      canDeliver: row.response_status === "selected" && row.status === "in_progress",
     })),
   };
 }
@@ -1332,4 +1360,129 @@ export async function listPublishedStories(db: D1Database, limit = 30) {
     });
   }
   return { stories };
+}
+
+// MARK: - 用户资料（昵称与头像）
+//
+// 昵称与头像会出现在私聊、响应列表与公开故事里，属于公开可见的用户生成内容，
+// 因此先审后可见：本人始终看到自己刚提交的版本，他人看到上一版通过审核的版本；
+// 没有通过版本时他人看到系统默认值。与心愿正文的既有规则一致。
+
+const defaultDisplayName = "哈喽卧得用户";
+
+export type UserProfile = {
+  displayName: string;
+  avatarUrl: string | null;
+  /// 待审核时为 true，用于在「我的」上给本人一个明确提示
+  pendingReview: boolean;
+  reviewNote: string | null;
+};
+
+/// 本人视角：看到自己刚提交的版本
+export async function getOwnProfile(db: D1Database, userId: string): Promise<UserProfile> {
+  await ensureWishSchema(db);
+  const row = await db
+    .prepare("SELECT display_name, avatar_key, profile_status, profile_note FROM users WHERE id = ? LIMIT 1")
+    .bind(userId)
+    .first<{ display_name: string | null; avatar_key: string | null; profile_status: string; profile_note: string | null }>();
+  if (!row) throw new WishWorkflowError("未找到账户", 404);
+  return {
+    displayName: row.display_name || defaultDisplayName,
+    avatarUrl: row.avatar_key ? `/api/avatars/${encodeURIComponent(row.avatar_key)}` : null,
+    pendingReview: row.profile_status === "pending",
+    reviewNote: row.profile_note,
+  };
+}
+
+/// 他人视角：只返回已通过审核的版本
+export async function getPublicProfile(db: D1Database, userId: string): Promise<UserProfile> {
+  const row = await db
+    .prepare("SELECT approved_display_name, approved_avatar_key FROM users WHERE id = ? LIMIT 1")
+    .bind(userId)
+    .first<{ approved_display_name: string | null; approved_avatar_key: string | null }>();
+  return {
+    displayName: row?.approved_display_name || defaultDisplayName,
+    avatarUrl: row?.approved_avatar_key ? `/api/avatars/${encodeURIComponent(row.approved_avatar_key)}` : null,
+    pendingReview: false,
+    reviewNote: null,
+  };
+}
+
+/// 提交新的昵称或头像。提交即进入待审核，他人仍看旧版本。
+export async function submitProfile(
+  db: D1Database,
+  userId: string,
+  input: { displayName?: string; avatarKey?: string },
+) {
+  await ensureWishSchema(db);
+  const now = Date.now();
+  const updates: string[] = [];
+  const values: unknown[] = [];
+
+  if (input.displayName !== undefined) {
+    const name = input.displayName.trim();
+    if (name.length < 1 || name.length > 20) {
+      throw new WishWorkflowError("昵称需在 1–20 个字之间", 400);
+    }
+    updates.push("display_name = ?");
+    values.push(name);
+  }
+  if (input.avatarKey !== undefined) {
+    updates.push("avatar_key = ?");
+    values.push(input.avatarKey);
+  }
+  if (updates.length === 0) throw new WishWorkflowError("没有要更新的内容", 400);
+
+  updates.push("profile_status = 'pending'", "profile_note = NULL", "profile_updated_at = ?");
+  values.push(now, userId);
+  await db.prepare(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`).bind(...values).run();
+  return getOwnProfile(db, userId);
+}
+
+/// 运营审核用户资料。通过则把待审内容提升为对外可见版本。
+export async function reviewProfile(
+  db: D1Database,
+  userId: string,
+  action: "approve" | "reject",
+  note?: string,
+) {
+  await ensureWishSchema(db);
+  if (action === "approve") {
+    await db
+      .prepare(
+        `UPDATE users SET approved_display_name = display_name, approved_avatar_key = avatar_key,
+                          profile_status = 'approved', profile_note = NULL WHERE id = ?`,
+      )
+      .bind(userId)
+      .run();
+  } else {
+    // 退回时清掉待审内容，回落到上一版通过的资料，避免违规内容滞留
+    await db
+      .prepare(
+        `UPDATE users SET display_name = approved_display_name, avatar_key = approved_avatar_key,
+                          profile_status = 'rejected', profile_note = ? WHERE id = ?`,
+      )
+      .bind(note ?? "资料未通过审核，请修改后重新提交", userId)
+      .run();
+  }
+  return getOwnProfile(db, userId);
+}
+
+/// 运营待办：待审核的用户资料
+export async function listPendingProfiles(db: D1Database) {
+  await ensureWishSchema(db);
+  const rows = await db
+    .prepare(
+      `SELECT id, display_name, avatar_key, profile_updated_at FROM users
+       WHERE profile_status = 'pending' ORDER BY profile_updated_at ASC LIMIT 100`,
+    )
+    .all<{ id: string; display_name: string | null; avatar_key: string | null; profile_updated_at: number | null }>();
+  return {
+    profiles: rows.results.map((row) => ({
+      userId: row.id,
+      displayName: row.display_name,
+      avatarUrl: row.avatar_key ? `/api/avatars/${encodeURIComponent(row.avatar_key)}` : null,
+      submittedAt: row.profile_updated_at,
+    })),
+  };
 }

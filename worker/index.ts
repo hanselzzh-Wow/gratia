@@ -33,6 +33,10 @@ import {
   publishWishStory,
   unpublishWishStory,
   listPublishedStories,
+  getOwnProfile,
+  submitProfile,
+  reviewProfile,
+  listPendingProfiles,
   completeWishForOwner,
   recordUploadedDeliverable,
   trackWish,
@@ -362,6 +366,78 @@ async function handleWishApi(request: Request, env: Env) {
       const user = await requireAccount(request, env);
       const wish = await completeWishForOwner(env.DB, decodeURIComponent(accountCompletionMatch[1]), user.id);
       return json(request, env, { wish });
+    }
+
+    // 头像文件。头像会出现在私聊与公开故事里，因此按公开资源提供，
+    // 但键名是随机的，不可枚举。
+    const avatarMatch = url.pathname.match(/^\/api\/avatars\/([^/]+)$/);
+    if (avatarMatch && request.method === "GET") {
+      if (!env.UPLOADS) return json(request, env, { error: "文件存储尚未配置" }, 503);
+      const object = await env.UPLOADS.get(decodeURIComponent(avatarMatch[1]));
+      if (!object) return json(request, env, { error: "头像不存在" }, 404);
+      const headers = new Headers({ "cache-control": "public, max-age=3600" });
+      object.writeHttpMetadata(headers);
+      return new Response(object.body, { headers });
+    }
+
+    // 本人资料：始终返回自己刚提交的版本，并告知是否在审核中
+    if (url.pathname === "/api/account/profile" && request.method === "GET") {
+      const user = await requireAccount(request, env);
+      return json(request, env, await getOwnProfile(env.DB, user.id));
+    }
+
+    // 提交昵称或头像。提交即进入待审核，他人仍看上一版通过的资料。
+    if (url.pathname === "/api/account/profile" && request.method === "POST") {
+      const user = await requireAccount(request, env);
+      await enforceRateLimit(request, env, "profile_update", 10, 60 * 60_000);
+      const contentType = request.headers.get("content-type") ?? "";
+
+      let displayName: string | undefined;
+      let avatarKey: string | undefined;
+      if (contentType.includes("multipart/form-data")) {
+        const form = await request.formData();
+        const name = form.get("displayName");
+        if (typeof name === "string") displayName = name;
+        const file = form.get("avatar");
+        if (file instanceof File && file.size > 0) {
+          if (!env.UPLOADS) return json(request, env, { error: "文件存储尚未配置" }, 503);
+          if (file.size > 5 * 1024 * 1024) {
+            return json(request, env, { error: "头像不能超过 5MB" }, 413);
+          }
+          if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+            return json(request, env, { error: "头像仅支持 JPG、PNG 或 WebP" }, 415);
+          }
+          avatarKey = `avatars/${crypto.randomUUID()}`;
+          await env.UPLOADS.put(avatarKey, file.stream(), { httpMetadata: { contentType: file.type } });
+        }
+      } else {
+        const payload = (await request.json().catch(() => ({}))) as { displayName?: unknown };
+        if (typeof payload.displayName === "string") displayName = payload.displayName;
+      }
+
+      return json(request, env, await submitProfile(env.DB, user.id, { displayName, avatarKey }));
+    }
+
+    // 运营审核用户资料
+    if (url.pathname === "/api/admin/profiles" && request.method === "GET") {
+      await requireAdmin(request, env);
+      return json(request, env, await listPendingProfiles(env.DB));
+    }
+    const profileReviewMatch = url.pathname.match(/^\/api\/admin\/profiles\/([^/]+)$/);
+    if (profileReviewMatch && request.method === "PATCH") {
+      await requireAdmin(request, env);
+      const payload = (await request.json()) as { action?: unknown; note?: unknown };
+      const action = payload.action === "reject" ? "reject" : "approve";
+      return json(
+        request,
+        env,
+        await reviewProfile(
+          env.DB,
+          decodeURIComponent(profileReviewMatch[1]),
+          action,
+          typeof payload.note === "string" ? payload.note : undefined,
+        ),
+      );
     }
 
     // 首页故事流：只含需求方明确公开过的已完成心愿，无需登录即可浏览

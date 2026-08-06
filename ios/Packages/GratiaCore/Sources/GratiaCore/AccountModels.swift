@@ -16,6 +16,11 @@ public struct AccountWishDTO: Codable, Identifiable, Sendable, Hashable {
     public let updatedAt: Int64
     public let hasDeliverable: Bool
     public let canConfirmCompletion: Bool
+    /// 收到的响应数。发布者需要在「我发布的」直接看到，否则只能靠自己翻私聊。
+    /// 可选以兼容旧服务端响应。
+    public let responseCount: Int?
+    public let canSelectResponder: Bool?
+    public let selectedResponseId: String?
 
     public var rewardYuan: Double {
         Double(rewardFen) / 100.0
@@ -35,7 +40,10 @@ public struct AccountWishDTO: Codable, Identifiable, Sendable, Hashable {
         createdAt: Int64,
         updatedAt: Int64,
         hasDeliverable: Bool,
-        canConfirmCompletion: Bool
+        canConfirmCompletion: Bool,
+        responseCount: Int? = nil,
+        canSelectResponder: Bool? = nil,
+        selectedResponseId: String? = nil
     ) {
         self.id = id
         self.publicCode = publicCode
@@ -51,6 +59,9 @@ public struct AccountWishDTO: Codable, Identifiable, Sendable, Hashable {
         self.updatedAt = updatedAt
         self.hasDeliverable = hasDeliverable
         self.canConfirmCompletion = canConfirmCompletion
+        self.responseCount = responseCount
+        self.canSelectResponder = canSelectResponder
+        self.selectedResponseId = selectedResponseId
     }
 }
 
@@ -60,21 +71,33 @@ public struct AccountResponseDTO: Codable, Identifiable, Sendable, Hashable {
     public let wish: PublicWishDTO
     public let responseStatus: String
     public let respondedAt: Int64
+    /// 对应会话的 id，用于从「我帮助的」直接进入私聊
+    public let responseId: String?
+    /// 已被选中且心愿进行中，帮助者可提交交付
+    public let canDeliver: Bool?
 
     public var id: String { wish.id }
 
-    public init(wish: PublicWishDTO, responseStatus: String, respondedAt: Int64) {
+    public init(
+        wish: PublicWishDTO,
+        responseStatus: String,
+        respondedAt: Int64,
+        responseId: String? = nil,
+        canDeliver: Bool? = nil
+    ) {
         self.wish = wish
         self.responseStatus = responseStatus
         self.respondedAt = respondedAt
+        self.responseId = responseId
+        self.canDeliver = canDeliver
     }
 
     /// 服务端的响应状态枚举可能随运营流程增加，未知值一律按"处理中"展示，
     /// 不让旧客户端因为新状态而显示空白。
     public var statusLabel: String {
         switch responseStatus {
-        case "submitted": return "等待运营确认"
-        case "accepted": return "已被选中"
+        case "pending": return "等待发布者选择"
+        case "selected": return "已被选中"
         case "declined": return "本次未被选中"
         case "withdrawn": return "已撤回"
         default: return "处理中"
@@ -130,6 +153,19 @@ public protocol AccountAPIProtocol: Sendable {
         files: [(data: Data, filename: String, contentType: String)],
         token: String
     ) async throws
+
+    /// 本人资料。昵称与头像先审后可见，本人始终看到自己刚提交的版本。
+    func profile(token: String) async throws -> UserProfileDTO
+    func updateProfile(displayName: String?, avatar: Data?, token: String) async throws -> UserProfileDTO
+}
+
+/// 昵称与头像会出现在私聊、响应列表与公开故事里，属于公开可见的用户生成
+/// 内容，因此提交后进入待审核；他人在此期间看到的是上一版通过审核的资料。
+public struct UserProfileDTO: Codable, Sendable, Equatable {
+    public let displayName: String
+    public let avatarUrl: String?
+    public let pendingReview: Bool
+    public let reviewNote: String?
 }
 
 // MARK: - 会话

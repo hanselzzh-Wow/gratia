@@ -309,4 +309,43 @@ extension WishAPIClient: AccountAPIProtocol {
         let response = try await transport.send(request: request)
         let _: DiscardedEnvelope = try parseResponse(response)
     }
+
+    public func profile(token: String) async throws -> UserProfileDTO {
+        try await executeRequest(method: "GET", path: "/api/account/profile", bearerToken: token)
+    }
+
+    public func updateProfile(displayName: String?, avatar: Data?, token: String) async throws -> UserProfileDTO {
+        // 有头像时走 multipart，否则用 JSON，避免为纯改名也构造表单
+        guard let avatar else {
+            let payload = try JSONSerialization.data(withJSONObject: ["displayName": displayName ?? ""])
+            return try await executeRequest(
+                method: "POST", path: "/api/account/profile", body: payload, bearerToken: token
+            )
+        }
+        let boundary = "gratia-\(UUID().uuidString)"
+        var body = Data()
+        func append(_ text: String) { body.append(Data(text.utf8)) }
+        if let displayName, !displayName.isEmpty {
+            append("--\(boundary)\r\n")
+            append("Content-Disposition: form-data; name=\"displayName\"\r\n\r\n")
+            append("\(displayName)\r\n")
+        }
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"avatar\"; filename=\"avatar.jpg\"\r\n")
+        append("Content-Type: image/jpeg\r\n\r\n")
+        body.append(avatar)
+        append("\r\n--\(boundary)--\r\n")
+
+        let request = HTTPRequest(
+            method: "POST",
+            url: baseURL.appendingPathComponent("/api/account/profile"),
+            headers: [
+                "accept": "application/json",
+                "content-type": "multipart/form-data; boundary=\(boundary)",
+                "authorization": "Bearer \(token)",
+            ],
+            body: body
+        )
+        return try parseResponse(try await transport.send(request: request))
+    }
 }
