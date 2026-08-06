@@ -293,6 +293,7 @@ extension PublishWishViewModelTests {
         )
 
         viewModel.name = "小白"
+        viewModel.city = "杭州"
         viewModel.landmark = "西湖断桥"
         viewModel.words = "请替我在断桥上说一声生日快乐。"
         viewModel.agreeContact = true
@@ -317,6 +318,7 @@ extension PublishWishViewModelTests {
         )
 
         viewModel.name = "小白"
+        viewModel.city = "杭州"
         viewModel.landmark = "西湖断桥"
         viewModel.words = "请替我在断桥上说一声生日快乐。"
         viewModel.agreeContact = true
@@ -341,6 +343,7 @@ extension PublishWishViewModelTests {
         )
 
         viewModel.name = "小白"
+        viewModel.city = "杭州"
         viewModel.landmark = "西湖断桥"
         viewModel.words = "请替我在断桥上说一声生日快乐。"
         viewModel.agreeContact = true

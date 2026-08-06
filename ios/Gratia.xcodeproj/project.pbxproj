@@ -32,6 +32,8 @@
 		925BCCF3EFC1B9791A3BA582 /* WishListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5839488E244CE671E720CE8F /* WishListViewModelTests.swift */; };
 		93D16354C4FE7B6652E62F7B /* StoryFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCF307D9312D06426E08E89 /* StoryFeed.swift */; };
 		9919FBEF7C156A3000BD3647 /* GratiaCore in Frameworks */ = {isa = PBXBuildFile; productRef = 06F32FD69253B2EE0DBF49A7 /* GratiaCore */; };
+		A4CFE27ED03569FA1F4006E9 /* PlaceSearchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F44DB39BFA09C419CF0E5000 /* PlaceSearchTests.swift */; };
+		A4D226381CAF198173721447 /* PlaceSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A433CE58CF47758173F967F /* PlaceSearch.swift */; };
 		B27928214F177A8822734E69 /* UnreadStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E45B738FB1B3A968B3E0CC5F /* UnreadStore.swift */; };
 		B2BED8AC974761E66283F3CC /* DeliveryPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 219E130EB02AFF224A486806 /* DeliveryPreviewView.swift */; };
 		CB00A9981798886EB38DBACD /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09CC6A62D3BF41E1747BC893 /* SearchView.swift */; };
@@ -76,6 +78,7 @@
 		4202E8BED51315DCDE154C96 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		45E8E6280BC2E6F8D9DB5986 /* DeliverySaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliverySaver.swift; sourceTree = "<group>"; };
 		49D0426049FB3FBE7155C46D /* SwiftUI+Compat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SwiftUI+Compat.swift"; sourceTree = "<group>"; };
+		4A433CE58CF47758173F967F /* PlaceSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceSearch.swift; sourceTree = "<group>"; };
 		53DBF5E9E41DBD4BC73D8496 /* TrackWishViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackWishViewModel.swift; sourceTree = "<group>"; };
 		5839488E244CE671E720CE8F /* WishListViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishListViewModelTests.swift; sourceTree = "<group>"; };
 		5F8D2C1CC4B1A67A863D3FB6 /* GratiaTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = GratiaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -96,6 +99,7 @@
 		E293CB61121C6103E49CAA85 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		E45B738FB1B3A968B3E0CC5F /* UnreadStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnreadStore.swift; sourceTree = "<group>"; };
 		EDCF307D9312D06426E08E89 /* StoryFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryFeed.swift; sourceTree = "<group>"; };
+		F44DB39BFA09C419CF0E5000 /* PlaceSearchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceSearchTests.swift; sourceTree = "<group>"; };
 		F82C42C243F0C04E5113F5FB /* Gratia.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gratia.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -131,6 +135,7 @@
 				1865459B3D0E5FD55EC84318 /* Info.plist */,
 				72D2E259FDEE2E3DB0B2E8F1 /* Models.swift */,
 				8F0300063F1ECF5FCF9BF2BB /* NearbyView.swift */,
+				4A433CE58CF47758173F967F /* PlaceSearch.swift */,
 				904CCFDC34CCEFA8B2934CDA /* PrivacyInfo.xcprivacy */,
 				77C2F7482E67E46A0D063A27 /* ProfileView.swift */,
 				278DAB8065683F8CB27FA482 /* ProgressView.swift */,
@@ -181,6 +186,7 @@
 			isa = PBXGroup;
 			children = (
 				C868C46CB1E1DA7E38BE3DAF /* AccountAPIDefaults.swift */,
+				F44DB39BFA09C419CF0E5000 /* PlaceSearchTests.swift */,
 				B2279F88B010B7F68495CAD5 /* PublishWishViewModelTests.swift */,
 				2E3BD2F738F16B23B8994BFD /* TrackWishViewModelTests.swift */,
 				5839488E244CE671E720CE8F /* WishListViewModelTests.swift */,
@@ -297,6 +303,7 @@
 				5E046551DD02EADC1C35AD8E /* HomeView.swift in Sources */,
 				21F8DEAD1931168E73738A5D /* Models.swift in Sources */,
 				ECFB6972EB99A62A04B9EAD5 /* NearbyView.swift in Sources */,
+				A4D226381CAF198173721447 /* PlaceSearch.swift in Sources */,
 				66166BD4D6B9358F1056E918 /* ProfileView.swift in Sources */,
 				E79E2361FE0424BC26618E45 /* ProgressView.swift in Sources */,
 				CB15F0F28EB1937AD1357F72 /* PublishView.swift in Sources */,
@@ -318,6 +325,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				21B617B991630BAFEB5CDBD4 /* AccountAPIDefaults.swift in Sources */,
+				A4CFE27ED03569FA1F4006E9 /* PlaceSearchTests.swift in Sources */,
 				CCD8833B5883B14B61291507 /* PublishWishViewModelTests.swift in Sources */,
 				0987F4E2B085DC0C9C44817D /* TrackWishViewModelTests.swift in Sources */,
 				925BCCF3EFC1B9791A3BA582 /* WishListViewModelTests.swift in Sources */,
@@ -355,7 +363,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Gratia/Gratia.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 7;
 				INFOPLIST_FILE = Gratia/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -493,7 +501,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Gratia/Gratia.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 7;
 				INFOPLIST_FILE = Gratia/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (

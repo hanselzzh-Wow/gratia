@@ -14,7 +14,6 @@ struct PublishView: View {
     @FocusState private var focusedField: PublishField?
 
     private let scenes = ["生日祝福", "加油鼓励", "毕业祝福", "浪漫表白", "节日问候", "其他小心愿"]
-    private let cities = ["杭州", "上海", "北京", "深圳", "广州"]
 
     private var isStep1Valid: Bool { !viewModel.landmark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     private var isStep2Valid: Bool { !viewModel.words.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && viewModel.words.count <= 120 }
@@ -185,22 +184,20 @@ struct PublishView: View {
 
     private var step1View: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
-            stepHeader(title: "想送到哪里", subtitle: "选择心愿分类、城市和具体地标。")
+            stepHeader(title: "想送到哪里", subtitle: "选择心愿分类，并搜索或直接输入地点。")
             VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
                 fieldLabel("心愿场景")
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: DesignSystem.spacing8) {
                     ForEach(scenes, id: \.self) { item in selectionTile(item, selected: viewModel.scene == item) { viewModel.scene = item } }
                 }
             }
-            VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
-                fieldLabel("目标城市")
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: DesignSystem.spacing8) {
-                        ForEach(cities, id: \.self) { city in cityChip(city) }
-                    }
-                }
-            }
-            inputField(label: "具体地标／位置", placeholder: "例如：西湖断桥、和平饭店门口", text: $viewModel.landmark, field: .landmark, error: viewModel.validationErrors["landmark"])
+            // 地点不再限定在几个写死的城市：任何地方都可能有人想去。
+            // 用 MapKit 补全，同时允许手输——有些地方本来就不在地图数据库里。
+            PlaceField(
+                city: $viewModel.city,
+                landmark: $viewModel.landmark,
+                error: viewModel.validationErrors["landmark"] ?? viewModel.validationErrors["city"]
+            )
         }
     }
 
@@ -284,19 +281,6 @@ struct PublishView: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])
-    }
-
-    private func cityChip(_ city: String) -> some View {
-        Button { viewModel.city = city } label: {
-            Text(city)
-                .font(DesignSystem.metadataFont.weight(.semibold))
-                .foregroundStyle(viewModel.city == city ? .white : DesignSystem.ink700)
-                .padding(.horizontal, DesignSystem.spacing16)
-                .frame(minHeight: 36)
-                .background(Capsule().fill(viewModel.city == city ? DesignSystem.accent : DesignSystem.canvas).overlay(Capsule().stroke(viewModel.city == city ? DesignSystem.accent : DesignSystem.hairline, lineWidth: 1)))
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(viewModel.city == city ? .isSelected : [])
     }
 
     private func inputField(label: String, placeholder: String, text: Binding<String>, field: PublishField, error: String?) -> some View {

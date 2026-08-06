@@ -14,7 +14,7 @@ public enum PublishState: Sendable, Equatable {
 public final class PublishWishViewModel: ObservableObject {
     // Form Inputs
     @Published public var scene = "生日祝福"
-    @Published public var city = "杭州"
+    @Published public var city = ""
     @Published public var landmark = ""
     @Published public var words = ""
     @Published public var deliveryType = "口播视频"
@@ -186,7 +186,7 @@ public final class PublishWishViewModel: ObservableObject {
         currentTask?.cancel()
         currentTask = nil
         scene = "生日祝福"
-        city = "杭州"
+        city = ""
         landmark = ""
         words = ""
         deliveryType = "口播视频"

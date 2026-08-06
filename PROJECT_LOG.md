@@ -919,3 +919,12 @@ Cloudflare Worker API
 - 隔离提交 `84d068f9b10ef27b928b43e3f1370f5f2fd889b2` 仅变更 `eslint.config.mjs`、回归测试、任务交接与群聊；main merge `86b020e` 已集成。配置将 `worktrees/**` 声明为全局忽略，防止其他隔离 worktree 的构建产物被根 lint 扫描。
 - Codex 在主线独立执行 `npm run build && npm run lint`，结果 0 error/0 warning；随后 `npm test` 实际 17/17 通过（含 WX-002 回归 1/1 与 WX-001 小程序合同/隐私回归）；`git diff --check HEAD^..HEAD` 零输出。Vinext 的动态 API 静态分类提示仍为既有 informational warning。
 - WX-002 已 ACCEPTED，写权限收回；未改小程序业务、Worker/D1、iOS、生产部署、密钥或平台状态。当前剩余真实上线条件仍是微信主体/AppID、私密变量、域名、D1 受控迁移、开发者工具体验版与最终平台审核。
+
+## 2026-08-06｜发布页地点改为 MapKit 补全：复验、修缺陷并集成
+
+- 接手时工作区有 5 个未提交文件（`ios/Gratia/PublishView.swift`、`PublishWishViewModel.swift`、`GratiaTests/PublishWishViewModelTests.swift`、新增未跟踪的 `ios/Gratia/PlaceSearch.swift`、`ios/project.yml`），交接文档记为「测试未跑完，状态未知」。首次独立执行 iOS 测试实际 29/29 通过，即原改动本身不破坏既有用例。
+- 代码复验发现三处会真实卡住用户的缺陷并已修复，均在 `ios/Gratia/PlaceSearch.swift`：(1) 手输时把地标原样镜像进 `city`，而地标上限 40、城市上限 24，25–40 字的地点必定卡在「城市名称必须为2-24个字符」且界面无城市输入框可改；(2) 中文地区串通常不带分隔符（「中国浙江省杭州市西湖区」），按逗号切分取第一段会得到整串，另需处理「丽江市玉龙纳西族自治县」与「西双版纳傣族自治州景洪市」两类；(3) 提交失败后返回该步时草稿回填被当作手输，会把已拆好的「杭州」覆盖成「西湖断桥」。
+- 新增 `ios/GratiaTests/PlaceSearchTests.swift` 共 12 条用例，覆盖省市区、直辖市、自治区、自治州套县级市、逗号分隔、特别行政区、拉丁地址、前置邮编、空 subtitle 与超长输入，并逐条断言结果落在服务端 2–24 字校验窗口内。
+- 独立验证结果：iOS `xcodebuild ... test` 实际 41/41 通过（原 29 + 新增 12），构建无 warning；根目录 `npm test` 实际 30/30 通过；`npm run lint` 零输出。
+- 构建号由 6 改为 7。经 App Store Connect API 核实构建 1–6 均已上传（构建 6 上传于 2026-08-06T02:54:47-07:00，早于本批改动的文件修改时间约一小时，故不含本次内容）。原改动把版本停在已占用的 6 上，照此上传必被拒。新增 `scripts/asc-builds.mjs` 用于核实已占用构建号并输出下一个可用值（`xcrun altool` 在 Xcode 26 已无此子命令）；脚本实际运行通过，私钥仍在仓库外。
+- 未验证且不得误报：`MKLocalSearchCompleter` 返回的 `subtitle` 真实形态未在真机/模拟器上人工核对，境外地点尤其如此；拉丁地址一律取第一段，多段地址（如「Champ de Mars, 5 Av. Anatole France, 75007 Paris, France」）会取到「Champ de Mars」而非「Paris」；本次未打包也未上传新构建，TestFlight 上仍是不含此改动的构建 6；Apple 令牌撤销所需的 `APPLE_TEAM_ID`/`APPLE_KEY_ID`/`APPLE_PRIVATE_KEY` 仍未配置，仍是正式提审的阻塞项。

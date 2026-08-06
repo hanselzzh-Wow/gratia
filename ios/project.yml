@@ -23,7 +23,9 @@ targets:
         # 方向（上传即被 90474 拒绝），等于把未适配的布局推给 iPad 用户。
         TARGETED_DEVICE_FAMILY: "1"
         MARKETING_VERSION: 1.0.0
-        CURRENT_PROJECT_VERSION: 5
+        # 构建号一经上传即被 App Store Connect 占用，不能复用。1–6 已上传，
+        # 且构建 6 不含本次地点搜索改动（它比这些改动早上传约一小时）。
+        CURRENT_PROJECT_VERSION: 7
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
 
