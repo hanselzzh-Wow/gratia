@@ -666,11 +666,28 @@ test("lets the requester pick a helper and the helper deliver, with no operator 
     // 默认不进入首页故事流
     assert.equal((await json(await request("/api/stories"))).stories.length, 0);
 
-    // 需求方单独决定公开之后才出现，且带上多文件与说明文字
+    // 需求方点「公开」只是提交申请：帮助者上传的影像此前从未被审核过，
+    // 不能未经查看就进入公开故事流。
     const published = await request(`/api/account/wishes/${wishId}/story`, {
       method: "POST", headers: requesterHeaders, body: JSON.stringify({ nickname: "晚风" }),
     });
     assert.equal(published.status, 201);
+    assert.equal((await json(await request("/api/stories"))).stories.length, 0, "未审核前不得出现在首页");
+
+    // 运营待办里能看到，并且能看到全部媒体
+    const pendingStories = await json(
+      await request("/api/admin/stories", { headers: { "x-admin-key": "test-admin-pin" } }),
+    );
+    assert.equal(pendingStories.stories.length, 1);
+    assert.equal(pendingStories.stories[0].media.length, 2);
+
+    // 审核通过后才上首页
+    const reviewed = await request(`/api/admin/stories/${wishId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+      body: JSON.stringify({ action: "approve" }),
+    });
+    assert.equal(reviewed.status, 200);
     const stories = (await json(await request("/api/stories"))).stories;
     assert.equal(stories.length, 1);
     assert.equal(stories[0].nickname, "晚风");
@@ -1014,6 +1031,83 @@ test("counts unread messages per participant and clears them on open", async () 
       .all()
       .map((row) => row.created_at);
     assert.equal(new Set(stamps).size, stamps.length, `消息时间戳不应重复：${stamps}`);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("gives operators a way to read and resolve abuse reports", async () => {
+  const { request, env } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) =>
+    Response.json({ openid: `openid-${new URL(String(url)).searchParams.get("js_code")}` });
+  const admin = { "content-type": "application/json", "x-admin-key": "test-admin-pin" };
+
+  try {
+    const login = async (code) =>
+      (await json(await request("/api/auth/wechat", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code }),
+      }))).token;
+    const ownerToken = await login("owner-code");
+    const helperToken = await login("helper-code");
+    const h = (t) => ({ "content-type": "application/json", authorization: `Bearer ${t}` });
+
+    const created = await json(await request("/api/account/wishes", {
+      method: "POST", headers: h(ownerToken),
+      body: JSON.stringify({
+        requesterName: "发布者", city: "杭州", landmark: "西湖断桥", occasion: "生日祝福",
+        message: "请替我在断桥说一声生日快乐。", deliveryType: "spoken_video",
+        deadlineText: "本周内", rewardFen: 0, contactConsent: true,
+      }),
+    }));
+    const wishId = created.wish.id;
+    await request(`/api/admin/wishes/${wishId}`, {
+      method: "PATCH", headers: admin, body: JSON.stringify({ action: "approve" }),
+    });
+    await request(`/api/account/wishes/${wishId}/responses`, {
+      method: "POST", headers: h(helperToken),
+      body: JSON.stringify({ responderName: "帮助者", contactConsent: true }),
+    });
+    const listed = await json(await request(`/api/account/wishes/${wishId}/responses`, { headers: h(ownerToken) }));
+    const responseId = listed.responses[0].id;
+    await request(`/api/account/conversations/${responseId}/messages`, {
+      method: "POST", headers: h(helperToken), body: JSON.stringify({ body: "一句不合适的话" }),
+    });
+
+    // 用户举报
+    await request("/api/account/reports", {
+      method: "POST", headers: h(ownerToken),
+      body: JSON.stringify({ responseId, reason: "骚扰或辱骂", detail: "对方言语不当" }),
+    });
+
+    // 运营能看到待办
+    const reports = await json(await request("/api/admin/reports", { headers: admin }));
+    assert.equal(reports.reports.length, 1);
+    assert.equal(reports.reports[0].reason, "骚扰或辱骂");
+    assert.equal(reports.reports[0].messageCount, 1);
+    const reportId = reports.reports[0].id;
+
+    // 运营可读取被举报会话，用于判断是否属实
+    const conversation = await json(
+      await request(`/api/admin/reports/${reportId}/conversation`, { headers: admin }),
+    );
+    assert.equal(conversation.messages.length, 1);
+    assert.equal(conversation.messages[0].body, "一句不合适的话");
+
+    // 未带 PIN 一律拒绝
+    const unauthorized = await request(`/api/admin/reports/${reportId}/conversation`);
+    assert.equal(unauthorized.status, 401);
+
+    // 处理后从待办中消失
+    const resolved = await request(`/api/admin/reports/${reportId}`, {
+      method: "PATCH", headers: admin, body: JSON.stringify({ action: "actioned", note: "已警告" }),
+    });
+    assert.equal(resolved.status, 200);
+    const after = await json(await request("/api/admin/reports", { headers: admin }));
+    assert.equal(after.reports.length, 0, "已处理的举报不应再出现在待办中");
   } finally {
     globalThis.fetch = originalFetch;
   }

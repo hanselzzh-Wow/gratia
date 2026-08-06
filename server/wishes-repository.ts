@@ -1333,17 +1333,21 @@ export async function publishWishStory(
 
   const nickname = (input.nickname ?? "").trim().slice(0, 20);
   const now = Date.now();
+  // 点「公开」等于提交申请：帮助者上传的照片/视频在此之前从未被审核过，
+  // 不能让未经审核的影像直接进入公开故事流。
   await db
-    .prepare("UPDATE wishes SET story_published_at = ?, story_nickname = ?, updated_at = ? WHERE id = ? AND user_id = ?")
+    .prepare(
+      "UPDATE wishes SET story_published_at = ?, story_nickname = ?, story_status = 'pending', updated_at = ? WHERE id = ? AND user_id = ?",
+    )
     .bind(now, nickname || null, now, wishId, ownerUserId)
     .run();
-  return { published: true, publishedAt: now };
+  return { submitted: true, status: "pending" as const, submittedAt: now };
 }
 
 export async function unpublishWishStory(db: D1Database, wishId: string, ownerUserId: string) {
   await ensureWishSchema(db);
   const result = await db
-    .prepare("UPDATE wishes SET story_published_at = NULL, updated_at = ? WHERE id = ? AND user_id = ?")
+    .prepare("UPDATE wishes SET story_published_at = NULL, story_status = NULL, updated_at = ? WHERE id = ? AND user_id = ?")
     .bind(Date.now(), wishId, ownerUserId)
     .run();
   if ((result.meta.changes ?? 0) !== 1) throw new WishWorkflowError("未找到该心愿", 404);
@@ -1359,7 +1363,7 @@ export async function listPublishedStories(db: D1Database, limit = 30) {
       `SELECT id, public_code, city, landmark, occasion, message, delivery_type,
               story_nickname, story_published_at
        FROM wishes
-       WHERE story_published_at IS NOT NULL AND status = 'completed'
+       WHERE story_published_at IS NOT NULL AND story_status = 'approved' AND status = 'completed'
        ORDER BY story_published_at DESC LIMIT ?`,
     )
     .bind(limit)
@@ -1523,4 +1527,161 @@ export async function listPendingProfiles(db: D1Database) {
       submittedAt: row.profile_updated_at,
     })),
   };
+}
+
+// MARK: - 运营审核：故事公开与举报
+//
+// 这两块此前是缺的：故事公开会把帮助者上传、从未被审核过的影像直接推上首页；
+// 举报只有写入没有任何读取或处理接口，等于「只进不出」。
+// App Store 指南 1.2 要求的不只是"提供举报入口"，还包括"对举报作出响应"。
+
+/// 待审核的公开申请。附带全部媒体，供运营逐张过目后再决定。
+export async function listPendingStories(db: D1Database) {
+  await ensureWishSchema(db);
+  const rows = await db
+    .prepare(
+      `SELECT id, public_code, city, landmark, occasion, message, story_nickname, story_published_at
+       FROM wishes WHERE story_status = 'pending' ORDER BY story_published_at ASC LIMIT 100`,
+    )
+    .all<{
+      id: string;
+      public_code: string;
+      city: string;
+      landmark: string;
+      occasion: string;
+      message: string;
+      story_nickname: string | null;
+      story_published_at: number;
+    }>();
+
+  const stories = [];
+  for (const row of rows.results) {
+    const media = await db
+      .prepare(
+        "SELECT id, url, kind, note FROM deliverables WHERE wish_id = ? ORDER BY position ASC, created_at ASC LIMIT 9",
+      )
+      .bind(row.id)
+      .all<{ id: string; url: string; kind: string; note: string | null }>();
+    stories.push({
+      wishId: row.id,
+      publicCode: row.public_code,
+      nickname: row.story_nickname ?? "匿名",
+      city: row.city,
+      landmark: row.landmark,
+      occasion: row.occasion,
+      message: row.message,
+      submittedAt: row.story_published_at,
+      note: media.results.find((item) => item.note)?.note ?? null,
+      media: media.results.map((item) => ({ id: item.id, url: item.url, kind: item.kind })),
+    });
+  }
+  return { stories };
+}
+
+export async function reviewStory(
+  db: D1Database,
+  wishId: string,
+  action: "approve" | "reject",
+  note?: string,
+) {
+  await ensureWishSchema(db);
+  const now = Date.now();
+  if (action === "approve") {
+    await db
+      .prepare("UPDATE wishes SET story_status = 'approved', updated_at = ? WHERE id = ? AND story_status = 'pending'")
+      .bind(now, wishId)
+      .run();
+  } else {
+    // 退回时清掉公开时间，回到"未公开"，发布者可修改后重新申请
+    await db
+      .prepare(
+        "UPDATE wishes SET story_status = 'rejected', story_published_at = NULL, moderation_note = ?, updated_at = ? WHERE id = ?",
+      )
+      .bind(note ?? "公开申请未通过", now, wishId)
+      .run();
+  }
+  return { wishId, status: action === "approve" ? "approved" : "rejected" };
+}
+
+/// 举报待办。默认只看未处理的，避免运营被历史记录淹没。
+export async function listAbuseReports(db: D1Database, status = "open") {
+  await ensureWishSchema(db);
+  const rows = await db
+    .prepare(
+      `SELECT r.id, r.reason, r.detail, r.status, r.created_at, r.response_id, r.wish_id,
+              w.public_code, w.city, w.landmark,
+              (SELECT COUNT(*) FROM wish_messages m WHERE m.response_id = r.response_id) AS message_count
+       FROM abuse_reports r LEFT JOIN wishes w ON w.id = r.wish_id
+       WHERE r.status = ? ORDER BY r.created_at ASC LIMIT 100`,
+    )
+    .bind(status)
+    .all<{
+      id: string;
+      reason: string;
+      detail: string | null;
+      status: string;
+      created_at: number;
+      response_id: string | null;
+      wish_id: string | null;
+      public_code: string | null;
+      city: string | null;
+      landmark: string | null;
+      message_count: number | null;
+    }>();
+
+  return {
+    reports: rows.results.map((row) => ({
+      id: row.id,
+      reason: row.reason,
+      detail: row.detail,
+      status: row.status,
+      createdAt: row.created_at,
+      responseId: row.response_id,
+      wishPublicCode: row.public_code,
+      wishTitle: row.city && row.landmark ? `${row.city} · ${row.landmark}` : null,
+      messageCount: Number(row.message_count ?? 0),
+    })),
+  };
+}
+
+/// 运营查看被举报会话的消息内容，用于判断是否属实。
+/// 这是唯一允许运营读取私聊内容的入口，且必须由一条具体举报触发。
+export async function readReportedConversation(db: D1Database, reportId: string) {
+  await ensureWishSchema(db);
+  const report = await db
+    .prepare("SELECT response_id FROM abuse_reports WHERE id = ? LIMIT 1")
+    .bind(reportId)
+    .first<{ response_id: string | null }>();
+  if (!report?.response_id) throw new WishWorkflowError("该举报没有关联会话", 404);
+
+  const rows = await db
+    .prepare(
+      "SELECT id, sender_user_id, body, created_at FROM wish_messages WHERE response_id = ? ORDER BY created_at ASC LIMIT 200",
+    )
+    .bind(report.response_id)
+    .all<{ id: string; sender_user_id: string; body: string; created_at: number }>();
+  return {
+    responseId: report.response_id,
+    messages: rows.results.map((row) => ({
+      id: row.id,
+      senderUserId: row.sender_user_id,
+      body: row.body,
+      createdAt: row.created_at,
+    })),
+  };
+}
+
+export async function resolveAbuseReport(
+  db: D1Database,
+  reportId: string,
+  action: "dismiss" | "actioned",
+  note?: string,
+) {
+  await ensureWishSchema(db);
+  const result = await db
+    .prepare("UPDATE abuse_reports SET status = ?, detail = COALESCE(?, detail) WHERE id = ?")
+    .bind(action === "dismiss" ? "dismissed" : "actioned", note ?? null, reportId)
+    .run();
+  if ((result.meta.changes ?? 0) !== 1) throw new WishWorkflowError("未找到该举报", 404);
+  return { id: reportId, status: action === "dismiss" ? "dismissed" : "actioned" };
 }

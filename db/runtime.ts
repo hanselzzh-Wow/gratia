@@ -224,6 +224,10 @@ async function addCompatibilityColumns(db: D1Database) {
   if (!wishColumns.results.some((column) => column.name === "story_nickname")) {
     await db.prepare("ALTER TABLE wishes ADD COLUMN story_nickname TEXT").run();
   }
+  // 公开到首页前必须审核：帮助者上传的影像此前从未被审过。
+  if (!wishColumns.results.some((column) => column.name === "story_status")) {
+    await db.prepare("ALTER TABLE wishes ADD COLUMN story_status TEXT").run();
+  }
 
   // 用户资料：昵称与头像会出现在私聊、响应列表与公开故事里，属于公开可见的
   // 用户生成内容，必须先审后可见。approved_* 是当前对他人可见的版本。

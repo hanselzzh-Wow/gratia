@@ -37,6 +37,11 @@ import {
   submitProfile,
   reviewProfile,
   listPendingProfiles,
+  listPendingStories,
+  reviewStory,
+  listAbuseReports,
+  readReportedConversation,
+  resolveAbuseReport,
   completeWishForOwner,
   recordUploadedDeliverable,
   trackWish,
@@ -416,6 +421,54 @@ async function handleWishApi(request: Request, env: Env) {
       }
 
       return json(request, env, await submitProfile(env.DB, user.id, { displayName, avatarKey }));
+    }
+
+    // 运营审核公开申请。帮助者上传的影像在此之前从未被审核过，
+    // 不能让它们未经查看就进入公开故事流。
+    if (url.pathname === "/api/admin/stories" && request.method === "GET") {
+      await requireAdmin(request, env);
+      return json(request, env, await listPendingStories(env.DB));
+    }
+    const storyReviewMatch = url.pathname.match(/^\/api\/admin\/stories\/([^/]+)$/);
+    if (storyReviewMatch && request.method === "PATCH") {
+      await requireAdmin(request, env);
+      const payload = (await request.json()) as { action?: unknown; note?: unknown };
+      return json(
+        request,
+        env,
+        await reviewStory(
+          env.DB,
+          decodeURIComponent(storyReviewMatch[1]),
+          payload.action === "reject" ? "reject" : "approve",
+          typeof payload.note === "string" ? payload.note : undefined,
+        ),
+      );
+    }
+
+    // 举报待办与处理。指南 1.2 要求的不只是提供举报入口，还包括对举报作出响应。
+    if (url.pathname === "/api/admin/reports" && request.method === "GET") {
+      await requireAdmin(request, env);
+      return json(request, env, await listAbuseReports(env.DB, url.searchParams.get("status") ?? "open"));
+    }
+    const reportConversationMatch = url.pathname.match(/^\/api\/admin\/reports\/([^/]+)\/conversation$/);
+    if (reportConversationMatch && request.method === "GET") {
+      await requireAdmin(request, env);
+      return json(request, env, await readReportedConversation(env.DB, decodeURIComponent(reportConversationMatch[1])));
+    }
+    const reportResolveMatch = url.pathname.match(/^\/api\/admin\/reports\/([^/]+)$/);
+    if (reportResolveMatch && request.method === "PATCH") {
+      await requireAdmin(request, env);
+      const payload = (await request.json()) as { action?: unknown; note?: unknown };
+      return json(
+        request,
+        env,
+        await resolveAbuseReport(
+          env.DB,
+          decodeURIComponent(reportResolveMatch[1]),
+          payload.action === "dismiss" ? "dismiss" : "actioned",
+          typeof payload.note === "string" ? payload.note : undefined,
+        ),
+      );
     }
 
     // 运营审核用户资料
