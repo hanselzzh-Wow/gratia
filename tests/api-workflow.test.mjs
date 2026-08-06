@@ -565,7 +565,7 @@ test("lets the requester pick a helper and the helper deliver, with no operator 
     };
 
     const requesterToken = await login("requester");
-    const helperToken = await login("helper");
+    const helperToken = await login("helper-code");
     const requesterHeaders = { "content-type": "application/json", authorization: `Bearer ${requesterToken}` };
     const helperHeaders = { "content-type": "application/json", authorization: `Bearer ${helperToken}` };
 
@@ -650,6 +650,113 @@ test("lets the requester pick a helper and the helper deliver, with no operator 
     });
     assert.equal(completed.status, 200);
     assert.equal((await json(completed)).wish.status, "completed");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("scopes conversations to the two parties and supports report and block", async () => {
+  const { request, env } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) =>
+    Response.json({ openid: `openid-${new URL(String(url)).searchParams.get("js_code")}` });
+
+  try {
+    const login = async (code) => {
+      const res = await request("/api/auth/wechat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const payload = await json(res);
+      assert.equal(res.status, 201, `登录失败 ${res.status}: ${JSON.stringify(payload)}`);
+      return payload.token;
+    };
+
+    const ownerToken = await login("owner-code");
+    const helperToken = await login("helper-code");
+    const outsiderToken = await login("outsider-code");
+    const h = (t) => ({ "content-type": "application/json", authorization: `Bearer ${t}` });
+
+    const createdRaw = await request("/api/account/wishes", {
+        method: "POST",
+        headers: h(ownerToken),
+        body: JSON.stringify({
+          requesterName: "发布者", contact: "owner-contact", city: "杭州", landmark: "西湖断桥",
+          occasion: "生日祝福", message: "请替我在断桥说一声生日快乐。", deliveryType: "spoken_video",
+          deadlineText: "本周内", rewardFen: 0, contactConsent: true,
+        }),
+      });
+    const created = await json(createdRaw);
+    assert.ok(created.wish, `发布失败 ${createdRaw.status}: ${JSON.stringify(created)}`);
+    const wishId = created.wish.id;
+    await request(`/api/admin/wishes/${wishId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+      body: JSON.stringify({ action: "approve" }),
+    });
+    const respondResult = await request(`/api/account/wishes/${wishId}/responses`, {
+      method: "POST",
+      headers: h(helperToken),
+      body: JSON.stringify({ responderName: "帮助者", responderContact: "helper-contact", contactConsent: true }),
+    });
+    assert.equal(respondResult.status, 201, `响应失败：${JSON.stringify(await json(respondResult))}`);
+
+    const listedRaw = await request(`/api/account/wishes/${wishId}/responses`, { headers: h(ownerToken) });
+    const listed = await json(listedRaw);
+    assert.ok(listed.responses?.length, `列表异常 HTTP ${listedRaw.status}: ${JSON.stringify(listed)}`);
+    const responseId = listed.responses[0].id;
+
+    // 响应即可开聊，无需先被选中
+    const sent = await request(`/api/account/conversations/${responseId}/messages`, {
+      method: "POST", headers: h(helperToken), body: JSON.stringify({ body: "我住在附近，今天下午可以去。" }),
+    });
+    assert.equal(sent.status, 201);
+
+    // 双方都能读到同一会话
+    const ownerView = await json(await request(`/api/account/conversations/${responseId}/messages`, { headers: h(ownerToken) }));
+    assert.equal(ownerView.messages.length, 1);
+    assert.equal(ownerView.viewerRole, "requester");
+    assert.equal(ownerView.messages[0].mine, false);
+
+    // 第三方读不到，也发不了
+    const peek = await request(`/api/account/conversations/${responseId}/messages`, { headers: h(outsiderToken) });
+    assert.equal(peek.status, 403);
+    const intrude = await request(`/api/account/conversations/${responseId}/messages`, {
+      method: "POST", headers: h(outsiderToken), body: JSON.stringify({ body: "插一句" }),
+    });
+    assert.equal(intrude.status, 403);
+
+    // 空消息与超长消息都被拒
+    const empty = await request(`/api/account/conversations/${responseId}/messages`, {
+      method: "POST", headers: h(ownerToken), body: JSON.stringify({ body: "   " }),
+    });
+    assert.equal(empty.status, 400);
+
+    // 会话出现在双方的私聊列表里
+    const helperList = await json(await request("/api/account/conversations", { headers: h(helperToken) }));
+    assert.equal(helperList.conversations.length, 1);
+    assert.equal(helperList.conversations[0].viewerRole, "responder");
+    assert.equal(helperList.conversations[0].lastMessage, "我住在附近，今天下午可以去。");
+
+    // 举报可提交
+    const reported = await request("/api/account/reports", {
+      method: "POST", headers: h(ownerToken),
+      body: JSON.stringify({ responseId, reason: "骚扰", detail: "测试" }),
+    });
+    assert.equal(reported.status, 201);
+
+    // 拉黑后会话不可进入，也不再出现在列表
+    const blocked = await request(`/api/account/conversations/${responseId}/block`, {
+      method: "POST", headers: h(ownerToken),
+    });
+    assert.equal(blocked.status, 201);
+    const afterBlock = await request(`/api/account/conversations/${responseId}/messages`, { headers: h(helperToken) });
+    assert.equal(afterBlock.status, 403);
+    const helperListAfter = await json(await request("/api/account/conversations", { headers: h(helperToken) }));
+    assert.equal(helperListAfter.conversations.length, 0);
   } finally {
     globalThis.fetch = originalFetch;
   }

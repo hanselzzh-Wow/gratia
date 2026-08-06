@@ -25,6 +25,11 @@ import {
   listResponsesForOwner,
   selectResponderForOwner,
   recordResponderDeliverable,
+  listConversationMessages,
+  sendConversationMessage,
+  listMyConversations,
+  reportAbuse,
+  blockCounterpart,
   completeWishForOwner,
   recordUploadedDeliverable,
   trackWish,
@@ -354,6 +359,54 @@ async function handleWishApi(request: Request, env: Env) {
       const user = await requireAccount(request, env);
       const wish = await completeWishForOwner(env.DB, decodeURIComponent(accountCompletionMatch[1]), user.id);
       return json(request, env, { wish });
+    }
+
+    // 「私聊」标签页：我参与的全部会话（含两种身份）
+    if (url.pathname === "/api/account/conversations" && request.method === "GET") {
+      const user = await requireAccount(request, env);
+      return json(request, env, await listMyConversations(env.DB, user.id));
+    }
+
+    // 单个会话的消息列表与发送。会话以「心愿 + 一条响应」为单位。
+    const conversationMatch = url.pathname.match(/^\/api\/account\/conversations\/([^/]+)\/messages$/);
+    if (conversationMatch && request.method === "GET") {
+      const user = await requireAccount(request, env);
+      return json(request, env, await listConversationMessages(env.DB, decodeURIComponent(conversationMatch[1]), user.id));
+    }
+    if (conversationMatch && request.method === "POST") {
+      const user = await requireAccount(request, env);
+      if (!(request.headers.get("content-type") ?? "").includes("application/json")) {
+        return json(request, env, { error: "仅接受 JSON 请求" }, 415);
+      }
+      await enforceRateLimit(request, env, "conversation_message", 120, 60 * 60_000);
+      const payload = (await request.json()) as { body?: unknown };
+      const message = await sendConversationMessage(
+        env.DB,
+        decodeURIComponent(conversationMatch[1]),
+        user.id,
+        typeof payload.body === "string" ? payload.body : "",
+      );
+      return json(request, env, { message }, 201);
+    }
+
+    // 举报与拉黑：App 内存在陌生人即时通讯时，指南 1.2 要求必须提供
+    if (url.pathname === "/api/account/reports" && request.method === "POST") {
+      const user = await requireAccount(request, env);
+      await enforceRateLimit(request, env, "abuse_report", 20, 24 * 60 * 60_000);
+      const payload = (await request.json()) as Record<string, unknown>;
+      const result = await reportAbuse(env.DB, user.id, {
+        responseId: typeof payload.responseId === "string" ? payload.responseId : undefined,
+        wishId: typeof payload.wishId === "string" ? payload.wishId : undefined,
+        reason: typeof payload.reason === "string" ? payload.reason : "",
+        detail: typeof payload.detail === "string" ? payload.detail : undefined,
+      });
+      return json(request, env, result, 201);
+    }
+
+    const blockMatch = url.pathname.match(/^\/api\/account\/conversations\/([^/]+)\/block$/);
+    if (blockMatch && request.method === "POST") {
+      const user = await requireAccount(request, env);
+      return json(request, env, await blockCounterpart(env.DB, decodeURIComponent(blockMatch[1]), user.id), 201);
     }
 
     // 发布者查看本人心愿收到的响应（不含响应者联系方式）

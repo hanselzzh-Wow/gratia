@@ -1007,3 +1007,214 @@ export async function recordResponderDeliverable(
   if (!updated) throw new WishWorkflowError("更新后未找到心愿", 500);
   return toPublicWish(updated);
 }
+
+// MARK: - 站内私聊
+//
+// 会话以「心愿 + 一条响应」为单位：帮助者一响应即可开聊，因此同一心愿可能
+// 同时存在多个会话，需求方据此判断选谁。纯文字，不支持文件——降低审核面，
+// 交付走独立的上传通道。
+
+/// 判定某用户是否有权读写该会话，并返回会话双方。
+/// 只有心愿的发布者、或该响应的提交者本人可以进入。
+async function requireConversationAccess(db: D1Database, responseId: string, userId: string) {
+  const row = await db
+    .prepare(
+      `SELECT r.id AS response_id, r.wish_id, r.user_id AS responder_user_id, r.responder_name,
+              r.status AS response_status, w.user_id AS owner_user_id, w.status AS wish_status
+       FROM wish_responses r JOIN wishes w ON w.id = r.wish_id
+       WHERE r.id = ? LIMIT 1`,
+    )
+    .bind(responseId)
+    .first<{
+      response_id: string;
+      wish_id: string;
+      responder_user_id: string | null;
+      responder_name: string;
+      response_status: string;
+      owner_user_id: string | null;
+      wish_status: WishStatus;
+    }>();
+  if (!row) throw new WishWorkflowError("未找到该会话", 404);
+
+  const isOwner = row.owner_user_id === userId;
+  const isResponder = row.responder_user_id === userId;
+  if (!isOwner && !isResponder) throw new WishWorkflowError("你无权查看该会话", 403);
+
+  const counterpartId = isOwner ? row.responder_user_id : row.owner_user_id;
+  // 任一方拉黑之后，会话即不可继续。
+  if (counterpartId) {
+    const blocked = await db
+      .prepare(
+        "SELECT 1 FROM user_blocks WHERE (blocker_user_id = ? AND blocked_user_id = ?) OR (blocker_user_id = ? AND blocked_user_id = ?) LIMIT 1",
+      )
+      .bind(userId, counterpartId, counterpartId, userId)
+      .first();
+    if (blocked) throw new WishWorkflowError("该会话已被屏蔽", 403);
+  }
+  return { ...row, isOwner, isResponder, counterpartId };
+}
+
+export async function listConversationMessages(db: D1Database, responseId: string, userId: string) {
+  await ensureWishSchema(db);
+  const access = await requireConversationAccess(db, responseId, userId);
+  const rows = await db
+    .prepare(
+      "SELECT id, sender_user_id, body, created_at FROM wish_messages WHERE response_id = ? AND deleted_at IS NULL ORDER BY created_at ASC LIMIT 500",
+    )
+    .bind(responseId)
+    .all<{ id: string; sender_user_id: string; body: string; created_at: number }>();
+
+  return {
+    responseId,
+    wishId: access.wish_id,
+    wishStatus: access.wish_status,
+    responseStatus: access.response_status,
+    // 对方以昵称示人，不暴露账号标识或联系方式
+    counterpartName: access.isOwner ? access.responder_name : "发布者",
+    viewerRole: access.isOwner ? ("requester" as const) : ("responder" as const),
+    messages: rows.results.map((row) => ({
+      id: row.id,
+      body: row.body,
+      mine: row.sender_user_id === userId,
+      createdAt: row.created_at,
+    })),
+  };
+}
+
+export async function sendConversationMessage(
+  db: D1Database,
+  responseId: string,
+  userId: string,
+  body: string,
+) {
+  await ensureWishSchema(db);
+  const access = await requireConversationAccess(db, responseId, userId);
+  const text = body.trim();
+  if (text.length < 1 || text.length > 500) {
+    throw new WishWorkflowError("消息内容需在 1–500 字之间", 400);
+  }
+  // 已完成或已取消的心愿不再接受新消息，避免会话无限期存续。
+  if (["completed", "cancelled", "rejected"].includes(access.wish_status)) {
+    throw new WishWorkflowError("该心愿已结束，会话不再接受新消息", 409);
+  }
+
+  const id = crypto.randomUUID();
+  const now = Date.now();
+  await db
+    .prepare(
+      "INSERT INTO wish_messages (id, wish_id, response_id, sender_user_id, body, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+    )
+    .bind(id, access.wish_id, responseId, userId, text, now)
+    .run();
+  return { id, body: text, mine: true, createdAt: now };
+}
+
+/// 举报。App 内存在陌生人即时通讯时，App Store 指南 1.2 要求必须提供。
+export async function reportAbuse(
+  db: D1Database,
+  reporterUserId: string,
+  input: { responseId?: string; wishId?: string; reason: string; detail?: string },
+) {
+  await ensureWishSchema(db);
+  const reason = input.reason.trim();
+  if (reason.length < 1 || reason.length > 60) throw new WishWorkflowError("请选择举报原因", 400);
+
+  let reportedUserId: string | null = null;
+  let wishId = input.wishId ?? null;
+  if (input.responseId) {
+    const access = await requireConversationAccess(db, input.responseId, reporterUserId);
+    reportedUserId = access.counterpartId;
+    wishId = access.wish_id;
+  }
+
+  const id = crypto.randomUUID();
+  await db
+    .prepare(
+      "INSERT INTO abuse_reports (id, reporter_user_id, wish_id, response_id, reported_user_id, reason, detail, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'open', ?)",
+    )
+    .bind(id, reporterUserId, wishId, input.responseId ?? null, reportedUserId, reason, input.detail?.slice(0, 500) ?? null, Date.now())
+    .run();
+  return { id, status: "open" as const };
+}
+
+/// 拉黑对方。拉黑后双向不可再进入该会话。
+export async function blockCounterpart(db: D1Database, responseId: string, userId: string) {
+  await ensureWishSchema(db);
+  const access = await requireConversationAccess(db, responseId, userId);
+  if (!access.counterpartId) throw new WishWorkflowError("该会话没有可屏蔽的对象", 400);
+  await db
+    .prepare("INSERT OR IGNORE INTO user_blocks (blocker_user_id, blocked_user_id, created_at) VALUES (?, ?, ?)")
+    .bind(userId, access.counterpartId, Date.now())
+    .run();
+  return { blocked: true };
+}
+
+/// 我参与的全部会话，供「私聊」标签页使用。
+/// 同时覆盖两种身份：我发布的心愿收到的响应，以及我响应过的心愿。
+export async function listMyConversations(db: D1Database, userId: string) {
+  await ensureWishSchema(db);
+  const rows = await db
+    .prepare(
+      `SELECT r.id AS response_id, r.responder_name, r.status AS response_status,
+              r.user_id AS responder_user_id,
+              w.id AS wish_id, w.public_code, w.city, w.landmark, w.occasion, w.status AS wish_status,
+              w.user_id AS owner_user_id,
+              (SELECT body FROM wish_messages m WHERE m.response_id = r.id AND m.deleted_at IS NULL
+                 ORDER BY m.created_at DESC LIMIT 1) AS last_body,
+              (SELECT created_at FROM wish_messages m WHERE m.response_id = r.id AND m.deleted_at IS NULL
+                 ORDER BY m.created_at DESC LIMIT 1) AS last_at
+       FROM wish_responses r JOIN wishes w ON w.id = r.wish_id
+       WHERE w.user_id = ? OR r.user_id = ?
+       ORDER BY COALESCE(last_at, r.created_at) DESC LIMIT 100`,
+    )
+    .bind(userId, userId)
+    .all<{
+      response_id: string;
+      responder_name: string;
+      response_status: string;
+      responder_user_id: string | null;
+      wish_id: string;
+      public_code: string;
+      city: string;
+      landmark: string;
+      occasion: string;
+      wish_status: WishStatus;
+      owner_user_id: string | null;
+      last_body: string | null;
+      last_at: number | null;
+    }>();
+
+  // 被任一方拉黑的会话不再出现在列表里
+  const blocks = await db
+    .prepare("SELECT blocker_user_id, blocked_user_id FROM user_blocks WHERE blocker_user_id = ? OR blocked_user_id = ?")
+    .bind(userId, userId)
+    .all<{ blocker_user_id: string; blocked_user_id: string }>();
+  const blockedIds = new Set(
+    blocks.results.flatMap((row) => [row.blocker_user_id, row.blocked_user_id]).filter((id) => id !== userId),
+  );
+
+  return {
+    conversations: rows.results
+      .filter((row) => {
+        const isOwner = row.owner_user_id === userId;
+        const counterpart = isOwner ? row.responder_user_id : row.owner_user_id;
+        return !counterpart || !blockedIds.has(counterpart);
+      })
+      .map((row) => {
+        const isOwner = row.owner_user_id === userId;
+        return {
+          responseId: row.response_id,
+          wishId: row.wish_id,
+          publicCode: row.public_code,
+          title: `${row.city} · ${row.landmark}`,
+          occasion: row.occasion,
+          wishStatus: row.wish_status,
+          responseStatus: row.response_status,
+          viewerRole: isOwner ? ("requester" as const) : ("responder" as const),
+          counterpartName: isOwner ? row.responder_name : "发布者",
+          lastMessage: row.last_body,
+          lastMessageAt: row.last_at,
+        };
+      }),
+  };
+}
