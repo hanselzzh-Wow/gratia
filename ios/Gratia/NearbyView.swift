@@ -390,7 +390,7 @@ struct WishDetailView: View {
             Text("接单履约说明")
                 .font(DesignSystem.headlineFont)
                 .foregroundStyle(DesignSystem.ink900)
-            Text("提交响应后，运营人员会确认匹配。确认后请在约定时间前往现场履约；完成后上传照片或视频，等待发布者确认。")
+            Text("提交响应后，你可以在「私聊」里直接和发布者确认细节。被选中之后前往现场，完成时在 App 内提交照片或视频，由发布者确认完成。")
                 .font(DesignSystem.bodyFont)
                 .foregroundStyle(DesignSystem.ink700)
                 .lineSpacing(3)
@@ -400,7 +400,7 @@ struct WishDetailView: View {
     }
 
     private var safetyNotice: some View {
-        Label("响应者与发布者的联系方式均不对外公开，由平台居中保护。", systemImage: "shield")
+        Label("沟通与交付都在应用内完成，双方的联系方式都不会被对方看到。", systemImage: "shield")
             .font(DesignSystem.metadataFont)
             .foregroundStyle(DesignSystem.ink700)
             .padding(DesignSystem.spacing12)
@@ -469,7 +469,7 @@ struct ApplyResponseSheet: View {
                     }
                     if case .failed(let message) = viewModel.state { failure(message) }
                     textField(label: "您的称呼", placeholder: "如：小张", text: $viewModel.name, field: .name, error: viewModel.validationErrors["responderName"])
-                    textField(label: "联系方式（仅运营可见）", placeholder: "微信号或手机号", text: $viewModel.contact, field: .contact, error: viewModel.validationErrors["responderContact"])
+                    textField(label: "联系方式（仅平台可见，不对发布者展示）", placeholder: "微信号或手机号", text: $viewModel.contact, field: .contact, error: viewModel.validationErrors["responderContact"])
                     noteField
                     consent
                     if let error = viewModel.validationErrors["contactConsent"] {
@@ -586,7 +586,9 @@ struct ApplyResponseSheet: View {
 
     private var consent: some View {
         Toggle(isOn: $viewModel.agreeContact) {
-            Text("同意平台运营人员与我联系确认匹配事宜。")
+            // 内容授权必须在响应这一步讲清楚：帮助者提交的文字与影像，
+            // 发布者可以选择公开到首页。事后再告知就晚了。
+            Text("我同意：完成帮助后我提交的文字、照片与视频由发布者支配，发布者可以选择将其公开分享到首页。我也同意平台在必要时与我联系。")
                 .font(DesignSystem.metadataFont)
                 .foregroundStyle(DesignSystem.ink700)
         }
@@ -632,7 +634,7 @@ struct ApplySuccessView: View {
                 Text("响应已提交")
                     .font(DesignSystem.titleFont)
                     .foregroundStyle(DesignSystem.ink900)
-                Text("已收到响应，等待运营确认，不代表已经接单。")
+                Text("已收到响应。你可以在「私聊」里和发布者确认细节，被选中后即可前往现场。")
                     .font(DesignSystem.bodyFont)
                     .foregroundStyle(DesignSystem.ink700)
                     .multilineTextAlignment(.center)

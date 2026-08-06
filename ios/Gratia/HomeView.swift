@@ -7,9 +7,22 @@ struct HomeView: View {
     @Binding var selectedTab: Int
     @Binding var showPublish: Bool
     @EnvironmentObject private var filterState: StoryFilterState
+    @Environment(\.accountAPIClient) private var accountAPI
     @State private var showComingSoon = false
+    @StateObject private var feedViewModel: StoryFeedViewModel
 
-    private var allStories: [StoryPost] { StoryFeedSource.stories }
+    init(selectedTab: Binding<Int>, showPublish: Binding<Bool>, accountAPI: AccountAPIProtocol = WishAPIClient()) {
+        _selectedTab = selectedTab
+        _showPublish = showPublish
+        _feedViewModel = StateObject(wrappedValue: StoryFeedViewModel(accountAPI: accountAPI))
+    }
+
+    /// 生产内容来自服务端已公开的故事；DEBUG 下的 --demo-stories 仍可注入
+    /// 虚构演示数据用于截图，Release 构建取不到该分支。
+    private var allStories: [StoryPost] {
+        let demo = StoryFeedSource.stories
+        return demo.isEmpty ? feedViewModel.posts : demo
+    }
     private var visibleStories: [StoryPost] { allStories.filter(filterState.matches) }
 
     var body: some View {
@@ -51,6 +64,9 @@ struct HomeView: View {
                     .accessibilityLabel("搜索")
                 }
             }
+            .refreshable { await feedViewModel.load() }
+            .task { await feedViewModel.load() }
+            .motion(DesignSystem.Motion.content, value: feedViewModel.posts)
             .alert("功能准备中", isPresented: $showComingSoon) {
                 Button("知道了", role: .cancel) {}
             } message: {

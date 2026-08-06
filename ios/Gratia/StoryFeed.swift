@@ -4,8 +4,8 @@ import SwiftUI
 
 /// 首页与搜索共享的公开故事。生产构建在没有经单独授权的真实故事前必须显示诚实空态；
 /// DEBUG 构建使用下方明确标注"虚构示例内容"的演示数据验证版式，绝不冒充真实用户分享。
-struct StoryPost: Identifiable {
-    enum Media {
+struct StoryPost: Identifiable, Equatable {
+    enum Media: Equatable {
         case none
         case photo
         case video

@@ -279,3 +279,85 @@ struct DeliverySubmitSheet: View {
         }
     }
 }
+
+// MARK: - 公开到首页
+
+/// 完成之后由发布者单独决定是否公开。这是首页故事流唯一的内容来源。
+/// 帮助者在响应时已同意其提交的内容由发布者支配（含公开分享）。
+struct PublishStorySheet: View {
+    let wish: AccountWishDTO
+    var onPublished: () -> Void
+
+    @EnvironmentObject private var accountViewModel: AccountViewModel
+    @Environment(\.accountAPIClient) private var accountAPI
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var nickname = ""
+    @State private var isSubmitting = false
+    @State private var errorMessage: String?
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
+                    Text("公开之后，这个心愿的正文、城市与交付内容会出现在首页故事流。")
+                        .font(DesignSystem.bodyFont)
+                        .foregroundStyle(DesignSystem.Rose.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
+                        Text("公开时显示的昵称").font(DesignSystem.headlineFont)
+                        TextField("留空则显示「匿名」", text: $nickname)
+                            .padding(DesignSystem.spacing12)
+                            .background(
+                                RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                                    .fill(DesignSystem.Rose.tint)
+                            )
+                    }
+
+                    VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
+                        Label("不会公开你的联系方式，也不会公开精确位置。", systemImage: "lock")
+                        Label("随时可以撤回公开。", systemImage: "arrow.uturn.backward")
+                    }
+                    .font(DesignSystem.metadataFont)
+                    .foregroundStyle(DesignSystem.Rose.ink2)
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(DesignSystem.metadataFont)
+                            .foregroundStyle(DesignSystem.danger)
+                            .motionTransition(.opacity)
+                    }
+                }
+                .padding(DesignSystem.spacing20)
+            }
+            .motion(DesignSystem.Motion.content, value: errorMessage)
+            .background(DesignSystem.Rose.canvas.ignoresSafeArea())
+            .navigationTitle("公开到首页")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) { Button("取消") { dismiss() } }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("公开") { Task { await publish() } }.disabled(isSubmitting)
+                }
+            }
+        }
+    }
+
+    private func publish() async {
+        guard let token = accountViewModel.accessToken else { return }
+        isSubmitting = true
+        defer { isSubmitting = false }
+        do {
+            try await accountAPI.publishStory(
+                wishId: wish.id,
+                nickname: nickname.trimmingCharacters(in: .whitespaces),
+                token: token
+            )
+            onPublished()
+            dismiss()
+        } catch {
+            errorMessage = (error as? GratiaAPIError)?.errorDescription ?? "公开失败，请重试。"
+        }
+    }
+}

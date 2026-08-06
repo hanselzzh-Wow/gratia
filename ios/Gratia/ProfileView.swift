@@ -161,6 +161,8 @@ struct MyActivityView: View {
     @StateObject private var activityViewModel: AccountActivityViewModel
     @State private var statusFilter: ActivityStatusFilter = .waiting
     @State private var showTrackSheet = false
+    /// 待公开到首页的心愿；非 nil 时弹出公开确认。
+    @State private var storyWish: AccountWishDTO?
 
     init(kind: Kind, selectedTab: Binding<Int>, activityViewModel: AccountActivityViewModel) {
         self.kind = kind
@@ -198,6 +200,9 @@ struct MyActivityView: View {
         .sheet(isPresented: $showTrackSheet) {
             // 保留公开编号 + 联系方式的兼容查询流程。
             ProgressView(apiClient: apiClient)
+        }
+        .sheet(item: $storyWish) { wish in
+            PublishStorySheet(wish: wish) { activityViewModel.load() }
         }
     }
 
@@ -311,6 +316,25 @@ struct MyActivityView: View {
                 }
                 .disabled(activityViewModel.confirmingWishId != nil)
                 .accessibilityLabel("确认心愿 \(wish.publicCode) 已完成")
+            }
+
+            // 完成之后由发布者单独决定是否公开到首页，默认不公开。
+            // 这是首页故事流唯一的内容来源。
+            if wish.status == .completed {
+                Button { storyWish = wish } label: {
+                    HStack(spacing: DesignSystem.spacing8) {
+                        Image(systemName: "square.and.arrow.up")
+                        Text("公开到首页")
+                    }
+                    .font(DesignSystem.bodyFont.weight(.semibold))
+                    .foregroundStyle(DesignSystem.Rose.primary)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .background(
+                        RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                            .stroke(DesignSystem.Rose.primary, lineWidth: 1)
+                    )
+                }
+                .accessibilityLabel("把心愿 \(wish.publicCode) 公开到首页")
             }
         }
         .padding(DesignSystem.spacing16)
