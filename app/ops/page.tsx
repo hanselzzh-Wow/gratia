@@ -2,7 +2,14 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
-import { wishesClient, WishApiError } from "../../lib/wishes-client";
+import {
+  wishesClient,
+  WishApiError,
+  type AbuseReport,
+  type PendingProfile,
+  type PendingStory,
+  type ReportedMessage,
+} from "../../lib/wishes-client";
 import {
   wishStatuses,
   wishStatusLabels,
@@ -48,6 +55,11 @@ export default function OperationsPage() {
   const [busyId, setBusyId] = useState("");
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  // 三类需要人工审核的用户生成内容：昵称头像、公开申请、举报。
+  const [profiles, setProfiles] = useState<PendingProfile[]>([]);
+  const [stories, setStories] = useState<PendingStory[]>([]);
+  const [reports, setReports] = useState<AbuseReport[]>([]);
+  const [openReport, setOpenReport] = useState<{ id: string; messages: ReportedMessage[] } | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -74,18 +86,76 @@ export default function OperationsPage() {
     setError("");
     setNotice("");
     try {
-      const [wishResult, providerResult] = await Promise.all([
+      const [wishResult, providerResult, profileResult, storyResult, reportResult] = await Promise.all([
         wishesClient.listAdmin(key),
         wishesClient.listProviders(key),
+        wishesClient.listPendingProfiles(key),
+        wishesClient.listPendingStories(key),
+        wishesClient.listReports(key),
       ]);
       setWishes(wishResult.wishes);
       setProviders(providerResult.providers);
+      setProfiles(profileResult.profiles);
+      setStories(storyResult.stories);
+      setReports(reportResult.reports);
       setAdminKey(key);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "运营台连接失败");
       if (requestError instanceof WishApiError && requestError.status === 401) setAdminKey("");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function moderateProfile(userId: string, action: "approve" | "reject") {
+    setBusyId(userId);
+    try {
+      const note = action === "reject" ? window.prompt("退回理由（会展示给用户）") ?? undefined : undefined;
+      await wishesClient.reviewProfile(adminKey, userId, action, note);
+      setNotice(action === "approve" ? "资料已通过" : "资料已退回");
+      await load();
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "操作失败");
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function moderateStory(wishId: string, action: "approve" | "reject") {
+    setBusyId(wishId);
+    try {
+      const note = action === "reject" ? window.prompt("退回理由") ?? undefined : undefined;
+      await wishesClient.reviewStory(adminKey, wishId, action, note);
+      setNotice(action === "approve" ? "已公开到首页" : "已退回公开申请");
+      await load();
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "操作失败");
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function openReportedConversation(reportId: string) {
+    try {
+      const result = await wishesClient.readReportedConversation(adminKey, reportId);
+      setOpenReport({ id: reportId, messages: result.messages });
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "无法读取会话");
+    }
+  }
+
+  async function resolveReport(reportId: string, action: "dismiss" | "actioned") {
+    setBusyId(reportId);
+    try {
+      const note = window.prompt("处理说明（可留空）") ?? undefined;
+      await wishesClient.resolveReport(adminKey, reportId, action, note);
+      setOpenReport(null);
+      setNotice(action === "dismiss" ? "举报已忽略" : "举报已处理");
+      await load();
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "操作失败");
+    } finally {
+      setBusyId("");
     }
   }
 
@@ -279,6 +349,113 @@ export default function OperationsPage() {
               {!providers.length && <div className="ops-provider-empty">先录入 3–5 位能稳定联系到的种子响应者。</div>}
             </div>
           </div>}
+        </section>
+
+        {/* 三类待审内容排在最前：它们有时效性，压着不处理会直接影响用户。 */}
+        <section className="ops-review-panel" aria-label="待审核内容">
+          <h2>待审核（{profiles.length + stories.length + reports.length}）</h2>
+
+          <div className="ops-review-group">
+            <h3>用户资料 {profiles.length > 0 && <span className="ops-badge">{profiles.length}</span>}</h3>
+            {profiles.length === 0 ? (
+              <p className="ops-empty">没有待审核的昵称或头像。</p>
+            ) : (
+              profiles.map((profile) => (
+                <div key={profile.userId} className="ops-review-row">
+                  {profile.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={profile.avatarUrl} alt="待审核头像" className="ops-avatar" />
+                  ) : (
+                    <span className="ops-avatar ops-avatar-empty">无</span>
+                  )}
+                  <div className="ops-review-main">
+                    <strong>{profile.displayName || "（未填昵称）"}</strong>
+                    <span className="ops-meta">
+                      {profile.submittedAt ? dateTime(profile.submittedAt) : ""}
+                    </span>
+                  </div>
+                  <div className="ops-review-actions">
+                    <button type="button" disabled={busyId === profile.userId}
+                      onClick={() => moderateProfile(profile.userId, "approve")}>通过</button>
+                    <button type="button" className="ops-danger" disabled={busyId === profile.userId}
+                      onClick={() => moderateProfile(profile.userId, "reject")}>退回</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="ops-review-group">
+            <h3>公开到首页 {stories.length > 0 && <span className="ops-badge">{stories.length}</span>}</h3>
+            <p className="ops-hint">帮助者上传的影像此前没有经过审核，请逐张过目后再决定是否公开。</p>
+            {stories.length === 0 ? (
+              <p className="ops-empty">没有待审核的公开申请。</p>
+            ) : (
+              stories.map((story) => (
+                <div key={story.wishId} className="ops-review-card">
+                  <div className="ops-review-main">
+                    <strong>{story.city} · {story.landmark}</strong>
+                    <span className="ops-meta">{story.publicCode} · 昵称「{story.nickname}」· {dateTime(story.submittedAt)}</span>
+                    <p>{story.message}</p>
+                    {story.note && <p className="ops-note">交付留言：{story.note}</p>}
+                  </div>
+                  <div className="ops-media-strip">
+                    {story.media.map((item) =>
+                      item.kind.includes("video") ? (
+                        <video key={item.id} src={item.url} controls className="ops-media" />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img key={item.id} src={item.url} alt="待审核交付内容" className="ops-media" />
+                      ),
+                    )}
+                  </div>
+                  <div className="ops-review-actions">
+                    <button type="button" disabled={busyId === story.wishId}
+                      onClick={() => moderateStory(story.wishId, "approve")}>通过并公开</button>
+                    <button type="button" className="ops-danger" disabled={busyId === story.wishId}
+                      onClick={() => moderateStory(story.wishId, "reject")}>退回</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="ops-review-group">
+            <h3>举报 {reports.length > 0 && <span className="ops-badge">{reports.length}</span>}</h3>
+            {reports.length === 0 ? (
+              <p className="ops-empty">没有待处理的举报。</p>
+            ) : (
+              reports.map((report) => (
+                <div key={report.id} className="ops-review-card">
+                  <div className="ops-review-main">
+                    <strong>{report.reason}</strong>
+                    <span className="ops-meta">
+                      {report.wishTitle ?? "（无关联心愿）"} · {dateTime(report.createdAt)} · {report.messageCount} 条消息
+                    </span>
+                    {report.detail && <p>{report.detail}</p>}
+                  </div>
+                  {openReport?.id === report.id && (
+                    <div className="ops-transcript">
+                      {openReport.messages.map((message) => (
+                        <p key={message.id}>
+                          <span className="ops-meta">{dateTime(message.createdAt)}</span> {message.body}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  <div className="ops-review-actions">
+                    {report.responseId && (
+                      <button type="button" onClick={() => openReportedConversation(report.id)}>查看会话</button>
+                    )}
+                    <button type="button" disabled={busyId === report.id}
+                      onClick={() => resolveReport(report.id, "actioned")}>已处理</button>
+                    <button type="button" className="ops-danger" disabled={busyId === report.id}
+                      onClick={() => resolveReport(report.id, "dismiss")}>忽略</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </section>
 
         <section className="ops-pilot-panel" aria-label="试运营准备度">

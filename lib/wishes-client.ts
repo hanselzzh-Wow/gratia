@@ -139,4 +139,101 @@ export const wishesClient = {
     }
     return response.blob();
   },
+
+  // MARK: - 用户资料审核
+
+  async listPendingProfiles(adminKey: string) {
+    return requestJson<{ profiles: PendingProfile[] }>("/api/admin/profiles", {
+      headers: { "x-admin-key": adminKey },
+    });
+  },
+
+  async reviewProfile(adminKey: string, userId: string, action: "approve" | "reject", note?: string) {
+    return requestJson<unknown>(`/api/admin/profiles/${encodeURIComponent(userId)}`, {
+      method: "PATCH",
+      headers: { "x-admin-key": adminKey },
+      body: JSON.stringify({ action, note }),
+    });
+  },
+
+  // MARK: - 公开申请审核
+
+  async listPendingStories(adminKey: string) {
+    return requestJson<{ stories: PendingStory[] }>("/api/admin/stories", {
+      headers: { "x-admin-key": adminKey },
+    });
+  },
+
+  async reviewStory(adminKey: string, wishId: string, action: "approve" | "reject", note?: string) {
+    return requestJson<unknown>(`/api/admin/stories/${encodeURIComponent(wishId)}`, {
+      method: "PATCH",
+      headers: { "x-admin-key": adminKey },
+      body: JSON.stringify({ action, note }),
+    });
+  },
+
+  // MARK: - 举报处理
+
+  async listReports(adminKey: string, status = "open") {
+    return requestJson<{ reports: AbuseReport[] }>(
+      `/api/admin/reports?status=${encodeURIComponent(status)}`,
+      { headers: { "x-admin-key": adminKey } },
+    );
+  },
+
+  async readReportedConversation(adminKey: string, reportId: string) {
+    return requestJson<{ responseId: string; messages: ReportedMessage[] }>(
+      `/api/admin/reports/${encodeURIComponent(reportId)}/conversation`,
+      { headers: { "x-admin-key": adminKey } },
+    );
+  },
+
+  async resolveReport(adminKey: string, reportId: string, action: "dismiss" | "actioned", note?: string) {
+    return requestJson<unknown>(`/api/admin/reports/${encodeURIComponent(reportId)}`, {
+      method: "PATCH",
+      headers: { "x-admin-key": adminKey },
+      body: JSON.stringify({ action, note }),
+    });
+  },
+};
+
+export type PendingProfile = {
+  userId: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  submittedAt: number | null;
+};
+
+export type PendingStoryMedia = { id: string; url: string; kind: string };
+
+export type PendingStory = {
+  wishId: string;
+  publicCode: string;
+  nickname: string;
+  city: string;
+  landmark: string;
+  occasion: string;
+  message: string;
+  submittedAt: number;
+  note: string | null;
+  media: PendingStoryMedia[];
+};
+
+export type AbuseReport = {
+  id: string;
+  reason: string;
+  detail: string | null;
+  status: string;
+  createdAt: number;
+  responseId: string | null;
+  wishPublicCode: string | null;
+  wishTitle: string | null;
+  messageCount: number;
+};
+
+export type ReportedMessage = {
+  id: string;
+  senderUserId: string;
+  body: string;
+  createdAt: number;
 };
