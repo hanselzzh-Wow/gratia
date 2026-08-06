@@ -40,7 +40,7 @@ struct HomeView: View {
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: DesignSystem.spacing8) {
                         BrandMark()
-                            .frame(width: 24, height: 18)
+                            .frame(width: 26, height: 26)
                         Text("哈喽卧得")
                             .font(DesignSystem.headlineFont)
                             .foregroundStyle(DesignSystem.Rose.ink)
@@ -227,28 +227,58 @@ struct HomeView: View {
     }
 }
 
-/// 品牌标志：路径与抵达点（冻结 Icon 方向 A 的线性版）。
+/// 品牌标志。几何取自桌面图标（icon-marketing-1024.png）实测值，
+/// 使首页标记与桌面图标是同一个标记，而不是同一概念的两份独立实现。
+///
+/// 实测（相对画布）：起点圆心 (0.288, 0.711) r=0.050；
+/// 终点圆心 (0.718, 0.322) r=0.069；中段描边宽 0.127；深色 #883D5A。
 struct BrandMark: View {
     var body: some View {
         Canvas { context, size in
-            let w = size.width
-            let h = size.height
+            // 图标在方形画布内绘制并留有余量。这里按较短边取基准，
+            // 让标记在任意宽高比的容器里都保持图标的比例与留白。
+            let s = min(size.width, size.height)
+            let ox = (size.width - s) / 2
+            let oy = (size.height - s) / 2
+            func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+                CGPoint(x: ox + s * x, y: oy + s * y)
+            }
+
+            let start = point(0.288, 0.711)
+            let end = point(0.718, 0.322)
             var path = Path()
-            path.move(to: CGPoint(x: w * 0.11, y: h * 0.81))
+            path.move(to: start)
+            // 控制点使弧线微微上凸，与图标一致——不是大幅拱起的彩虹形。
             path.addCurve(
-                to: CGPoint(x: w * 0.82, y: h * 0.36),
-                control1: CGPoint(x: w * 0.27, y: h * 0.35),
-                control2: CGPoint(x: w * 0.63, y: h * 0.19)
+                to: end,
+                control1: point(0.430, 0.640),
+                control2: point(0.560, 0.470)
             )
             context.stroke(
                 path,
-                with: .color(DesignSystem.Rose.primary),
-                style: StrokeStyle(lineWidth: max(2, w * 0.1), lineCap: .round)
+                with: .color(DesignSystem.Rose.deep),
+                style: StrokeStyle(lineWidth: max(1.5, s * 0.127), lineCap: .round)
             )
-            let smallDot = CGRect(x: w * 0.11 - w * 0.07, y: h * 0.81 - w * 0.07, width: w * 0.14, height: w * 0.14)
-            context.fill(Path(ellipseIn: smallDot), with: .color(DesignSystem.Rose.primary))
-            let bigDot = CGRect(x: w * 0.86 - w * 0.13, y: h * 0.40 - w * 0.13, width: w * 0.26, height: w * 0.26)
-            context.fill(Path(ellipseIn: bigDot), with: .color(DesignSystem.Rose.primary))
+
+            // 导航栏里只有二十几点，端点若严格按比例会被描边吞掉，
+            // 而这个标记的识别性正来自「一小一大两个端点」。给下限兜底。
+            let startRadius = max(s * 0.050, s * 0.127 / 2 + 0.5)
+            context.fill(
+                Path(ellipseIn: CGRect(
+                    x: start.x - startRadius, y: start.y - startRadius,
+                    width: startRadius * 2, height: startRadius * 2
+                )),
+                with: .color(DesignSystem.Rose.deep)
+            )
+            let endRadius = max(s * 0.069, s * 0.127 / 2 + 1.6)
+            context.fill(
+                Path(ellipseIn: CGRect(
+                    x: end.x - endRadius, y: end.y - endRadius,
+                    width: endRadius * 2, height: endRadius * 2
+                )),
+                with: .color(DesignSystem.Rose.deep)
+            )
         }
     }
 }
+
