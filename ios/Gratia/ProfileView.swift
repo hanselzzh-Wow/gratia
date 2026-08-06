@@ -7,7 +7,6 @@ struct ProfileView: View {
     @Binding var selectedTab: Int
     @EnvironmentObject private var accountViewModel: AccountViewModel
     @Environment(\.accountAPIClient) private var accountAPI
-    @Environment(\.openURL) private var openURL
     @State private var showHelpView = false
     @State private var showPrivacyView = false
     @State private var showDeleteConfirmation = false
@@ -155,17 +154,12 @@ struct ProfileView: View {
             Text("服务与支持").font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.Rose.ink)
             Button { showHelpView = true } label: { supportRow(title: "帮助与安全中心", icon: "shield") }
             Button { showPrivacyView = true } label: { supportRow(title: "隐私政策与条款", icon: "document") }
-            Button { openNotificationSettings() } label: {
-                supportRow(title: "消息通知设置", icon: "bell", trailing: "去系统设置")
-            }
+            // 本版本没有推送通知：既未注册 UNUserNotificationCenter，也没有
+            // aps-environment entitlement。跳到系统设置那里根本不会有「通知」
+            // 一栏，因此不提供这个入口——指向不存在功能的入口只会让人困惑。
         }
     }
 
-    /// 通知开关由系统持有，App 只能把用户送到本应用的系统设置页。
-    private func openNotificationSettings() {
-        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
-        openURL(url)
-    }
 
     private func supportRow(title: String, icon: String, trailing: String? = nil) -> some View {
         HStack(spacing: DesignSystem.spacing12) {
