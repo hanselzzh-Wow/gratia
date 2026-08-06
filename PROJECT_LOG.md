@@ -936,3 +936,18 @@ Cloudflare Worker API
 - Worker 侧的 PEM 解析与 ES256 签名有真实 P-256 密钥覆盖：`tests/apple-auth.test.mjs:293` 用 `createApplePrivateKeyPem()` 生成真实 PKCS8 PEM，走完整 `importApplePrivateKey` → `createAppleClientSecret`，断言 client_secret 为三段 JWT，并验证删除账户时 revoke 调用次数与被撤销的 token 值；Apple 的 HTTP 端点在该测试中是 mock。
 - 发现一处会导致验收误判的行为（非缺陷，但必须记录）：`refresh_token` 只在登录时由 `authorizationCode` 换得（`worker/index.ts:305`），密钥配置之前登录的账户该列为 NULL；删除时的查询只取 `refresh_token IS NOT NULL` 的 identity（`server/accounts-repository.ts:130`），而 `appleTokensRevoked` 初始化为 `true`（`worker/index.ts:328`），因此删除这类旧账户会返回 `appleTokensRevoked: true` 却一次 Apple 调用都没发生。实测生产库 `account_identities` 当前 apple provider 共 1 条、`refresh_token` 非空 0 条，正处于该状态。正确验收顺序已写入 `docs/HANDOFF.md` 第八节。
 - 未验证且不得误报：生产 Worker 用这三个真实密钥调用 Apple 真实端点这一环从未发生过，需在设备上重新登录（配好密钥后的登录才会存下 refresh token）后删除账户，并到 Apple ID 设置确认授权消失才算闭合。本次未打包也未上传新构建。
+
+## 2026-08-06｜Apple 令牌撤销端到端验证通过
+
+- 四步证据链齐全：(1) 以 `server/apple-identity.ts:144` 相同方式构造的 client_secret 打 `https://appleid.apple.com/auth/token`，实际返回 `invalid_grant` 而非 `invalid_client`；(2) 产品负责人在设备上退出并重新登录后，生产库 `account_identities` 的 apple provider `with_refresh_token` 由 0 变为 1；(3) 删除账户后实测 `total=1 deleted=1 still_holding_token=0 subject_scrubbed=1`，`account_sessions` 实测 `total=2 revoked=2 still_active=0`；(4) 产品负责人确认 Apple ID 设置「使用您 Apple ID 的 App」中 Gratia 已消失。
+- 第 (2) 步是关键证据：`refresh_token` 非空要求生产 Worker 读到三个密钥、正确解析 PEM、签出 Apple 认可的 ES256 client_secret 且 Apple 返回 200，任何一环失败都只会存 NULL（`server/apple-identity.ts:190`）。第 (4) 步不可省：撤销失败不回滚删除（`worker/index.ts:326`），故第 (3) 步的数据库状态无法区分撤销成功与失败。
+- 删除前已核实该账户名下无数据：`wishes_with_user=0`、`responses_with_user=0`；库中 3 条 wishes 均为 `user_id IS NULL` 的历史数据，不受账户删除影响。
+
+## 2026-08-06｜构建 7 打包上传，签名流程固化为脚本
+
+- 构建 7 已上传并经 App Store Connect 处理为 VALID（上传时间 2026-08-06T06:06:12-07:00，Delivery UUID `85e7ca9c-9ae5-498f-8e49-c8baa0ae71bf`），是第一个包含地点搜索改动的构建。`altool --validate-app` 与 `--upload-app` 均返回 no errors。
+- 过程中实测两个会安静给出「成功」的失败模式，均已记入 `docs/HANDOFF.md` 第九节与 `docs/iteration-log.md`：(1) XcodeGen 默认写死 `CODE_SIGN_IDENTITY = "iPhone Developer"`，自动签名被锁在 development，个人团队无注册设备导致 Apple 拒绝签发，报错文案为「Your team has no devices from which to generate a provisioning profile」，具有误导性；(2) 以 `CODE_SIGN_IDENTITY=""` 绕过后 `ARCHIVE SUCCEEDED`，但实测产物 `codesign -dvv` 返回 "code object is not signed at all"，无 `embedded.mobileprovision`、无 entitlements，即 `com.apple.developer.applesignin` 缺失、Sign in with Apple 会失效。
+- 最终采用手动签名：描述文件 `Gratia App Store`（`IOS_APP_STORE`/ACTIVE/2027-08-06 到期，经 ASC API 下载安装）+ 证书 `Apple Distribution: Hansel Zhang (HH9LKGK7DA)`。归档产物实测 `Authority=Apple Distribution: Hansel Zhang (HH9LKGK7DA)`、`TeamIdentifier=HH9LKGK7DA`、entitlements 含 `com.apple.developer.applesignin`、`CFBundleVersion=7`。
+- 签名参数已固定写入 `ios/project.yml` 的 Release 配置（Manual + Apple Distribution + Gratia App Store），Debug 不受影响；实测 Release 与 Debug 的 `-showBuildSettings` 分别正确，iOS 测试仍 41/41 通过。
+- 新增 `scripts/ios-release.mjs`：核对构建号 → 生成工程 → 归档 → 强制校验产物（签名主体/Team ID/applesignin/构建号）→ 导出 → 验证 → 可选上传。撞号检查已实测：`CURRENT_PROJECT_VERSION: 7` 时正确中断并提示改用 8。`CURRENT_PROJECT_VERSION` 已推进至 8。
+- 未验证：撤销路径只在一个账户上验证过一次；构建 7 未做真机长期安装验证；证书与描述文件过期（均 2027-08）后的表现未验证；脚本假定描述文件已存在于本机，未覆盖在 ASC 上重建描述文件的路径。

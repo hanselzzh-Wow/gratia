@@ -5,6 +5,66 @@
 
 ---
 
+## 2026-08-06　Apple 令牌撤销闭环，构建 7 上传
+
+### 处境
+
+Apple 令牌撤销是提审路上最后一个卡口：Apple 要求支持账户删除的 App 必须在删除时撤销登录令牌，审核会实测。代码路径早就写好，但线上一直缺 `APPLE_TEAM_ID`、`APPLE_KEY_ID`、`APPLE_PRIVATE_KEY` 三个密钥，等于必定失败。
+
+### 决策与理由
+
+**1. 先用真实端点验密钥，再写生产配置**
+
+拿到 `.p8` 之后没有直接写进生产，而是先用与 `server/apple-identity.ts` 完全相同的方式构造 client_secret，携一个必定无效的 code 打 Apple 的 `/auth/token`。看的是它**怎么拒绝**：`invalid_client` 说明凭据不对，`invalid_grant` 说明凭据没问题、只是 code 假。实际返回 `invalid_grant`，于是 Team ID、Key ID、私钥、bundle 四项匹配这件事在写任何配置之前就已确定。这次探测不写任何东西，失败也没有代价。
+
+**2. 认定「数据库状态」不能作为撤销成功的证据**
+
+删除账户后数据库会呈现一组很像成功的状态：token 清空、subject 抹除、会话全撤。但 `worker/index.ts:326` 明确写着撤销失败不回滚删除——所以这组状态在「撤销成功」和「撤销失败但账户照删」两种情况下完全一样。最终以 Apple ID 设置里「使用您 Apple ID 的 App」列表中 Gratia 消失作为唯一证据。
+
+**3. 记下一个会让验收误判的陷阱**
+
+`refresh_token` 只在**登录那一刻**用 `authorizationCode` 换取。密钥配置之前登录的账户，这一列是 NULL；而删除时只查非空的 identity，`appleTokensRevoked` 又初始化为 `true`——于是删这类旧账户会返回 `true`，却一次 Apple 调用都没发生。当时生产库里唯一那个账户正是这个状态，直接拿它验收必然误判。正确顺序是先重新登录、确认 `refresh_token` 非空，再删。
+
+### 结果
+
+四步全部走通：凭据探测 `invalid_grant` → 重新登录后 `refresh_token` 由 NULL 变非空 → 删除后 token 清空、2 条会话全撤 → Apple ID 设置里 Gratia 消失。**第二步本身就证明了生产 Worker 用这三个真实密钥成功调用了 Apple 真实端点**：要存下这个值，读密钥、解析 PEM、签 ES256、Apple 返 200 四件事必须全成，任何一环失败都只会存 NULL。
+
+构建 7 已上传并 VALID，是第一个包含地点搜索改动的构建。
+
+### 未验证项
+
+- 撤销只在**一个账户**上验证过一次。Apple 审核用的是全新账户，路径相同但未重复验证。
+- 本次未做真机长期安装验证，构建 7 只经 TestFlight 处理为 VALID。
+
+---
+
+## 2026-08-06　iOS 签名：两个会安静报「成功」的坑
+
+### 处境
+
+打构建 7 时才发现，仓库里没有留下可复用的签名流程——交接文档指向的 `scratchpad/signing` 早已不存在。
+
+### 决策与理由
+
+第一次归档失败，报的是「Your team has no devices from which to generate a provisioning profile」。**这个错误具有误导性**：真正的问题不是没有设备，而是 XcodeGen 默认写死 `CODE_SIGN_IDENTITY = "iPhone Developer"`，把自动签名锁在 development 上，于是它去要一个 App Store 构建根本不需要的 development 描述文件；个人团队没有注册设备，Apple 就拒绝签发。
+
+顺着错误提示走会掉进第二个坑：把 `CODE_SIGN_IDENTITY` 设成空值确实让 `ARCHIVE SUCCEEDED` 了，**但产物完全没有签名**——没有 `embedded.mobileprovision`、没有任何 entitlements。这意味着 `com.apple.developer.applesignin` 不在产物里，**Sign in with Apple 直接失效**，而登录与账户删除整条链都建立在它上面。`xcodebuild` 全程不报一个字，不打开产物看是发现不了的。
+
+→ 决定：签名参数固定写进 `ios/project.yml` 的 **Release** 配置（Manual + `Apple Distribution` + `Gratia App Store`），命令行不再覆盖——正是「命令行传了一个把签名关掉的值」造成了第二个坑。同时把流程固化为 `scripts/ios-release.mjs`，并在归档后**强制校验产物**：签名主体、Team ID、`applesignin` entitlement、构建号一致，缺一项就中断。
+
+构建号核对也放进同一个脚本。构建号一经上传即被占用且不可复用，而本地 `project.yml` 并不知道线上到了几，撞号要等到上传那一刻才报错。
+
+### 结果
+
+构建 7 归档、导出、验证、上传全部通过，产物确认为 Apple Distribution 签名且带 `applesignin`。脚本的撞号检查已用构建 7 实测：置 `CURRENT_PROJECT_VERSION: 7` 时正确中断并提示改用 8。Debug 配置未受影响，iOS 测试仍 41/41。
+
+### 未验证项
+
+- 脚本只在这一次完整链路上跑通过。证书或描述文件过期后的表现（都在 2027-08 到期）未验证。
+- `scripts/ios-release.mjs` 假定描述文件名为 `Gratia App Store` 且已存在于本机；ASC 上重建描述文件的路径没有写进脚本。
+
+---
+
 ## 2026-08-06　发布页地点：从五个写死的城市改为 MapKit 补全
 
 ### 处境

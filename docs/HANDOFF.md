@@ -24,8 +24,8 @@ App 内**不涉及任何金额**，**不收集任何联系方式**。
 | 数据库迁移 | `0000`–`0010` 全部已应用 |
 | 运营台 | `https://hanselzzh-wow.github.io/ops/` |
 | 法务页面 | `/legal/privacy/`、`/legal/terms/` 已公开 |
-| Apple 令牌撤销 | 密钥已配齐；**端到端未验证**，见第八节 |
-| TestFlight | 构建 6 已上传；内部测试可用（**不含地点搜索改动**） |
+| Apple 令牌撤销 | **已端到端验证通过**（2026-08-06） |
+| TestFlight | 构建 7 已上传并 VALID（含地点搜索改动） |
 | 后端测试 | 30/30 |
 | iOS 测试 | 41/41 |
 
@@ -79,6 +79,7 @@ cd ios && ../.tools/xcodegen/xcodegen/bin/xcodegen generate --spec project.yml
 | 生成网站产物 | `npm run build:github-pages -- https://haluowode-mvp.hanselzzh.workers.dev` |
 | 生成法务页面 | `node scripts/build-legal-pages.mjs` |
 | 查已占用的构建号 | `node scripts/asc-builds.mjs` |
+| 打并上传 iOS 构建 | `node scripts/ios-release.mjs --upload`（见第九节） |
 | iOS 测试 | `cd ios && xcodebuild -project Gratia.xcodeproj -scheme Gratia -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' -configuration Debug CODE_SIGNING_ALLOWED=NO test` |
 
 ### ⚠️ 陷阱：测试跑的是构建产物
@@ -173,15 +174,22 @@ iOS (SwiftUI, iOS 18+)          运营台 (Next/vinext → GitHub Pages)
 
 ## 八、还没做完的
 
-### 提审前必须验证（不再是配置阻塞）
+### ~~提审前必须验证~~ 已于 2026-08-06 验证通过
 
-**Apple 令牌撤销：密钥已配置，端到端未验证。** 2026-08-06 已写入 `APPLE_TEAM_ID`、`APPLE_KEY_ID`（`YB5V2N9R2W`）、`APPLE_PRIVATE_KEY`，线上六个密钥齐全。
+**Apple 令牌撤销已端到端跑通。** `APPLE_TEAM_ID`、`APPLE_KEY_ID`（`YB5V2N9R2W`）、`APPLE_PRIVATE_KEY` 均已写入，线上六个密钥齐全。
 
 Apple 要求使用 Sign in with Apple 且支持账户删除的 App **必须在删除时撤销令牌**，审核会实测。
 
-已经验证的：用与 `server/apple-identity.ts` 完全相同的方式构造 client_secret 打 Apple 真实端点，返回 `invalid_grant` 而**不是** `invalid_client`——即 Team ID、Key ID、私钥、bundle 四项匹配。Worker 侧的 PEM 解析与 ES256 签名有真实 P-256 密钥的测试覆盖（`tests/apple-auth.test.mjs:293`，Apple 端点是 mock）。
+验证过程与证据：
 
-**尚未发生过的是：生产 Worker 用这三个真实密钥打 Apple 真实端点。**
+1. 用与 `server/apple-identity.ts:144` 完全相同的方式构造 client_secret 打 Apple 真实端点，返回 `invalid_grant` 而**不是** `invalid_client`——Team ID、Key ID、私钥、bundle 四项匹配；
+2. 在设备上重新登录后，生产库 `account_identities.refresh_token` 由 NULL 变为非空。**这一条本身就证明生产 Worker 成功调用了 Apple 真实端点**：要存下这个值，必须读到密钥、正确解析 PEM、签出 Apple 认可的 ES256 client_secret、且 Apple 返回 200，任何一环失败都只会存 NULL（`server/apple-identity.ts:190`）；
+3. 删除账户后，`refresh_token` 清空、`provider_subject` 抹为 `deleted:`、全部会话 `revoked_at` 非空；
+4. Apple ID 设置 →「使用您 Apple ID 的 App」里 Gratia 已消失——**这一步才是 Apple 侧真的撤销了的证据**。
+
+第 4 步不可省。撤销失败时删除照样进行（`worker/index.ts:326`：「撤销失败不回滚删除」），所以第 3 步那组数据库状态在「撤销成功」和「撤销失败但账户删了」两种情况下**完全一样**。
+
+再次验证时按同样顺序走，并注意下面这个陷阱。
 
 #### ⚠️ 直接删旧账户会得到假绿灯
 
@@ -216,14 +224,22 @@ Apple 要求使用 Sign in with Apple 且支持账户删除的 App **必须在�
 ### 打新构建
 
 ```bash
-cd ios
-# 1. 递增 project.yml 的 CURRENT_PROJECT_VERSION
-# 2. 重新生成工程
-../.tools/xcodegen/xcodegen/bin/xcodegen generate --spec project.yml
-# 3. Archive → Export → Upload（签名走临时钥匙串，见 scratchpad/signing）
+node scripts/ios-release.mjs --upload
 ```
 
-签名用的是**临时钥匙串**而非登录钥匙串，这样不会弹密码框。证书与描述文件通过 App Store Connect API 创建，不依赖 Xcode 图形界面登录。
+它按顺序做：核对构建号没被占用 → 重新生成工程 → 归档 → **校验归档产物** → 导出 → 验证 → 上传。不加 `--upload` 就停在验证，只产出 IPA。
+
+上传成功后**立刻**把 `ios/project.yml` 的 `CURRENT_PROJECT_VERSION` 加一。构建号一经上传即被占用，撞号要等到上传那一刻才报错。
+
+签名参数写在 `ios/project.yml` 的 **Release** 配置里（Manual + `Apple Distribution` + 描述文件 `Gratia App Store`），命令行不要再覆盖。分发证书在登录钥匙串，描述文件通过 App Store Connect API 创建，都不依赖 Xcode 图形界面登录。
+
+#### ⚠️ 这条链上有两个会安静给出「成功」的坑
+
+**一、XcodeGen 默认把签名锁死在 development。** 它会写 `CODE_SIGN_IDENTITY = "iPhone Developer"`，自动签名于是只找 development 描述文件；而个人团队没有注册设备，Apple 直接拒绝签发，报的是「Your team has no devices from which to generate a provisioning profile」。**这个错误具有误导性**——真正的问题不是没有设备，而是它根本不该去要 development 描述文件。已在 `project.yml` 的 Release 配置里覆盖掉。
+
+**二、`CODE_SIGN_IDENTITY=""` 会产出一个没签名的归档，而 archive 照报 `ARCHIVE SUCCEEDED`。** 产物里没有 `embedded.mobileprovision`、没有任何 entitlements——意味着 **Sign in with Apple 直接失效**，而整个登录与账户删除链条都建立在它上面。不打开产物看是发现不了的，`xcodebuild` 全程不会提醒。
+
+`scripts/ios-release.mjs` 归档后会强制校验产物：Apple Distribution 签名、Team ID、`com.apple.developer.applesignin` entitlement、构建号一致，缺一项就中断。**不要为了图快跳过这一步。**
 
 ### 发布运营台与法务页面
 

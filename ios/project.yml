@@ -23,11 +23,27 @@ targets:
         # 方向（上传即被 90474 拒绝），等于把未适配的布局推给 iPad 用户。
         TARGETED_DEVICE_FAMILY: "1"
         MARKETING_VERSION: 1.0.0
-        # 构建号一经上传即被 App Store Connect 占用，不能复用。1–6 已上传，
-        # 且构建 6 不含本次地点搜索改动（它比这些改动早上传约一小时）。
-        CURRENT_PROJECT_VERSION: 7
+        # 构建号一经上传即被 App Store Connect 占用，不能复用。1–7 已上传，
+        # 所以这里停在下一个可用号 8。`node scripts/ios-release.mjs` 会在
+        # 归档之前先核对这个号有没有被占用，撞号就直接中断。
+        CURRENT_PROJECT_VERSION: 8
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+      configs:
+        # 只在 Release 上手动签名。XcodeGen 默认会写死
+        # CODE_SIGN_IDENTITY = "iPhone Developer"，它会把自动签名锁在
+        # development 上；而个人团队没有注册设备，Apple 直接拒绝签发
+        # development 描述文件，archive 必然失败。
+        #
+        # 不要试图用 CODE_SIGN_IDENTITY="" 绕过：那样 archive 会报
+        # SUCCEEDED，但产物完全没有签名，没有 embedded.mobileprovision
+        # 也没有 entitlements——等于 Sign in with Apple 直接失效，
+        # 而这一步不看产物是发现不了的。
+        Release:
+          CODE_SIGN_STYLE: Manual
+          DEVELOPMENT_TEAM: HH9LKGK7DA
+          CODE_SIGN_IDENTITY: "Apple Distribution"
+          PROVISIONING_PROFILE_SPECIFIER: "Gratia App Store"
 
   GratiaTests:
     type: bundle.unit-test
