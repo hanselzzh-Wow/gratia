@@ -544,8 +544,17 @@ struct HelpAndSafetyView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DesignSystem.spacing16) {
-                    informationCard(title: "安全原则", body: "只接受合法、善意、安全的请求。平台禁止发布危险活动、侵犯他人隐私、商业推销或违反法律法规的内容。")
-                    informationCard(title: "隐私声明", body: "发布者和响应者的微信或电话等敏感联系方式不会公开；仅在人工匹配成功后由平台人员用于协调及派单。")
+                    informationCard(title: "安全原则", body: "只接受合法、善意、安全的请求。平台禁止发布危险活动、侵犯他人隐私、商业推销或违反法律法规的内容。所有公开内容都要经过人工审核后才会展示。")
+                    // 举报与屏蔽必须在安全中心里写清楚：App 内含陌生人即时通讯时，
+                    // App Store 审核指南 1.2 要求提供举报机制并对举报作出响应。
+                    informationCard(
+                        title: "举报与屏蔽",
+                        body: "在任何一段私聊里点右上角「⋯」，可以举报对方或直接屏蔽。举报后我们会人工查看该会话并处理，通常在 24 小时内响应；屏蔽后双方立即无法再联系，会话也会从两人的列表中消失。你也可以发邮件到 hansel.zzh@gmail.com 举报。"
+                    )
+                    informationCard(
+                        title: "隐私声明",
+                        body: "我们不向你索取微信或手机号。沟通与交付都在应用内完成，你和对方都看不到彼此的联系方式。公开的心愿与故事只显示城市和地标，不含精确位置。"
+                    )
                     faqCard
                 }
                 .padding(DesignSystem.spacing20)
@@ -571,8 +580,8 @@ struct HelpAndSafetyView: View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
             Text("常见问题").font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.Rose.ink)
             DisclosureGroup("提交心愿后多久能完成？") { Text("心愿提交后会先进行安全审核，再依据城市与地标匹配附近愿意帮忙的人。") }
-            DisclosureGroup("响应者没有按时完成怎么办？") { Text("如发生异常，平台会协调更新状态或重新进入匹配队列。") }
-            DisclosureGroup("交付的文件格式是什么？") { Text("交付形式依心愿约定而定，链接仅在对应查询结果中安全预览。") }
+            DisclosureGroup("响应者没有按时完成怎么办？") { Text("可以先在私聊里直接沟通。若对方长时间没有回应，你可以重新选择其他帮助者；遇到骚扰或不当行为，请在私聊里举报。") }
+            DisclosureGroup("交付的文件格式是什么？") { Text("帮助者可以提交一段文字和最多 9 个照片或视频。内容只对你可见；是否公开到首页由你单独决定，且需要经过人工审核。") }
         }
         .font(DesignSystem.bodyFont)
         .foregroundStyle(DesignSystem.Rose.ink2)
