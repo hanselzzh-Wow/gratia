@@ -632,9 +632,21 @@ test("lets the requester pick a helper and the helper deliver, with no operator 
     });
     assert.equal(refused.status, 403);
 
-    // 被选中的帮助者直接上传交付，全程不需要运营密钥
+    // 超过 9 个文件被拒
+    const tooMany = new FormData();
+    for (let i = 0; i < 10; i += 1) {
+      tooMany.append("file", new File([new Uint8Array([i])], `f${i}.jpg`, { type: "image/jpeg" }));
+    }
+    const rejected = await request(`/api/account/wishes/${wishId}/deliverable`, {
+      method: "POST", headers: { authorization: `Bearer ${helperToken}` }, body: tooMany,
+    });
+    assert.equal(rejected.status, 400);
+
+    // 被选中的帮助者直接上传：一段文字 + 多个文件，全程不需要运营密钥
     const form = new FormData();
+    form.append("note", "拍好了，今天天气很好。");
     form.append("file", new File([new Uint8Array([1, 2, 3, 4])], "delivery.jpg", { type: "image/jpeg" }));
+    form.append("file", new File([new Uint8Array([5, 6])], "delivery2.jpg", { type: "image/jpeg" }));
     const uploaded = await request(`/api/account/wishes/${wishId}/deliverable`, {
       method: "POST",
       headers: { authorization: `Bearer ${helperToken}` },
@@ -650,6 +662,28 @@ test("lets the requester pick a helper and the helper deliver, with no operator 
     });
     assert.equal(completed.status, 200);
     assert.equal((await json(completed)).wish.status, "completed");
+
+    // 默认不进入首页故事流
+    assert.equal((await json(await request("/api/stories"))).stories.length, 0);
+
+    // 需求方单独决定公开之后才出现，且带上多文件与说明文字
+    const published = await request(`/api/account/wishes/${wishId}/story`, {
+      method: "POST", headers: requesterHeaders, body: JSON.stringify({ nickname: "晚风" }),
+    });
+    assert.equal(published.status, 201);
+    const stories = (await json(await request("/api/stories"))).stories;
+    assert.equal(stories.length, 1);
+    assert.equal(stories[0].nickname, "晚风");
+    assert.equal(stories[0].media.length, 2);
+    assert.equal(stories[0].note, "拍好了，今天天气很好。");
+    assert.ok(!JSON.stringify(stories).includes("requester-contact"), "故事流不得包含联系方式");
+
+    // 可以撤回公开
+    const removed = await request(`/api/account/wishes/${wishId}/story`, {
+      method: "DELETE", headers: requesterHeaders,
+    });
+    assert.equal(removed.status, 200);
+    assert.equal((await json(await request("/api/stories"))).stories.length, 0);
   } finally {
     globalThis.fetch = originalFetch;
   }

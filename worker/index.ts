@@ -30,6 +30,9 @@ import {
   listMyConversations,
   reportAbuse,
   blockCounterpart,
+  publishWishStory,
+  unpublishWishStory,
+  listPublishedStories,
   completeWishForOwner,
   recordUploadedDeliverable,
   trackWish,
@@ -361,6 +364,30 @@ async function handleWishApi(request: Request, env: Env) {
       return json(request, env, { wish });
     }
 
+    // 首页故事流：只含需求方明确公开过的已完成心愿，无需登录即可浏览
+    if (url.pathname === "/api/stories" && request.method === "GET") {
+      return json(request, env, await listPublishedStories(env.DB));
+    }
+
+    // 需求方在完成之后单独决定是否公开到首页
+    const storyMatch = url.pathname.match(/^\/api\/account\/wishes\/([^/]+)\/story$/);
+    if (storyMatch && request.method === "POST") {
+      const user = await requireAccount(request, env);
+      const payload = (await request.json().catch(() => ({}))) as { nickname?: unknown };
+      return json(
+        request,
+        env,
+        await publishWishStory(env.DB, decodeURIComponent(storyMatch[1]), user.id, {
+          nickname: typeof payload.nickname === "string" ? payload.nickname : undefined,
+        }),
+        201,
+      );
+    }
+    if (storyMatch && request.method === "DELETE") {
+      const user = await requireAccount(request, env);
+      return json(request, env, await unpublishWishStory(env.DB, decodeURIComponent(storyMatch[1]), user.id));
+    }
+
     // 「私聊」标签页：我参与的全部会话（含两种身份）
     if (url.pathname === "/api/account/conversations" && request.method === "GET") {
       const user = await requireAccount(request, env);
@@ -439,35 +466,46 @@ async function handleWishApi(request: Request, env: Env) {
       if (!env.UPLOADS) return json(request, env, { error: "文件存储尚未配置" }, 503);
       await enforceRateLimit(request, env, "responder_upload", 20, 60 * 60_000);
       const form = await request.formData();
-      const file = form.get("file");
-      if (!(file instanceof File) || file.size === 0) {
+      // 一次「完成帮助」可含一段文字与最多 9 个图片/视频
+      const files = form.getAll("file").filter((item): item is File => item instanceof File && item.size > 0);
+      if (files.length === 0) {
         return json(request, env, { error: "请选择要交付的照片或视频" }, 400);
       }
-      if (file.size > maxUploadBytes) {
-        return json(request, env, { error: "文件不能超过 25MB" }, 413);
+      if (files.length > 9) {
+        return json(request, env, { error: "一次最多上传 9 个文件" }, 400);
       }
-      if (!allowedUploadTypes.has(file.type)) {
-        return json(request, env, { error: "仅支持 JPG、PNG、WebP、MP4、WebM 或 MOV" }, 415);
+      for (const file of files) {
+        if (file.size > maxUploadBytes) {
+          return json(request, env, { error: "单个文件不能超过 25MB" }, 413);
+        }
+        if (!allowedUploadTypes.has(file.type)) {
+          return json(request, env, { error: "仅支持 JPG、PNG、WebP、MP4、WebM 或 MOV" }, 415);
+        }
       }
+
       const wishId = decodeURIComponent(responderUploadMatch[1]);
-      const deliverableId = crypto.randomUUID();
-      const accessToken = crypto.randomUUID().replace(/-/g, "");
-      const storageKey = `deliveries/${wishId}/${deliverableId}-${safeFilename(file.name)}`;
-      await env.UPLOADS.put(storageKey, file.stream(), {
-        httpMetadata: { contentType: file.type },
-      });
+      const stored: { deliverableId: string; storageKey: string; accessToken: string; url: string }[] = [];
       try {
+        for (const file of files) {
+          const deliverableId = crypto.randomUUID();
+          const accessToken = crypto.randomUUID().replace(/-/g, "");
+          const storageKey = `deliveries/${wishId}/${deliverableId}-${safeFilename(file.name)}`;
+          await env.UPLOADS.put(storageKey, file.stream(), { httpMetadata: { contentType: file.type } });
+          stored.push({
+            deliverableId,
+            storageKey,
+            accessToken,
+            url: `/api/deliverables/${deliverableId}?token=${accessToken}`,
+          });
+        }
         const wish = await recordResponderDeliverable(env.DB, wishId, user.id, {
-          deliverableId,
-          storageKey,
-          accessToken,
-          url: `/api/deliverables/${deliverableId}?token=${accessToken}`,
-          note: typeof form.get("note") === "string" ? String(form.get("note")) : undefined,
+          note: typeof form.get("note") === "string" ? String(form.get("note")).slice(0, 500) : undefined,
+          files: stored,
         });
         return json(request, env, { wish }, 201);
       } catch (error) {
-        // 记录失败就不要留下孤儿文件
-        await env.UPLOADS.delete(storageKey).catch(() => {});
+        // 任何一步失败都不要在 R2 里留下孤儿文件
+        await Promise.all(stored.map((item) => env.UPLOADS!.delete(item.storageKey).catch(() => {})));
         throw error;
       }
     }

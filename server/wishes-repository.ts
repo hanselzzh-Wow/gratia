@@ -955,7 +955,12 @@ export async function recordResponderDeliverable(
   db: D1Database,
   wishId: string,
   responderUserId: string,
-  upload: { deliverableId: string; storageKey: string; accessToken: string; url: string; note?: string },
+  upload: {
+    /// 一次「完成帮助」的说明文字，与本组文件一同交付
+    note?: string;
+    /// 最多 9 个图片或视频，按数组顺序保持展示次序
+    files: { deliverableId: string; storageKey: string; accessToken: string; url: string }[];
+  },
 ) {
   await ensureWishSchema(db);
   const response = await db
@@ -970,7 +975,14 @@ export async function recordResponderDeliverable(
   requireStatus(wish, ["in_progress"]);
   if (!wish.assignment) throw new WishWorkflowError("该心愿还没有派单记录", 409);
 
+  if (upload.files.length < 1 || upload.files.length > 9) {
+    throw new WishWorkflowError("请上传 1–9 个图片或视频", 400);
+  }
+
   const now = Date.now();
+  // 同一次「完成帮助」的文件共享 group_id，说明文字记在第一条上，
+  // position 保持展示次序。
+  const groupId = crypto.randomUUID();
   const result = await db.batch([
     db
       .prepare("UPDATE wishes SET status = 'delivered', updated_at = ? WHERE id = ? AND status = 'in_progress'")
@@ -978,26 +990,30 @@ export async function recordResponderDeliverable(
     db
       .prepare("UPDATE assignments SET status = 'delivered', delivered_at = ?, updated_at = ? WHERE id = ?")
       .bind(now, now, wish.assignment.id),
+    ...upload.files.map((file, index) =>
+      db
+        .prepare(
+          "INSERT INTO deliverables (id, wish_id, assignment_id, kind, url, storage_key, access_token, note, group_id, position, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(
+          file.deliverableId,
+          wishId,
+          wish.assignment!.id,
+          wish.deliveryType,
+          file.url,
+          file.storageKey,
+          file.accessToken,
+          index === 0 ? upload.note ?? null : null,
+          groupId,
+          index,
+          now,
+        ),
+    ),
     db
       .prepare(
-        "INSERT INTO deliverables (id, wish_id, assignment_id, kind, url, storage_key, access_token, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO wish_events (wish_id, event_type, from_status, to_status, actor, note, created_at) VALUES (?, 'responder_delivered', 'in_progress', 'delivered', 'responder', ?, ?)",
       )
-      .bind(
-        upload.deliverableId,
-        wishId,
-        wish.assignment.id,
-        wish.deliveryType,
-        upload.url,
-        upload.storageKey,
-        upload.accessToken,
-        upload.note ?? null,
-        now,
-      ),
-    db
-      .prepare(
-        "INSERT INTO wish_events (wish_id, event_type, from_status, to_status, actor, note, created_at) VALUES (?, 'responder_delivered', 'in_progress', 'delivered', 'responder', NULL, ?)",
-      )
-      .bind(wishId, now),
+      .bind(wishId, upload.note ?? null, now),
   ]);
   if ((result[0].meta.changes ?? 0) !== 1) {
     throw new WishWorkflowError("心愿状态刚刚发生变化，请刷新后重试", 409);
@@ -1217,4 +1233,92 @@ export async function listMyConversations(db: D1Database, userId: string) {
         };
       }),
   };
+}
+
+// MARK: - 故事公开
+//
+// 完成之后由需求方单独决定是否公开到首页，默认不公开。帮助者在响应时已
+// 同意其提交的文字与影像由需求方支配（含公开分享），该同意时间记录在
+// wish_responses.content_license_agreed_at。
+
+export async function publishWishStory(
+  db: D1Database,
+  wishId: string,
+  ownerUserId: string,
+  input: { nickname?: string },
+) {
+  await ensureWishSchema(db);
+  const row = await getAdminWishRow(db, wishId);
+  if (!row || row.user_id !== ownerUserId) throw new WishWorkflowError("未找到该心愿", 404);
+  const wish = toAdminWish(row);
+  // 只有真正完成的心愿才能成为故事，避免半途内容进入公开流
+  requireStatus(wish, ["completed"]);
+
+  const nickname = (input.nickname ?? "").trim().slice(0, 20);
+  const now = Date.now();
+  await db
+    .prepare("UPDATE wishes SET story_published_at = ?, story_nickname = ?, updated_at = ? WHERE id = ? AND user_id = ?")
+    .bind(now, nickname || null, now, wishId, ownerUserId)
+    .run();
+  return { published: true, publishedAt: now };
+}
+
+export async function unpublishWishStory(db: D1Database, wishId: string, ownerUserId: string) {
+  await ensureWishSchema(db);
+  const result = await db
+    .prepare("UPDATE wishes SET story_published_at = NULL, updated_at = ? WHERE id = ? AND user_id = ?")
+    .bind(Date.now(), wishId, ownerUserId)
+    .run();
+  if ((result.meta.changes ?? 0) !== 1) throw new WishWorkflowError("未找到该心愿", 404);
+  return { published: false };
+}
+
+/// 首页故事流。只返回需求方明确公开过的已完成心愿，
+/// 且不含联系方式与精确位置——与「公开故事不显示联系方式」的承诺一致。
+export async function listPublishedStories(db: D1Database, limit = 30) {
+  await ensureWishSchema(db);
+  const rows = await db
+    .prepare(
+      `SELECT id, public_code, city, landmark, occasion, message, delivery_type,
+              story_nickname, story_published_at
+       FROM wishes
+       WHERE story_published_at IS NOT NULL AND status = 'completed'
+       ORDER BY story_published_at DESC LIMIT ?`,
+    )
+    .bind(limit)
+    .all<{
+      id: string;
+      public_code: string;
+      city: string;
+      landmark: string;
+      occasion: string;
+      message: string;
+      delivery_type: string;
+      story_nickname: string | null;
+      story_published_at: number;
+    }>();
+
+  const stories = [];
+  for (const row of rows.results) {
+    const media = await db
+      .prepare(
+        "SELECT id, url, kind, note FROM deliverables WHERE wish_id = ? ORDER BY position ASC, created_at ASC LIMIT 9",
+      )
+      .bind(row.id)
+      .all<{ id: string; url: string; kind: string; note: string | null }>();
+    stories.push({
+      id: row.id,
+      publicCode: row.public_code,
+      nickname: row.story_nickname ?? "匿名",
+      city: row.city,
+      landmark: row.landmark,
+      occasion: row.occasion,
+      message: row.message,
+      deliveryType: row.delivery_type,
+      publishedAt: row.story_published_at,
+      note: media.results.find((item) => item.note)?.note ?? null,
+      media: media.results.map((item) => ({ id: item.id, url: item.url, kind: item.kind })),
+    });
+  }
+  return { stories };
 }
