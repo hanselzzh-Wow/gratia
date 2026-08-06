@@ -941,7 +941,7 @@ test("holds nickname and avatar changes for review before others can see them", 
 });
 
 test("counts unread messages per participant and clears them on open", async () => {
-  const { request, env } = await setup();
+  const { request, env, database } = await setup();
   env.WECHAT_MINI_PROGRAM_APP_ID = "id";
   env.WECHAT_MINI_PROGRAM_APP_SECRET = "secret";
   const originalFetch = globalThis.fetch;
@@ -1006,6 +1006,14 @@ test("counts unread messages per participant and clears them on open", async () 
     });
     const again = await json(await request("/api/account/conversations", { headers: h(ownerToken) }));
     assert.equal(again.totalUnread, 1);
+
+    // 同一会话内的消息时间戳必须严格递增：毫秒精度不足以区分同毫秒的两条消息，
+    // 那会同时导致显示顺序未定义和已读游标漏计未读。
+    const stamps = database.database
+      .prepare("SELECT created_at FROM wish_messages ORDER BY created_at")
+      .all()
+      .map((row) => row.created_at);
+    assert.equal(new Set(stamps).size, stamps.length, `消息时间戳不应重复：${stamps}`);
   } finally {
     globalThis.fetch = originalFetch;
   }

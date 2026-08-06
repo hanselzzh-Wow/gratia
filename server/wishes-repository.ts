@@ -1121,13 +1121,19 @@ export async function listConversationMessages(db: D1Database, responseId: strin
 
   // 打开会话即视为读到最新一条：这是最自然的标记时机，
   // 不需要客户端再单独调一次接口。
-  await db
-    .prepare(
-      "INSERT INTO conversation_reads (response_id, user_id, last_read_at) VALUES (?, ?, ?)\n" +
-      "ON CONFLICT(response_id, user_id) DO UPDATE SET last_read_at = excluded.last_read_at",
-    )
-    .bind(responseId, userId, Date.now())
-    .run();
+  //
+  // 记的是「本会话最后一条消息的时间」而不是 Date.now()：后者会把与打开动作
+  // 落在同一毫秒的新消息一并标记为已读，造成漏计未读。
+  const latest = rows.results.at(-1)?.created_at ?? 0;
+  if (latest > 0) {
+    await db
+      .prepare(
+        "INSERT INTO conversation_reads (response_id, user_id, last_read_at) VALUES (?, ?, ?) " +
+        "ON CONFLICT(response_id, user_id) DO UPDATE SET last_read_at = MAX(last_read_at, excluded.last_read_at)",
+      )
+      .bind(responseId, userId, latest)
+      .run();
+  }
 
   return {
     responseId,
@@ -1164,7 +1170,13 @@ export async function sendConversationMessage(
   }
 
   const id = crypto.randomUUID();
-  const now = Date.now();
+  // 会话内的时间戳必须严格递增：毫秒精度不足以区分同一毫秒内的两条消息，
+  // 那会同时导致显示顺序未定义、以及已读游标漏计未读。
+  const previous = await db
+    .prepare("SELECT MAX(created_at) AS latest FROM wish_messages WHERE response_id = ?")
+    .bind(responseId)
+    .first<{ latest: number | null }>();
+  const now = Math.max(Date.now(), (previous?.latest ?? 0) + 1);
   await db
     .prepare(
       "INSERT INTO wish_messages (id, wish_id, response_id, sender_user_id, body, created_at) VALUES (?, ?, ?, ?, ?, ?)",
