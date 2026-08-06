@@ -75,6 +75,8 @@ struct PublishView: View {
         .warmBackground()
         // 成功是全 App 唯一允许"弹"的时刻，配一次成功触感。
         .motion(DesignSystem.Motion.celebrate, value: isSuccess)
+        // 每推进/回退一步都给一次轻触，让"这一步过了"有实感
+        .selectionHaptic(currentStep)
         .sensoryFeedback(.success, trigger: isSuccess) { _, success in success }
         .sensoryFeedback(.error, trigger: viewModel.state) { _, state in
             if case .failed = state { return true }

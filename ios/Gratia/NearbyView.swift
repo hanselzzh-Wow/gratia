@@ -113,6 +113,7 @@ struct NearbyView: View {
             .padding(.horizontal, DesignSystem.spacing20)
         }
         .padding(.bottom, DesignSystem.spacing12)
+        .selectionHaptic(selectedDeliveryFilter)
     }
 
     @ViewBuilder

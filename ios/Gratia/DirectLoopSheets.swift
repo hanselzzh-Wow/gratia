@@ -378,12 +378,25 @@ struct ProfileEditSheet: View {
     @State private var avatarPreview: Image?
     @State private var avatarData: Data?
     @State private var isSubmitting = false
+    @State private var submitted = false
     @State private var errorMessage: String?
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: DesignSystem.spacing20) {
+                    if submitted {
+                        Label("已提交，等待人工审核。通过后其他人才会看到新的昵称和头像。", systemImage: "checkmark.circle.fill")
+                            .font(DesignSystem.bodyFont)
+                            .foregroundStyle(DesignSystem.Rose.primary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(DesignSystem.spacing12)
+                            .background(
+                                RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                                    .fill(DesignSystem.Rose.tint)
+                            )
+                            .motionTransition(.opacity.combined(with: .move(edge: .top)))
+                    }
                     PhotosPicker(selection: $pickedAvatar, matching: .images) {
                         ZStack {
                             Circle().fill(DesignSystem.Rose.soft).frame(width: 96, height: 96)
@@ -456,9 +469,15 @@ struct ProfileEditSheet: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) { Button("取消") { dismiss() } }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("保存") { Task { await save() } }.disabled(isSubmitting)
+                    if isSubmitting {
+                        SwiftUI.ProgressView().controlSize(.small)
+                    } else {
+                        Button("保存") { Task { await save() } }.disabled(submitted)
+                    }
                 }
             }
+            .motion(DesignSystem.Motion.content, value: submitted)
+            .sensoryFeedback(.success, trigger: submitted) { _, done in done }
             .task { await load() }
             .onChange(of: pickedAvatar) { _, _ in Task { await loadAvatarPreview() } }
         }
@@ -479,15 +498,30 @@ struct ProfileEditSheet: View {
     }
 
     private func save() async {
-        guard let token = accountViewModel.accessToken else { return }
+        // 会话失效时必须说清楚。此前这里直接 return，用户点了保存却毫无反应，
+        // 分不清是没点上、还是失败了。
+        guard let token = accountViewModel.accessToken else {
+            errorMessage = "登录状态已失效，请重新登录后再试。"
+            return
+        }
+        let trimmed = displayName.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty || avatarData != nil else {
+            errorMessage = "请填写昵称或选择头像。"
+            return
+        }
+
         isSubmitting = true
         defer { isSubmitting = false }
         do {
             profile = try await accountAPI.updateProfile(
-                displayName: displayName.trimmingCharacters(in: .whitespaces),
+                displayName: trimmed,
                 avatar: avatarData,
                 token: token
             )
+            // 提交成功后先给出明确回执再关闭：内容要经人工审核，
+            // 用户必须知道"已提交、但他人还看不到"。
+            submitted = true
+            try? await Task.sleep(for: .seconds(1.6))
             dismiss()
         } catch {
             errorMessage = (error as? GratiaAPIError)?.errorDescription ?? "保存失败，请重试。"

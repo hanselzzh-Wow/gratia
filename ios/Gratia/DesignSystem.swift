@@ -147,6 +147,19 @@ extension DesignSystem {
     }
 }
 
+extension View {
+    /// 轻触反馈：用于选择、切换这类"确认你点到了"的动作。
+    /// 苹果的手感很大程度来自触感与动效同时发生，只做动效会显得空。
+    func selectionHaptic<V: Equatable>(_ value: V) -> some View {
+        sensoryFeedback(.selection, trigger: value)
+    }
+
+    /// 轻微冲击：用于提交、发送这类有结果的动作。
+    func impactHaptic<V: Equatable>(_ value: V) -> some View {
+        sensoryFeedback(.impact(weight: .light), trigger: value)
+    }
+}
+
 /// 按语义施加动画，并自动处理 Reduce Motion。
 private struct MotionModifier<V: Equatable>: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion

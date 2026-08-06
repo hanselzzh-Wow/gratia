@@ -145,6 +145,7 @@ struct ChatView: View {
             }
         }
         .motion(DesignSystem.Motion.content, value: errorMessage)
+        .impactHaptic(conversation?.messages.count ?? 0)
         .padding(DesignSystem.spacing16)
         .background(DesignSystem.canvas)
         .overlay(Rectangle().fill(DesignSystem.hairline).frame(height: 1), alignment: .top)
