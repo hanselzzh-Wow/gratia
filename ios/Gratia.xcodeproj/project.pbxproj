@@ -11,11 +11,15 @@
 		0987F4E2B085DC0C9C44817D /* TrackWishViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E3BD2F738F16B23B8994BFD /* TrackWishViewModelTests.swift */; };
 		0EC2FD4224AC1958CF9D7DEE /* GratiaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D52E7A0A9E533CD1D6639EB1 /* GratiaApp.swift */; };
 		112F16F129346471B7D2A585 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1499A64B83A31383BB7736F2 /* Assets.xcassets */; };
+		21B617B991630BAFEB5CDBD4 /* AccountAPIDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = C868C46CB1E1DA7E38BE3DAF /* AccountAPIDefaults.swift */; };
 		21F8DEAD1931168E73738A5D /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72D2E259FDEE2E3DB0B2E8F1 /* Models.swift */; };
 		2250F81DB572CCC7C34261AB /* WishResponseViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E606A18BF94217841CAC8C0 /* WishResponseViewModelTests.swift */; };
 		3A975D1BB8F1FB4D09BA4767 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 904CCFDC34CCEFA8B2934CDA /* PrivacyInfo.xcprivacy */; };
+		3D5565C2A102345DE187038B /* DirectLoopSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367412C8CD688463EF20D212 /* DirectLoopSheets.swift */; };
+		3EC9816FD81BFAE09EF1C747 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4202E8BED51315DCDE154C96 /* ChatView.swift */; };
 		4020F96EA837D7CF4FCD395D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3528044807049C92C219ED7B /* InfoPlist.strings */; };
 		41FF06E7DF0C1CA882C69BDB /* AccountActivityViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1225DB309049E0134FAE3793 /* AccountActivityViewModel.swift */; };
+		42979FC068C6085B915C278E /* ConversationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16F7B3238AC5635EFD408DF /* ConversationsView.swift */; };
 		42C6DACE1AEA8ED50DECA68D /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0B9BEAB790EF6ABA7760090 /* DesignSystem.swift */; };
 		5432C543EB8E7E0D7BBA860F /* TrackWishViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53DBF5E9E41DBD4BC73D8496 /* TrackWishViewModel.swift */; };
 		5644D799C5217E9F272A42FE /* AccountSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08BFAC383603EACB45D510E4 /* AccountSectionView.swift */; };
@@ -63,8 +67,10 @@
 		243A2E7E364EFDC484724D5E /* PublishWishViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishWishViewModel.swift; sourceTree = "<group>"; };
 		278DAB8065683F8CB27FA482 /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
 		2E3BD2F738F16B23B8994BFD /* TrackWishViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackWishViewModelTests.swift; sourceTree = "<group>"; };
+		367412C8CD688463EF20D212 /* DirectLoopSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectLoopSheets.swift; sourceTree = "<group>"; };
 		3C7363214C62CFFF8D99A790 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		3E606A18BF94217841CAC8C0 /* WishResponseViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishResponseViewModelTests.swift; sourceTree = "<group>"; };
+		4202E8BED51315DCDE154C96 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		45E8E6280BC2E6F8D9DB5986 /* DeliverySaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliverySaver.swift; sourceTree = "<group>"; };
 		49D0426049FB3FBE7155C46D /* SwiftUI+Compat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SwiftUI+Compat.swift"; sourceTree = "<group>"; };
 		53DBF5E9E41DBD4BC73D8496 /* TrackWishViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackWishViewModel.swift; sourceTree = "<group>"; };
@@ -78,9 +84,11 @@
 		9562D6D4180134409D0E9662 /* AccountViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViewModel.swift; sourceTree = "<group>"; };
 		A04EC2E09A19495B37591E32 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A0B9BEAB790EF6ABA7760090 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		A16F7B3238AC5635EFD408DF /* ConversationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationsView.swift; sourceTree = "<group>"; };
 		A208952E64751E3F6A1FF44B /* Gratia.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Gratia.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2279F88B010B7F68495CAD5 /* PublishWishViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishWishViewModelTests.swift; sourceTree = "<group>"; };
 		B27A98F463E8A70126C14D6A /* PublishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishView.swift; sourceTree = "<group>"; };
+		C868C46CB1E1DA7E38BE3DAF /* AccountAPIDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountAPIDefaults.swift; sourceTree = "<group>"; };
 		D52E7A0A9E533CD1D6639EB1 /* GratiaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GratiaApp.swift; sourceTree = "<group>"; };
 		E293CB61121C6103E49CAA85 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		EDCF307D9312D06426E08E89 /* StoryFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryFeed.swift; sourceTree = "<group>"; };
@@ -106,10 +114,13 @@
 				08BFAC383603EACB45D510E4 /* AccountSectionView.swift */,
 				9562D6D4180134409D0E9662 /* AccountViewModel.swift */,
 				1499A64B83A31383BB7736F2 /* Assets.xcassets */,
+				4202E8BED51315DCDE154C96 /* ChatView.swift */,
 				021B94A2D7B0CE8E42985D6A /* ContentView.swift */,
+				A16F7B3238AC5635EFD408DF /* ConversationsView.swift */,
 				219E130EB02AFF224A486806 /* DeliveryPreviewView.swift */,
 				45E8E6280BC2E6F8D9DB5986 /* DeliverySaver.swift */,
 				A0B9BEAB790EF6ABA7760090 /* DesignSystem.swift */,
+				367412C8CD688463EF20D212 /* DirectLoopSheets.swift */,
 				F82C42C243F0C04E5113F5FB /* Gratia.entitlements */,
 				D52E7A0A9E533CD1D6639EB1 /* GratiaApp.swift */,
 				3C7363214C62CFFF8D99A790 /* HomeView.swift */,
@@ -163,6 +174,7 @@
 		D78C2AA0243877DEB590D25B /* GratiaTests */ = {
 			isa = PBXGroup;
 			children = (
+				C868C46CB1E1DA7E38BE3DAF /* AccountAPIDefaults.swift */,
 				B2279F88B010B7F68495CAD5 /* PublishWishViewModelTests.swift */,
 				2E3BD2F738F16B23B8994BFD /* TrackWishViewModelTests.swift */,
 				5839488E244CE671E720CE8F /* WishListViewModelTests.swift */,
@@ -268,10 +280,13 @@
 				41FF06E7DF0C1CA882C69BDB /* AccountActivityViewModel.swift in Sources */,
 				5644D799C5217E9F272A42FE /* AccountSectionView.swift in Sources */,
 				CCE05391195D590BAE86270D /* AccountViewModel.swift in Sources */,
+				3EC9816FD81BFAE09EF1C747 /* ChatView.swift in Sources */,
 				8078745D4A8F8190DEF866B6 /* ContentView.swift in Sources */,
+				42979FC068C6085B915C278E /* ConversationsView.swift in Sources */,
 				B2BED8AC974761E66283F3CC /* DeliveryPreviewView.swift in Sources */,
 				EFA5096ED203FC98DDFA1CB8 /* DeliverySaver.swift in Sources */,
 				42C6DACE1AEA8ED50DECA68D /* DesignSystem.swift in Sources */,
+				3D5565C2A102345DE187038B /* DirectLoopSheets.swift in Sources */,
 				0EC2FD4224AC1958CF9D7DEE /* GratiaApp.swift in Sources */,
 				5E046551DD02EADC1C35AD8E /* HomeView.swift in Sources */,
 				21F8DEAD1931168E73738A5D /* Models.swift in Sources */,
@@ -294,6 +309,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				21B617B991630BAFEB5CDBD4 /* AccountAPIDefaults.swift in Sources */,
 				CCD8833B5883B14B61291507 /* PublishWishViewModelTests.swift in Sources */,
 				0987F4E2B085DC0C9C44817D /* TrackWishViewModelTests.swift in Sources */,
 				925BCCF3EFC1B9791A3BA582 /* WishListViewModelTests.swift in Sources */,

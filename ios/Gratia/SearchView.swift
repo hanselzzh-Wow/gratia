@@ -139,7 +139,7 @@ struct SearchView: View {
                     .foregroundStyle(DesignSystem.Rose.ink2)
                     .fixedSize(horizontal: false, vertical: true)
                 Button("去帮助页看看") {
-                    selectedTab = 3
+                    selectedTab = 1  // 帮助页
                 }
                 .font(DesignSystem.metadataFont.weight(.semibold))
                 .foregroundStyle(DesignSystem.Rose.deep)

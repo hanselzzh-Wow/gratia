@@ -431,7 +431,7 @@ struct MyActivityView: View {
                 .lineSpacing(2)
             Button {
                 dismiss()
-                selectedTab = 3
+                selectedTab = 1  // 帮助页
             } label: {
                 Text("去看看谁需要帮助")
                     .font(DesignSystem.headlineFont)

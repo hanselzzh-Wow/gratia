@@ -186,4 +186,127 @@ extension WishAPIClient: AccountAPIProtocol {
         )
         return envelope.wish
     }
+
+    // MARK: - 直连闭环
+
+    private struct ConversationsEnvelope: Codable { let conversations: [ConversationSummaryDTO] }
+    private struct ResponsesEnvelope: Codable { let responses: [OwnerResponseDTO] }
+    private struct MessageEnvelope: Codable { let message: ChatMessageDTO }
+    private struct StoriesEnvelope: Codable { let stories: [StoryDTO] }
+    private struct DiscardedEnvelope: Codable {}
+
+    public func conversations(token: String) async throws -> [ConversationSummaryDTO] {
+        let envelope: ConversationsEnvelope = try await executeRequest(
+            method: "GET", path: "/api/account/conversations", bearerToken: token
+        )
+        return envelope.conversations
+    }
+
+    public func conversationMessages(responseId: String, token: String) async throws -> ConversationDTO {
+        try await executeRequest(
+            method: "GET",
+            path: "/api/account/conversations/\(responseId)/messages",
+            bearerToken: token
+        )
+    }
+
+    public func sendMessage(responseId: String, body: String, token: String) async throws -> ChatMessageDTO {
+        let payload = try JSONSerialization.data(withJSONObject: ["body": body])
+        let envelope: MessageEnvelope = try await executeRequest(
+            method: "POST",
+            path: "/api/account/conversations/\(responseId)/messages",
+            body: payload,
+            bearerToken: token
+        )
+        return envelope.message
+    }
+
+    public func wishResponses(wishId: String, token: String) async throws -> [OwnerResponseDTO] {
+        let envelope: ResponsesEnvelope = try await executeRequest(
+            method: "GET",
+            path: "/api/account/wishes/\(wishId)/responses",
+            bearerToken: token
+        )
+        return envelope.responses
+    }
+
+    public func selectResponder(wishId: String, responseId: String, token: String) async throws {
+        let _: CompleteWishEnvelope = try await executeRequest(
+            method: "POST",
+            path: "/api/account/wishes/\(wishId)/responses/\(responseId)/select",
+            bearerToken: token
+        )
+    }
+
+    public func reportAbuse(responseId: String, reason: String, detail: String?, token: String) async throws {
+        var object: [String: Any] = ["responseId": responseId, "reason": reason]
+        if let detail, !detail.isEmpty { object["detail"] = detail }
+        let payload = try JSONSerialization.data(withJSONObject: object)
+        let _: DiscardedEnvelope = try await executeRequest(
+            method: "POST", path: "/api/account/reports", body: payload, bearerToken: token
+        )
+    }
+
+    public func blockCounterpart(responseId: String, token: String) async throws {
+        let _: DiscardedEnvelope = try await executeRequest(
+            method: "POST",
+            path: "/api/account/conversations/\(responseId)/block",
+            bearerToken: token
+        )
+    }
+
+    public func publishStory(wishId: String, nickname: String?, token: String) async throws {
+        let payload = try JSONSerialization.data(withJSONObject: ["nickname": nickname ?? ""])
+        let _: DiscardedEnvelope = try await executeRequest(
+            method: "POST",
+            path: "/api/account/wishes/\(wishId)/story",
+            body: payload,
+            bearerToken: token
+        )
+    }
+
+    public func stories() async throws -> [StoryDTO] {
+        let envelope: StoriesEnvelope = try await executeRequest(method: "GET", path: "/api/stories")
+        return envelope.stories
+    }
+
+    /// 帮助者提交交付：一段文字 + 最多 9 个图片/视频，multipart 直传。
+    public func uploadDelivery(
+        wishId: String,
+        note: String,
+        files: [(data: Data, filename: String, contentType: String)],
+        token: String
+    ) async throws {
+        let boundary = "gratia-\(UUID().uuidString)"
+        var body = Data()
+        func append(_ text: String) { body.append(Data(text.utf8)) }
+
+        if !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            append("--\(boundary)\r\n")
+            append("Content-Disposition: form-data; name=\"note\"\r\n\r\n")
+            append("\(note)\r\n")
+        }
+        for file in files {
+            append("--\(boundary)\r\n")
+            append("Content-Disposition: form-data; name=\"file\"; filename=\"\(file.filename)\"\r\n")
+            append("Content-Type: \(file.contentType)\r\n\r\n")
+            body.append(file.data)
+            append("\r\n")
+        }
+        append("--\(boundary)--\r\n")
+
+        let url = baseURL.appendingPathComponent("/api/account/wishes/\(wishId)/deliverable")
+        let request = HTTPRequest(
+            method: "POST",
+            url: url,
+            headers: [
+                "accept": "application/json",
+                "content-type": "multipart/form-data; boundary=\(boundary)",
+                "authorization": "Bearer \(token)",
+            ],
+            body: body
+        )
+        let response = try await transport.send(request: request)
+        let _: DiscardedEnvelope = try parseResponse(response)
+    }
 }

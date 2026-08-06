@@ -35,6 +35,21 @@ struct HomeView: View {
                     }
                     .accessibilityHidden(true)
                 }
+                // 搜索不再独占一栏，收进首页右上角。
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink {
+                        SearchView(selectedTab: $selectedTab)
+                    } label: {
+                        Image("TabSearch")
+                            .renderingMode(.template)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .foregroundStyle(DesignSystem.Rose.ink)
+                    }
+                    .frame(minWidth: 44, minHeight: 44)
+                    .accessibilityLabel("搜索")
+                }
             }
             .alert("功能准备中", isPresented: $showComingSoon) {
                 Button("知道了", role: .cancel) {}
@@ -163,7 +178,7 @@ struct HomeView: View {
                         )
                 }
                 Button {
-                    selectedTab = 3
+                    selectedTab = 1  // 帮助页
                 } label: {
                     Text("去看看谁需要帮助")
                         .font(DesignSystem.headlineFont)

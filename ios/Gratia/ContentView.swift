@@ -25,11 +25,13 @@ extension EnvironmentValues {
 /// 图标只用图形不带文字；普通项黑/灰，仅中央"发布"使用玫红主题色。
 /// "发布"不是栏目——点按打开发布 Sheet，随后回到原栏目。
 struct ContentView: View {
+    /// 五栏顺序：首页、帮助、中央发布、私聊、我的。
+    /// 搜索不再独占一栏，改为首页右上角入口；私聊随直连闭环上升为一级页面。
     private enum Tab {
         static let home = 0
-        static let search = 1
+        static let help = 1
         static let publish = 2
-        static let help = 3
+        static let messages = 3
         static let profile = 4
     }
 
@@ -63,8 +65,8 @@ struct ContentView: View {
         let arguments = ProcessInfo.processInfo.arguments
         if let index = arguments.firstIndex(of: "--initial-tab"), index + 1 < arguments.count {
             switch arguments[index + 1] {
-            case "search": initialTab = Tab.search
             case "help": initialTab = Tab.help
+            case "messages": initialTab = Tab.messages
             case "profile": initialTab = Tab.profile
             default: initialTab = Tab.home
             }
@@ -103,12 +105,12 @@ struct ContentView: View {
                 .tag(Tab.home)
                 .accessibilityLabel("首页")
 
-            SearchView(selectedTab: $selectedTab)
+            NearbyView()
                 .tabItem {
-                    Image("TabSearch")
+                    Image("TabHandshake")
                 }
-                .tag(Tab.search)
-                .accessibilityLabel("搜索")
+                .tag(Tab.help)
+                .accessibilityLabel("帮助")
 
             // 占位内容不会真正显示：选中即弹出发布 Sheet 并回到原栏目。
             Color.clear
@@ -118,12 +120,12 @@ struct ContentView: View {
                 .tag(Tab.publish)
                 .accessibilityLabel("发布心愿")
 
-            NearbyView()
+            ConversationsView()
                 .tabItem {
-                    Image("TabHandshake")
+                    Image("TabMessage")
                 }
-                .tag(Tab.help)
-                .accessibilityLabel("帮助")
+                .tag(Tab.messages)
+                .accessibilityLabel("私聊")
 
             ProfileView(selectedTab: $selectedTab)
                 .tabItem {
