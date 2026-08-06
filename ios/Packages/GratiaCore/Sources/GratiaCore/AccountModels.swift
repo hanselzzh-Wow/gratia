@@ -182,6 +182,8 @@ public struct ConversationSummaryDTO: Codable, Sendable, Identifiable, Equatable
     public let counterpartName: String
     public let lastMessage: String?
     public let lastMessageAt: Int64?
+    /// 本人在该会话的未读条数（只计对方发出的）
+    public let unreadCount: Int?
 
     public var id: String { responseId }
     public var isRequester: Bool { viewerRole == "requester" }

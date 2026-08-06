@@ -939,3 +939,74 @@ test("holds nickname and avatar changes for review before others can see them", 
     globalThis.fetch = originalFetch;
   }
 });
+
+test("counts unread messages per participant and clears them on open", async () => {
+  const { request, env } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) =>
+    Response.json({ openid: `openid-${new URL(String(url)).searchParams.get("js_code")}` });
+
+  try {
+    const login = async (code) =>
+      (await json(
+        await request("/api/auth/wechat", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ code }),
+        }),
+      )).token;
+    const ownerToken = await login("owner-code");
+    const helperToken = await login("helper-code");
+    const h = (t) => ({ "content-type": "application/json", authorization: `Bearer ${t}` });
+
+    const created = await json(await request("/api/account/wishes", {
+      method: "POST", headers: h(ownerToken),
+      body: JSON.stringify({
+        requesterName: "发布者", city: "杭州", landmark: "西湖断桥", occasion: "生日祝福",
+        message: "请替我在断桥说一声生日快乐。", deliveryType: "spoken_video",
+        deadlineText: "本周内", rewardFen: 0, contactConsent: true,
+      }),
+    }));
+    const wishId = created.wish.id;
+    await request(`/api/admin/wishes/${wishId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+      body: JSON.stringify({ action: "approve" }),
+    });
+    await request(`/api/account/wishes/${wishId}/responses`, {
+      method: "POST", headers: h(helperToken),
+      body: JSON.stringify({ responderName: "帮助者", contactConsent: true }),
+    });
+    const listed = await json(await request(`/api/account/wishes/${wishId}/responses`, { headers: h(ownerToken) }));
+    const responseId = listed.responses[0].id;
+
+    // 帮助者连发两条
+    for (const body of ["我住在附近", "今天下午可以去"]) {
+      await request(`/api/account/conversations/${responseId}/messages`, {
+        method: "POST", headers: h(helperToken), body: JSON.stringify({ body }),
+      });
+    }
+
+    // 发布者侧应有 2 条未读，帮助者自己发的不计入
+    const ownerList = await json(await request("/api/account/conversations", { headers: h(ownerToken) }));
+    assert.equal(ownerList.totalUnread, 2);
+    assert.equal(ownerList.conversations[0].unreadCount, 2);
+    const helperList = await json(await request("/api/account/conversations", { headers: h(helperToken) }));
+    assert.equal(helperList.totalUnread, 0, "自己发的消息不应计入自己的未读");
+
+    // 打开会话即清零
+    await request(`/api/account/conversations/${responseId}/messages`, { headers: h(ownerToken) });
+    const afterRead = await json(await request("/api/account/conversations", { headers: h(ownerToken) }));
+    assert.equal(afterRead.totalUnread, 0, "打开会话后未读应清零");
+
+    // 对方再发一条，未读重新出现
+    await request(`/api/account/conversations/${responseId}/messages`, {
+      method: "POST", headers: h(helperToken), body: JSON.stringify({ body: "出发了" }),
+    });
+    const again = await json(await request("/api/account/conversations", { headers: h(ownerToken) }));
+    assert.equal(again.totalUnread, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

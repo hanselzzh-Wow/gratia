@@ -1119,6 +1119,16 @@ export async function listConversationMessages(db: D1Database, responseId: strin
     .bind(responseId)
     .all<{ id: string; sender_user_id: string; body: string; created_at: number }>();
 
+  // 打开会话即视为读到最新一条：这是最自然的标记时机，
+  // 不需要客户端再单独调一次接口。
+  await db
+    .prepare(
+      "INSERT INTO conversation_reads (response_id, user_id, last_read_at) VALUES (?, ?, ?)\n" +
+      "ON CONFLICT(response_id, user_id) DO UPDATE SET last_read_at = excluded.last_read_at",
+    )
+    .bind(responseId, userId, Date.now())
+    .run();
+
   return {
     responseId,
     wishId: access.wish_id,
@@ -1217,12 +1227,18 @@ export async function listMyConversations(db: D1Database, userId: string) {
               (SELECT body FROM wish_messages m WHERE m.response_id = r.id AND m.deleted_at IS NULL
                  ORDER BY m.created_at DESC LIMIT 1) AS last_body,
               (SELECT created_at FROM wish_messages m WHERE m.response_id = r.id AND m.deleted_at IS NULL
-                 ORDER BY m.created_at DESC LIMIT 1) AS last_at
+                 ORDER BY m.created_at DESC LIMIT 1) AS last_at,
+              (SELECT COUNT(*) FROM wish_messages m
+                 WHERE m.response_id = r.id AND m.deleted_at IS NULL
+                   AND m.sender_user_id != ?
+                   AND m.created_at > COALESCE(
+                     (SELECT last_read_at FROM conversation_reads cr
+                       WHERE cr.response_id = r.id AND cr.user_id = ?), 0)) AS unread
        FROM wish_responses r JOIN wishes w ON w.id = r.wish_id
        WHERE w.user_id = ? OR r.user_id = ?
        ORDER BY COALESCE(last_at, r.created_at) DESC LIMIT 100`,
     )
-    .bind(userId, userId)
+    .bind(userId, userId, userId, userId)
     .all<{
       response_id: string;
       responder_name: string;
@@ -1237,6 +1253,7 @@ export async function listMyConversations(db: D1Database, userId: string) {
       owner_user_id: string | null;
       last_body: string | null;
       last_at: number | null;
+      unread: number;
     }>();
 
   // 被任一方拉黑的会话不再出现在列表里
@@ -1248,7 +1265,15 @@ export async function listMyConversations(db: D1Database, userId: string) {
     blocks.results.flatMap((row) => [row.blocker_user_id, row.blocked_user_id]).filter((id) => id !== userId),
   );
 
+  const visible = rows.results.filter((row) => {
+    const isOwner = row.owner_user_id === userId;
+    const counterpart = isOwner ? row.responder_user_id : row.owner_user_id;
+    return !counterpart || !blockedIds.has(counterpart);
+  });
+
   return {
+    // Dock 角标用的总未读数，避免客户端自己累加
+    totalUnread: visible.reduce((sum, row) => sum + Number(row.unread ?? 0), 0),
     conversations: rows.results
       .filter((row) => {
         const isOwner = row.owner_user_id === userId;
@@ -1269,6 +1294,7 @@ export async function listMyConversations(db: D1Database, userId: string) {
           counterpartName: isOwner ? row.responder_name : "发布者",
           lastMessage: row.last_body,
           lastMessageAt: row.last_at,
+          unreadCount: Number(row.unread ?? 0),
         };
       }),
   };

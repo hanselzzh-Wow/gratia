@@ -189,7 +189,7 @@ extension WishAPIClient: AccountAPIProtocol {
 
     // MARK: - 直连闭环
 
-    private struct ConversationsEnvelope: Codable { let conversations: [ConversationSummaryDTO] }
+    private struct ConversationsEnvelope: Codable { let conversations: [ConversationSummaryDTO]; let totalUnread: Int? }
     private struct ResponsesEnvelope: Codable { let responses: [OwnerResponseDTO] }
     private struct MessageEnvelope: Codable { let message: ChatMessageDTO }
     private struct StoriesEnvelope: Codable { let stories: [StoryDTO] }

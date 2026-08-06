@@ -42,6 +42,7 @@ struct ContentView: View {
     @StateObject private var publishViewModel: PublishWishViewModel
     @StateObject private var accountViewModel: AccountViewModel
     @StateObject private var filterState = StoryFilterState()
+    @StateObject private var unreadStore: UnreadStore
     private let apiClient: WishAPIProtocol
     private let accountAPIClient: AccountAPIProtocol
 
@@ -52,6 +53,7 @@ struct ContentView: View {
         let account = AccountViewModel(authAPI: client)
         _viewModel = StateObject(wrappedValue: WishListViewModel(apiClient: client))
         _accountViewModel = StateObject(wrappedValue: account)
+        _unreadStore = StateObject(wrappedValue: UnreadStore(accountAPI: client))
         // 发布通过闭包读取当前会话，避免把 token 复制进表单 ViewModel 长期持有。
         _publishViewModel = StateObject(wrappedValue: PublishWishViewModel(
             accountAPI: client,
@@ -124,6 +126,7 @@ struct ContentView: View {
                 .tabItem {
                     Image("TabMessage")
                 }
+                .badge(unreadStore.total)
                 .tag(Tab.messages)
                 .accessibilityLabel("私聊")
 
@@ -150,6 +153,16 @@ struct ContentView: View {
         .environmentObject(viewModel)
         .environmentObject(filterState)
         .environmentObject(accountViewModel)
+        .environmentObject(unreadStore)
+        // 未读角标随登录状态启停；退出登录后立即归零，不留旧数字。
+        .task(id: accountViewModel.isSignedIn) {
+            if accountViewModel.isSignedIn {
+                unreadStore.startPolling { accountViewModel.accessToken }
+            } else {
+                unreadStore.stopPolling()
+                await unreadStore.refresh(token: nil)
+            }
+        }
         .environment(\.wishAPIClient, apiClient)
         .environment(\.accountAPIClient, accountAPIClient)
     }

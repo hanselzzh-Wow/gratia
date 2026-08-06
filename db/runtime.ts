@@ -158,6 +158,13 @@ const schemaStatements = [
     created_at INTEGER NOT NULL,
     PRIMARY KEY (blocker_user_id, blocked_user_id)
   )`,
+  // 会话已读位置。同一会话有两个参与者，各自的已读进度互不相干。
+  `CREATE TABLE IF NOT EXISTS conversation_reads (
+    response_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    last_read_at INTEGER NOT NULL,
+    PRIMARY KEY (response_id, user_id)
+  )`,
 ] as const;
 
 async function addCompatibilityColumns(db: D1Database) {

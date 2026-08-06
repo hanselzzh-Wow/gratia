@@ -32,6 +32,7 @@
 		925BCCF3EFC1B9791A3BA582 /* WishListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5839488E244CE671E720CE8F /* WishListViewModelTests.swift */; };
 		93D16354C4FE7B6652E62F7B /* StoryFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCF307D9312D06426E08E89 /* StoryFeed.swift */; };
 		9919FBEF7C156A3000BD3647 /* GratiaCore in Frameworks */ = {isa = PBXBuildFile; productRef = 06F32FD69253B2EE0DBF49A7 /* GratiaCore */; };
+		B27928214F177A8822734E69 /* UnreadStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E45B738FB1B3A968B3E0CC5F /* UnreadStore.swift */; };
 		B2BED8AC974761E66283F3CC /* DeliveryPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 219E130EB02AFF224A486806 /* DeliveryPreviewView.swift */; };
 		CB00A9981798886EB38DBACD /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09CC6A62D3BF41E1747BC893 /* SearchView.swift */; };
 		CB15F0F28EB1937AD1357F72 /* PublishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27A98F463E8A70126C14D6A /* PublishView.swift */; };
@@ -93,6 +94,7 @@
 		C868C46CB1E1DA7E38BE3DAF /* AccountAPIDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountAPIDefaults.swift; sourceTree = "<group>"; };
 		D52E7A0A9E533CD1D6639EB1 /* GratiaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GratiaApp.swift; sourceTree = "<group>"; };
 		E293CB61121C6103E49CAA85 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
+		E45B738FB1B3A968B3E0CC5F /* UnreadStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnreadStore.swift; sourceTree = "<group>"; };
 		EDCF307D9312D06426E08E89 /* StoryFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryFeed.swift; sourceTree = "<group>"; };
 		F82C42C243F0C04E5113F5FB /* Gratia.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gratia.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -140,6 +142,7 @@
 				2A97A30DFD6F668F1CFA31A4 /* StoryFeedViewModel.swift */,
 				49D0426049FB3FBE7155C46D /* SwiftUI+Compat.swift */,
 				53DBF5E9E41DBD4BC73D8496 /* TrackWishViewModel.swift */,
+				E45B738FB1B3A968B3E0CC5F /* UnreadStore.swift */,
 				1AF7E5D59FD3A6B2900953D7 /* WishListViewModel.swift */,
 				14F3360BE51627B3FE2F5148 /* WishResponseViewModel.swift */,
 				3528044807049C92C219ED7B /* InfoPlist.strings */,
@@ -304,6 +307,7 @@
 				53F2BAD7C44C477B7114CE3B /* StoryFeedViewModel.swift in Sources */,
 				D4A55551B8948B45E05DBEB0 /* SwiftUI+Compat.swift in Sources */,
 				5432C543EB8E7E0D7BBA860F /* TrackWishViewModel.swift in Sources */,
+				B27928214F177A8822734E69 /* UnreadStore.swift in Sources */,
 				06BD0DA0CF7CC9DFE19FE16D /* WishListViewModel.swift in Sources */,
 				56D705D597162DD2036787D7 /* WishResponseViewModel.swift in Sources */,
 			);
