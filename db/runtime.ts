@@ -127,6 +127,37 @@ const schemaStatements = [
   "CREATE INDEX IF NOT EXISTS wish_responses_wish_created_idx ON wish_responses(wish_id, created_at)",
   "CREATE UNIQUE INDEX IF NOT EXISTS account_identities_provider_subject_unique ON account_identities(provider, provider_subject)",
   "CREATE INDEX IF NOT EXISTS account_sessions_user_expires_idx ON account_sessions(user_id, expires_at)",
+  `CREATE TABLE IF NOT EXISTS wish_messages (
+    id TEXT PRIMARY KEY NOT NULL,
+    wish_id TEXT NOT NULL,
+    response_id TEXT NOT NULL,
+    sender_user_id TEXT NOT NULL,
+    body TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    deleted_at INTEGER,
+    FOREIGN KEY (wish_id) REFERENCES wishes(id) ON DELETE CASCADE,
+    FOREIGN KEY (response_id) REFERENCES wish_responses(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`,
+  "CREATE INDEX IF NOT EXISTS wish_messages_response_created_idx ON wish_messages(response_id, created_at)",
+  `CREATE TABLE IF NOT EXISTS abuse_reports (
+    id TEXT PRIMARY KEY NOT NULL,
+    reporter_user_id TEXT NOT NULL,
+    wish_id TEXT,
+    response_id TEXT,
+    reported_user_id TEXT,
+    reason TEXT NOT NULL,
+    detail TEXT,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_at INTEGER NOT NULL
+  )`,
+  "CREATE INDEX IF NOT EXISTS abuse_reports_status_created_idx ON abuse_reports(status, created_at)",
+  `CREATE TABLE IF NOT EXISTS user_blocks (
+    blocker_user_id TEXT NOT NULL,
+    blocked_user_id TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (blocker_user_id, blocked_user_id)
+  )`,
 ] as const;
 
 async function addCompatibilityColumns(db: D1Database) {
@@ -164,6 +195,27 @@ async function addCompatibilityColumns(db: D1Database) {
   const responseColumns = await db.prepare("PRAGMA table_info(wish_responses)").all<{ name: string }>();
   if (!responseColumns.results.some((column) => column.name === "user_id")) {
     await db.prepare("ALTER TABLE wish_responses ADD COLUMN user_id TEXT").run();
+  }
+  // 帮助者响应时的内容授权记录：选择帮助即同意其提交的文字与影像由需求方
+  // 支配，包括公开分享的权利。
+  if (!responseColumns.results.some((column) => column.name === "content_license_agreed_at")) {
+    await db.prepare("ALTER TABLE wish_responses ADD COLUMN content_license_agreed_at INTEGER").run();
+  }
+
+  // 一次「完成帮助」可含一段文字与最多 9 个文件，同组共享 group_id 并按 position 排序。
+  if (!deliverableColumns.results.some((column) => column.name === "group_id")) {
+    await db.prepare("ALTER TABLE deliverables ADD COLUMN group_id TEXT").run();
+  }
+  if (!deliverableColumns.results.some((column) => column.name === "position")) {
+    await db.prepare("ALTER TABLE deliverables ADD COLUMN position INTEGER NOT NULL DEFAULT 0").run();
+  }
+
+  // 故事公开由需求方在完成后单独决定，默认不公开。
+  if (!wishColumns.results.some((column) => column.name === "story_published_at")) {
+    await db.prepare("ALTER TABLE wishes ADD COLUMN story_published_at INTEGER").run();
+  }
+  if (!wishColumns.results.some((column) => column.name === "story_nickname")) {
+    await db.prepare("ALTER TABLE wishes ADD COLUMN story_nickname TEXT").run();
   }
 
   await db.batch([

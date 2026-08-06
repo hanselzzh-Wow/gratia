@@ -860,3 +860,150 @@ export async function getWishHealth(db: D1Database) {
   const row = await db.prepare("SELECT COUNT(*) AS count FROM wishes").first<{ count: number }>();
   return { database: "ready" as const, wishCount: Number(row?.count ?? 0) };
 }
+
+// MARK: - 发布者与帮助者之间的直接闭环
+//
+// 此前选人与上传交付都必须经过运营，这意味着运营是唯一同时持有双方联系
+// 方式的一方，反而成了最大的隐私暴露面。以下三个函数让发布者在应用内直接
+// 选定帮助者、帮助者直接上传交付；运营只保留公开内容的初审。
+
+/// 发布者查看自己心愿收到的响应。**刻意不返回响应者联系方式**——
+/// 站内既然能选人和交付，发布者就没有理由拿到对方的微信或手机号。
+export async function listResponsesForOwner(db: D1Database, wishId: string, ownerUserId: string) {
+  await ensureWishSchema(db);
+  const wish = await db
+    .prepare("SELECT id, user_id, status FROM wishes WHERE id = ? LIMIT 1")
+    .bind(wishId)
+    .first<{ id: string; user_id: string | null; status: WishStatus }>();
+  if (!wish || wish.user_id !== ownerUserId) throw new WishWorkflowError("未找到该心愿", 404);
+
+  const rows = await db
+    .prepare(
+      "SELECT id, responder_name, note, status, created_at FROM wish_responses WHERE wish_id = ? ORDER BY created_at ASC LIMIT 100",
+    )
+    .bind(wishId)
+    .all<{ id: string; responder_name: string; note: string | null; status: string; created_at: number }>();
+
+  return {
+    wishStatus: wish.status,
+    responses: rows.results.map((row) => ({
+      id: row.id,
+      responderName: row.responder_name,
+      note: row.note,
+      status: row.status,
+      createdAt: row.created_at,
+    })),
+  };
+}
+
+/// 发布者选定一位帮助者：该响应置为 selected，其余置为 declined，
+/// 同时建立派单记录并把心愿推进到 in_progress，使后续交付无需运营介入。
+export async function selectResponderForOwner(
+  db: D1Database,
+  wishId: string,
+  responseId: string,
+  ownerUserId: string,
+) {
+  await ensureWishSchema(db);
+  const row = await getAdminWishRow(db, wishId);
+  if (!row || row.user_id !== ownerUserId) throw new WishWorkflowError("未找到该心愿", 404);
+  const wish = toAdminWish(row);
+  requireStatus(wish, ["matching"]);
+
+  const response = await db
+    .prepare("SELECT * FROM wish_responses WHERE id = ? AND wish_id = ? LIMIT 1")
+    .bind(responseId, wishId)
+    .first<WishResponseRow>();
+  if (!response) throw new WishWorkflowError("未找到该响应", 404);
+
+  const now = Date.now();
+  const result = await db.batch([
+    db
+      .prepare(
+        "UPDATE wishes SET status = 'in_progress', updated_at = ? WHERE id = ? AND status = 'matching' AND user_id = ?",
+      )
+      .bind(now, wishId, ownerUserId),
+    db
+      .prepare("UPDATE wish_responses SET status = 'selected', updated_at = ? WHERE id = ? AND wish_id = ?")
+      .bind(now, responseId, wishId),
+    db
+      .prepare("UPDATE wish_responses SET status = 'declined', updated_at = ? WHERE wish_id = ? AND id != ?")
+      .bind(now, wishId, responseId),
+    db
+      .prepare(
+        "INSERT INTO assignments (id, wish_id, provider_id, provider_name, provider_contact, status, note, created_at, updated_at) VALUES (?, ?, NULL, ?, ?, 'accepted', NULL, ?, ?)",
+      )
+      .bind(crypto.randomUUID(), wishId, response.responder_name, response.responder_contact, now, now),
+    db
+      .prepare(
+        "INSERT INTO wish_events (wish_id, event_type, from_status, to_status, actor, note, created_at) VALUES (?, 'requester_selected_responder', 'matching', 'in_progress', 'requester', NULL, ?)",
+      )
+      .bind(wishId, now),
+  ]);
+  if ((result[0].meta.changes ?? 0) !== 1) {
+    throw new WishWorkflowError("心愿状态刚刚发生变化，请刷新后重试", 409);
+  }
+
+  const updated = await getAdminWishRow(db, wishId);
+  if (!updated) throw new WishWorkflowError("更新后未找到心愿", 500);
+  return toPublicWish(updated);
+}
+
+/// 被选中的帮助者直接上传交付。授权依据是"本人是该心愿被选中的响应者"，
+/// 不需要运营密钥；上传后心愿进入 delivered，由发布者确认完成。
+export async function recordResponderDeliverable(
+  db: D1Database,
+  wishId: string,
+  responderUserId: string,
+  upload: { deliverableId: string; storageKey: string; accessToken: string; url: string; note?: string },
+) {
+  await ensureWishSchema(db);
+  const response = await db
+    .prepare("SELECT * FROM wish_responses WHERE wish_id = ? AND user_id = ? AND status = 'selected' LIMIT 1")
+    .bind(wishId, responderUserId)
+    .first<WishResponseRow>();
+  if (!response) throw new WishWorkflowError("你不是该心愿被选中的帮助者", 403);
+
+  const row = await getAdminWishRow(db, wishId);
+  if (!row) throw new WishWorkflowError("未找到该心愿", 404);
+  const wish = toAdminWish(row);
+  requireStatus(wish, ["in_progress"]);
+  if (!wish.assignment) throw new WishWorkflowError("该心愿还没有派单记录", 409);
+
+  const now = Date.now();
+  const result = await db.batch([
+    db
+      .prepare("UPDATE wishes SET status = 'delivered', updated_at = ? WHERE id = ? AND status = 'in_progress'")
+      .bind(now, wishId),
+    db
+      .prepare("UPDATE assignments SET status = 'delivered', delivered_at = ?, updated_at = ? WHERE id = ?")
+      .bind(now, now, wish.assignment.id),
+    db
+      .prepare(
+        "INSERT INTO deliverables (id, wish_id, assignment_id, kind, url, storage_key, access_token, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+      .bind(
+        upload.deliverableId,
+        wishId,
+        wish.assignment.id,
+        wish.deliveryType,
+        upload.url,
+        upload.storageKey,
+        upload.accessToken,
+        upload.note ?? null,
+        now,
+      ),
+    db
+      .prepare(
+        "INSERT INTO wish_events (wish_id, event_type, from_status, to_status, actor, note, created_at) VALUES (?, 'responder_delivered', 'in_progress', 'delivered', 'responder', NULL, ?)",
+      )
+      .bind(wishId, now),
+  ]);
+  if ((result[0].meta.changes ?? 0) !== 1) {
+    throw new WishWorkflowError("心愿状态刚刚发生变化，请刷新后重试", 409);
+  }
+
+  const updated = await getAdminWishRow(db, wishId);
+  if (!updated) throw new WishWorkflowError("更新后未找到心愿", 500);
+  return toPublicWish(updated);
+}

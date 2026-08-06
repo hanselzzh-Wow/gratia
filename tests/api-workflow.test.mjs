@@ -544,3 +544,113 @@ test("does not mint a WeChat account session until server-only credentials are c
   assert.equal(response.status, 503);
   assert.equal((await json(response)).error, "微信登录暂未配置，请稍后重试");
 });
+
+test("lets the requester pick a helper and the helper deliver, with no operator in the middle", async () => {
+  const { request, env } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "test-app-id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "test-app-secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) =>
+    Response.json({ openid: `openid-${new URL(String(url)).searchParams.get("js_code")}` });
+
+  try {
+    const login = async (code) => {
+      const response = await request("/api/auth/wechat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      assert.equal(response.status, 201);
+      return (await json(response)).token;
+    };
+
+    const requesterToken = await login("requester");
+    const helperToken = await login("helper");
+    const requesterHeaders = { "content-type": "application/json", authorization: `Bearer ${requesterToken}` };
+    const helperHeaders = { "content-type": "application/json", authorization: `Bearer ${helperToken}` };
+
+    // 发布 → 运营初审放行（公开内容仍需人工审核）
+    const created = await json(
+      await request("/api/account/wishes", {
+        method: "POST",
+        headers: requesterHeaders,
+        body: JSON.stringify({
+          requesterName: "发布者",
+          contact: "requester-contact",
+          city: "杭州",
+          landmark: "西湖断桥",
+          occasion: "生日祝福",
+          message: "请替我在断桥说一声生日快乐。",
+          deliveryType: "spoken_video",
+          deadlineText: "本周内",
+          rewardFen: 0,
+          contactConsent: true,
+        }),
+      }),
+    );
+    const wishId = created.wish.id;
+    const approved = await request(`/api/admin/wishes/${wishId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", "x-admin-key": "test-admin-pin" },
+      body: JSON.stringify({ action: "approve" }),
+    });
+    assert.equal(approved.status, 200);
+    assert.equal((await json(approved)).wish.status, "matching");
+
+    // 帮助者报名
+    const responded = await request(`/api/account/wishes/${wishId}/responses`, {
+      method: "POST",
+      headers: helperHeaders,
+      body: JSON.stringify({ responderName: "帮助者", responderContact: "helper-contact", note: "我就在附近", contactConsent: true }),
+    });
+    assert.equal(responded.status, 201);
+
+    // 发布者看到响应，且拿不到对方联系方式
+    const listed = await json(await request(`/api/account/wishes/${wishId}/responses`, { headers: requesterHeaders }));
+    assert.equal(listed.responses.length, 1);
+    assert.equal(listed.responses[0].responderName, "帮助者");
+    assert.ok(!("responderContact" in listed.responses[0]), "发布者不应拿到响应者联系方式");
+    assert.ok(!JSON.stringify(listed).includes("helper-contact"));
+
+    // 发布者选定帮助者
+    const responseId = listed.responses[0].id;
+    const selected = await request(`/api/account/wishes/${wishId}/responses/${responseId}/select`, {
+      method: "POST",
+      headers: requesterHeaders,
+    });
+    assert.equal(selected.status, 200);
+    assert.equal((await json(selected)).wish.status, "in_progress");
+
+    // 未被选中的人不能上传
+    const strangerToken = await login("stranger");
+    const strangerUpload = new FormData();
+    strangerUpload.append("file", new File([new Uint8Array([1, 2, 3])], "a.jpg", { type: "image/jpeg" }));
+    const refused = await request(`/api/account/wishes/${wishId}/deliverable`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${strangerToken}` },
+      body: strangerUpload,
+    });
+    assert.equal(refused.status, 403);
+
+    // 被选中的帮助者直接上传交付，全程不需要运营密钥
+    const form = new FormData();
+    form.append("file", new File([new Uint8Array([1, 2, 3, 4])], "delivery.jpg", { type: "image/jpeg" }));
+    const uploaded = await request(`/api/account/wishes/${wishId}/deliverable`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${helperToken}` },
+      body: form,
+    });
+    assert.equal(uploaded.status, 201);
+    assert.equal((await json(uploaded)).wish.status, "delivered");
+
+    // 发布者确认完成
+    const completed = await request(`/api/account/wishes/${wishId}/complete`, {
+      method: "POST",
+      headers: requesterHeaders,
+    });
+    assert.equal(completed.status, 200);
+    assert.equal((await json(completed)).wish.status, "completed");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

@@ -3,6 +3,8 @@
 最后更新：2026-07-19（Asia/Shanghai）｜维护者：Codex PM
 
 > 新会话先读本文件、`AGENTS.md`、`.ai/WRITE_FREEZE.md` 与 `.ai/TASKS.md`；只读工作不必通读长日志。开始写入前仍须核对 Git/worktree 现状。`PROJECT_LOG.md` 是可追溯事实记录，只有需要历史证据、验收细节或冲突裁决时再按需查阅。
+>
+> **完成一个有意义的迭代后，必须在 [`docs/iteration-log.md`](docs/iteration-log.md) 追加一条记录**（处境 → 决策与理由 → 结果 → 未验证项）。它面向复盘与对外讲述，与 `PROJECT_LOG.md` 的验收证据分工不同，两者都要写。规则见 `AGENTS.md`。
 
 ## 当前持久 Goal
 

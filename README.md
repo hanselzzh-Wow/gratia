@@ -4,6 +4,8 @@
 
 新会话或新 AI 请先阅读短的 [PROJECT_MEMORY.md](PROJECT_MEMORY.md)：它包含当前目标、硬约束、活跃任务、阻塞与恢复顺序。完整的历史、验收证据与逐步工作记录维护在 [PROJECT_LOG.md](PROJECT_LOG.md)，需要追溯时再按需查阅。
 
+产品是怎么一步步变成现在这样的、每次转向背后的取舍，见[迭代记录](docs/iteration-log.md)。**完成一个有意义的迭代后必须在那里追加一条**，规则见 [AGENTS.md](AGENTS.md)。
+
 原生客户端的页面结构、视觉方向和 UI 设计师交付要求见 [iOS UI 设计任务书](docs/ios-ui-design-brief.md)。
 
 ## 线上环境

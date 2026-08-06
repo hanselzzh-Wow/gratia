@@ -22,6 +22,9 @@ import {
   getStoredDeliverable,
   getAccountDeliverable,
   listAccountActivity,
+  listResponsesForOwner,
+  selectResponderForOwner,
+  recordResponderDeliverable,
   completeWishForOwner,
   recordUploadedDeliverable,
   trackWish,
@@ -351,6 +354,69 @@ async function handleWishApi(request: Request, env: Env) {
       const user = await requireAccount(request, env);
       const wish = await completeWishForOwner(env.DB, decodeURIComponent(accountCompletionMatch[1]), user.id);
       return json(request, env, { wish });
+    }
+
+    // 发布者查看本人心愿收到的响应（不含响应者联系方式）
+    const ownerResponsesMatch = url.pathname.match(/^\/api\/account\/wishes\/([^/]+)\/responses$/);
+    if (ownerResponsesMatch && request.method === "GET") {
+      const user = await requireAccount(request, env);
+      return json(request, env, await listResponsesForOwner(env.DB, decodeURIComponent(ownerResponsesMatch[1]), user.id));
+    }
+
+    // 发布者选定一位帮助者，心愿进入进行中，后续交付无需运营介入
+    const selectResponderMatch = url.pathname.match(
+      /^\/api\/account\/wishes\/([^/]+)\/responses\/([^/]+)\/select$/,
+    );
+    if (selectResponderMatch && request.method === "POST") {
+      const user = await requireAccount(request, env);
+      await enforceRateLimit(request, env, "account_select_responder", 30, 60 * 60_000);
+      const wish = await selectResponderForOwner(
+        env.DB,
+        decodeURIComponent(selectResponderMatch[1]),
+        decodeURIComponent(selectResponderMatch[2]),
+        user.id,
+      );
+      return json(request, env, { wish });
+    }
+
+    // 被选中的帮助者直接上传交付。授权依据是账号会话而非运营密钥。
+    const responderUploadMatch = url.pathname.match(/^\/api\/account\/wishes\/([^/]+)\/deliverable$/);
+    if (responderUploadMatch && request.method === "POST") {
+      const user = await requireAccount(request, env);
+      if (!env.UPLOADS) return json(request, env, { error: "文件存储尚未配置" }, 503);
+      await enforceRateLimit(request, env, "responder_upload", 20, 60 * 60_000);
+      const form = await request.formData();
+      const file = form.get("file");
+      if (!(file instanceof File) || file.size === 0) {
+        return json(request, env, { error: "请选择要交付的照片或视频" }, 400);
+      }
+      if (file.size > maxUploadBytes) {
+        return json(request, env, { error: "文件不能超过 25MB" }, 413);
+      }
+      if (!allowedUploadTypes.has(file.type)) {
+        return json(request, env, { error: "仅支持 JPG、PNG、WebP、MP4、WebM 或 MOV" }, 415);
+      }
+      const wishId = decodeURIComponent(responderUploadMatch[1]);
+      const deliverableId = crypto.randomUUID();
+      const accessToken = crypto.randomUUID().replace(/-/g, "");
+      const storageKey = `deliveries/${wishId}/${deliverableId}-${safeFilename(file.name)}`;
+      await env.UPLOADS.put(storageKey, file.stream(), {
+        httpMetadata: { contentType: file.type },
+      });
+      try {
+        const wish = await recordResponderDeliverable(env.DB, wishId, user.id, {
+          deliverableId,
+          storageKey,
+          accessToken,
+          url: `/api/deliverables/${deliverableId}?token=${accessToken}`,
+          note: typeof form.get("note") === "string" ? String(form.get("note")) : undefined,
+        });
+        return json(request, env, { wish }, 201);
+      } catch (error) {
+        // 记录失败就不要留下孤儿文件
+        await env.UPLOADS.delete(storageKey).catch(() => {});
+        throw error;
+      }
     }
 
     const accountDeliveryMatch = url.pathname.match(/^\/api\/account\/wishes\/([^/]+)\/deliverable$/);
