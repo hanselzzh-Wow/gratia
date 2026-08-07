@@ -265,11 +265,15 @@ Apple 要求使用 Sign in with Apple 且支持账户删除的 App **必须在�
 3. 写两个 secret（这两条要自己跑，密钥不该经过第三方之手）：
 
 ```bash
-npx wrangler secret put APNS_KEY_ID    # 就是 Key ID，10 位，形如 ABCD123456
-npx wrangler secret put APNS_PRIVATE_KEY < ~/Developer/gratia-signing/apns.p8
+# 配置文件不在仓库根目录，必须用 -c 指出来，否则 wrangler 报「Required Worker name missing」
+npx wrangler secret put APNS_KEY_ID -c deploy/cloudflare/wrangler.jsonc
+npx wrangler secret put APNS_PRIVATE_KEY -c deploy/cloudflare/wrangler.jsonc \
+  < ~/Developer/gratia-signing/AuthKey_XXXXXXXXXX.p8
 ```
 
-`APPLE_TEAM_ID` 与 `APPLE_BUNDLE_ID` 已在 `wrangler.jsonc` 的 vars 里，不用另配。
+另外两项不用配：`APPLE_TEAM_ID` 早在配 Apple 令牌撤销时就已是 secret；`APPLE_BUNDLE_ID` 在 `worker/index.ts:242` 有默认值 `com.hanselzzh.gratia`。**它们都不在 `wrangler.jsonc` 的 vars 里**——那里只有 `PUBLIC_APP_ORIGIN` 和 `OPS_NOTIFY_EMAIL`。
+
+创建密钥时的两个选项：**Environment 必须选 `Sandbox & Production`**（只选 Sandbox 的话，TestFlight 与 App Store 的包一律推不出去，且错误表现为 `BadDeviceToken`，看不出是密钥环境问题）；Key Restriction 建议 `Topic Specific` 填 `com.hanselzzh.gratia`——密钥要放进 Worker secret，限定 topic 可以把泄露的影响面收在这一个 App 内，而推送请求本来就带着 `apns-topic`，不需要额外适配。
 
 ### 验证它真的通了
 
