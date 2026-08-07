@@ -17,7 +17,8 @@
 // 所以下面第 3 步会强制校验归档产物，校验不过就中断。
 
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -137,6 +138,31 @@ if (!entitlements.includes('aps-environment')) {
 }
 if (!/<key>aps-environment<\/key>\s*<string>production<\/string>/.test(entitlements)) {
   fail('产物的 aps-environment 不是 production，说明签名用的不是 App Store 描述文件。');
+}
+
+// 预设头像必须与源文件逐字节一致。服务端按 SHA-256 认出它们并免去人工审核，
+// 而 Xcode 默认会用 pngcrush 重新编码 target 里的 PNG——字节一变哈希就对不上，
+// 那 12 张图会全部掉回人工审核队列。不报错，只是用户按引导选了头像，
+// 别人看到的依然是灰色人像。工程里靠 folder reference 规避，这里守住它。
+const presetSource = join(IOS, 'Gratia', 'PresetAvatars');
+if (existsSync(presetSource)) {
+  const sha = (path) => createHash('sha256').update(readFileSync(path)).digest('hex');
+  const names = readdirSync(presetSource).filter((name) => name.endsWith('.png'));
+  if (!names.length) fail('找不到预设头像源文件');
+  for (const name of names) {
+    const inApp = join(app, 'PresetAvatars', name);
+    if (!existsSync(inApp)) {
+      fail(`产物里缺少预设头像 ${name}——PresetAvatars 可能不再是 folder reference。`);
+    }
+    if (sha(inApp) !== sha(join(presetSource, name))) {
+      fail(
+        `预设头像 ${name} 在打包过程中被重新编码，与源文件不一致。\n` +
+          '服务端按内容哈希免审，这样打出来的包会让预设头像全部退回人工审核。\n' +
+          '检查 ios/project.yml 里 Gratia/PresetAvatars 是否仍是 type: folder。',
+      );
+    }
+  }
+  console.log(`  ✓ ${names.length} 张预设头像与源文件逐字节一致`);
 }
 
 const built = run('plutil', ['-extract', 'CFBundleVersion', 'raw', join(app, 'Info.plist')]).trim();
