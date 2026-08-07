@@ -23,7 +23,8 @@
     }
   ],
   "vars": {
-    "PUBLIC_APP_ORIGIN": "https://hanselzzh-wow.github.io"
+    "PUBLIC_APP_ORIGIN": "https://hanselzzh-wow.github.io",
+    "OPS_NOTIFY_EMAIL": "hansel.zzh@gmail.com"
   },
   "triggers": {
     "crons": ["*/15 * * * *"]
