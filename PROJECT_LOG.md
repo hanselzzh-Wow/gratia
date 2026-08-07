@@ -1015,3 +1015,15 @@ Cloudflare Worker API
 - 实测验证：模拟器切至系统暗色，进入发布页地点输入框输入文本后截图，输入框区域最暗像素值 24（近黑），深色像素占比 1.73%，文字在浅底上清晰可见。验证后已还原模拟器外观为 light。
 - iOS 41/41 通过。
 - 未验证且不得误报：**昵称输入框未单独在设备上验证**——该界面需登录后进入，模拟器无法完成 Sign in with Apple。验证走的是同一修复模式下的地点输入框；昵称框的代码改动与之完全一致，且已被 `.preferredColorScheme(.light)` 覆盖。本轮未打新构建，TestFlight 上仍为构建 8。
+
+## 2026-08-07｜国内网络无法使用：迁移到自定义域名 api.hanselzhang.com
+
+- 产品负责人报告：国内网络环境（不挂代理）无法登录。排查确认根因为 iOS 端 API 基址使用 `haluowode-mvp.hanselzzh.workers.dev`——`*.workers.dev` 是 Cloudflare 共享测试子域，在中国大陆被整体污染。**影响范围远超登录**：iOS 端全部 API 走此单一域名，浏览、发布、私聊、交付一并失效。
+- 一并记录一处方法论问题：本机配置了代理（wrangler 每次输出 `Proxy environment variables detected`），此前所有线上验证——健康检查、头像 200、邮件送达——**均在代理环境下完成，不能代表国内直连情况**。本机 `dig` 亦被代理接管（`hansel.zhang.com` 解析到 RFC 保留段 `198.18.0.4`），后续 DNS 判断改用 Google DoH 绕过。
+- 域名核查：`hanselzhang.com`，注册商 DNSPod（腾讯），注册于 2026-05-18；原 NS 为 `chestnut/composer.dnspod.net`；DNS 记录仅两条（A → `76.76.21.21` Vercel、www CNAME → `cname.vercel-dns.com`），无 MX、无 TXT，迁移风险低。未备案。
+- 产品负责人已在 Cloudflare 完成 Connect a domain（非 Transfer，注册关系保留在腾讯云，以免影响将来 ICP 备案），并在 DNSPod 将 NS 改为 `augustus/eleanor.ns.cloudflare.com`。实测 NS 于 2026-08-07T05:49:44Z 在注册局生效，zone 状态 `active`；两条原记录均以 DNS only（灰云）迁移，避免 Cloudflare 代理干扰 Vercel。
+- 已通过 API 绑定 Custom Domain：`api.hanselzhang.com` → Worker `haluowode-mvp`，证书自动签发。实测 `https://api.hanselzhang.com/api/health` 返回 200 `{"ok":true,"service":"gratia-wishes","database":"ready","wishCount":4}`。旧 workers.dev 地址保留未删，可随时对照回退。
+- iOS 端基址改为 `WishAPIClient.productionBaseURL = https://api.hanselzhang.com`。全仓库确认无其他 workers.dev 引用；`AccountAPIProtocol` 系 `WishAPIClient` 的扩展，仅此一个客户端类、一处基址。
+- 构建 9 已打包上传，产物校验通过（Apple Distribution / HH9LKGK7DA / applesignin / build 9）。`CURRENT_PROJECT_VERSION` 已推进至 10。
+- 一处需纠正的中途误判：查询 zone 的 DNS 记录返回空列表，一度以为记录未迁移、网站已中断；实为 wrangler OAuth 令牌无 DNS 读权限（HTTP 403，首次查询未检查 `success` 字段）。实测解析与 HTTP 307 均正常，网站未受影响。
+- 未验证且不得误报：**新域名在国内直连环境下的可达性未经实测**——本机始终经代理，无法验证。需产品负责人在国内网络关闭代理后实测。另：Cloudflare 免费版在国内无节点，即使可达也是国际线路，延迟与丢包不佳；根本解决需 ICP 备案 + 境内服务器。构建 9 的 Beta 审核尚未提交，构建 8 仍处 `WAITING_FOR_REVIEW`。

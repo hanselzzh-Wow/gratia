@@ -8,10 +8,24 @@ public protocol WishAPIProtocol: Sendable {
 }
 
 public final class WishAPIClient: WishAPIProtocol {
+    /// 生产 API 地址。
+    ///
+    /// **不要改回 `*.workers.dev`。** 那是 Cloudflare 的共享测试子域，在中国大陆
+    /// 被整体污染。国内直连（不挂代理）时全部 API 都连不上——不只是登录，
+    /// 浏览、发布、私聊一起失效，App 等于一个空壳。
+    ///
+    /// `api.hanselzhang.com` 绑在同一个 Worker 上（Cloudflare Custom Domain，
+    /// 证书自动签发），走正常 anycast IP，国内可达。它解决的是「连不上」而不是
+    /// 「快」：Cloudflare 免费版在国内没有节点，走国际线路，延迟与丢包都不理想。
+    /// 要快只能走 ICP 备案 + 境内服务器，那是另一件事。
+    ///
+    /// 旧的 workers.dev 地址没有删除，仍然指向同一个 Worker，出问题可随时对照。
+    public static let productionBaseURL = URL(string: "https://api.hanselzhang.com")!
+
     private let baseURL: URL
     private let transport: HTTPTransport
 
-    public init(baseURL: URL = URL(string: "https://haluowode-mvp.hanselzzh.workers.dev")!, transport: HTTPTransport = URLSessionTransport()) {
+    public init(baseURL: URL = WishAPIClient.productionBaseURL, transport: HTTPTransport = URLSessionTransport()) {
         self.baseURL = baseURL
         self.transport = transport
     }
