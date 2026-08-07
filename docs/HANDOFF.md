@@ -1,6 +1,6 @@
 # 哈喽卧得 / Gratia 交接文档
 
-最后更新：2026-08-06　｜　分支：`appstore/1.0`
+最后更新：2026-08-07　｜　分支：`appstore/1.0`
 
 > 接手前请依次读：本文件 → [`docs/iteration-log.md`](iteration-log.md)（为什么变成现在这样）→ [`AGENTS.md`](../AGENTS.md)（协作与记录规则）。
 > `PROJECT_LOG.md` 是只追加的验收证据，需要追溯具体结论时再查。
@@ -20,18 +20,21 @@ App 内**不涉及任何金额**，**不收集任何联系方式**。
 | | 状态 |
 | --- | --- |
 | 分支 | `appstore/1.0`（`main` 停在 2026-07-20，不再是实现来源） |
-| 生产 API | `https://haluowode-mvp.hanselzzh.workers.dev` 运行中 |
+| 生产 API | **`https://api.hanselzhang.com`**（自定义域名，国内可达） |
+| 旧地址 | `https://haluowode-mvp.hanselzzh.workers.dev` 仍指向同一 Worker，保留备查 |
 | 数据库迁移 | `0000`–`0010` 全部已应用 |
-| 运营台 | `https://hanselzzh-wow.github.io/ops/` |
+| 运营台 | `https://hanselzzh-wow.github.io/ops/`（有待审内容会自动发邮件提醒） |
 | 法务页面 | `/legal/privacy/`、`/legal/terms/` 已公开 |
-| Apple 令牌撤销 | **已端到端验证通过**（2026-08-06） |
-| TestFlight | 构建 7 已上传并 VALID（含地点搜索改动） |
-| 后端测试 | 30/30 |
-| iOS 测试 | 41/41 |
+| Apple 令牌撤销 | 已端到端验证通过 |
+| TestFlight | 构建 10 已提交 Beta 审核；公开链接 `https://testflight.apple.com/join/ftyuGZ8n`（审核通过后生效，上限 100 人） |
+| 后端测试 | 37/37 |
+| iOS 测试 | 49/49 |
 
-### 下一个构建号是 7
+### 构建号：下一个可用是 11
 
-构建 1–6 已被 App Store Connect 占用，构建号不能复用。`ios/project.yml` 的 `CURRENT_PROJECT_VERSION` 已置为 7，打包前不必再改；**上传成功后要立刻加一**。
+构建 1–10 已被 App Store Connect 占用，构建号不能复用。`ios/project.yml` 的 `CURRENT_PROJECT_VERSION` 已置为 11；`scripts/ios-release.mjs` 会在归档前先核对有没有撞号。**上传成功后要立刻加一。**
+
+> **同一时间只能有一个构建在 Beta 审核中。** 已提交的审核**无法通过 API 撤销**（`betaAppReviewSubmissions` 只允许 CREATE/GET），要换构建送审只能先在 App Store Connect 网页上停掉当前那个，否则提交会被 422「Another build in the same train is already in beta review」挡回。
 
 核实当前已占用的构建号（`xcrun altool` 在 Xcode 26 已没有列出构建的子命令，故直接调 API）：
 
@@ -76,7 +79,7 @@ cd ios && ../.tools/xcodegen/xcodegen/bin/xcodegen generate --spec project.yml
 | 后端 lint | `npm run lint` |
 | 部署（含迁移） | `npm run deploy:cloudflare` |
 | 部署预演 | `npm run deploy:cloudflare:dry-run`（不接触 Cloudflare） |
-| 生成网站产物 | `npm run build:github-pages -- https://haluowode-mvp.hanselzzh.workers.dev` |
+| 生成网站产物 | `npm run build:github-pages -- https://api.hanselzhang.com` |
 | 生成法务页面 | `node scripts/build-legal-pages.mjs` |
 | 查已占用的构建号 | `node scripts/asc-builds.mjs` |
 | 打并上传 iOS 构建 | `node scripts/ios-release.mjs --upload`（见第九节） |
@@ -102,6 +105,8 @@ cd ios && ../.tools/xcodegen/xcodegen/bin/xcodegen generate --spec project.yml
 | App Store Connect API | `~/Documents/哈喽卧得-降级前备份/AuthKey_${ASC_KEY_ID}.p8` | 构建上传、TestFlight 管理 |
 | Cloudflare | `wrangler login` 的 OAuth 令牌（本机 keyring） | 部署 |
 | GitHub | `gh auth login`（本机 keyring） | 发布运营台与法务页面 |
+| iOS 分发证书与私钥 | `~/Developer/gratia-signing/`（仓库外，权限 700） | 打包签名，见第九节 |
+| 待审提醒邮件 | Worker secret `RESEND_API_KEY` | 运营台待审提醒，见第七节 |
 
 **关键标识**（这些不是机密）：
 
@@ -113,7 +118,11 @@ ASC Key ID         ${ASC_KEY_ID}
 ASC Issuer ID      ${ASC_ISSUER_ID}
 D1 数据库          haluowode-mvp-db
 Worker             haluowode-mvp
+API 域名           api.hanselzhang.com（Cloudflare Custom Domain）
+域名注册商         DNSPod（腾讯），NS 已托管到 Cloudflare
 ```
+
+> **API 域名不能改回 `*.workers.dev`。** 那是 Cloudflare 共享测试子域，在中国大陆被整体污染，国内直连时**全部** API 都连不上——不只是登录，浏览、发布、私聊一起失效。2026-08-07 迁到 `api.hanselzhang.com` 后国内实测可用。注意它只解决「连不上」，不解决「慢」：Cloudflare 免费版在国内没有节点，走国际线路。要快只能 ICP 备案 + 境内服务器（该域名**尚未备案**）。
 
 > **生产资源名保留 `haluowode-` 前缀是刻意的。** `scripts/deploy-cloudflare.mjs:61` 会用 Worker 名推导 D1 库名（`${name}-db`），改名等于一次数据迁移。品牌名与基础设施标识是两件事。
 
