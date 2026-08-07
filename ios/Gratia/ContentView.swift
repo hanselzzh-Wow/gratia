@@ -45,6 +45,7 @@ struct ContentView: View {
     @StateObject private var unreadStore: UnreadStore
     @ObservedObject private var pushRegistrar = PushRegistrar.shared
     @Environment(\.scenePhase) private var scenePhase
+    @State private var needsProfileSetup = false
     private let apiClient: WishAPIProtocol
     private let accountAPIClient: AccountAPIProtocol
 
@@ -163,10 +164,19 @@ struct ContentView: View {
                 // 令牌可能在登录之前就拿到了（先允许通知、后登录）。
                 // 这一次补报是那条路径唯一的上报时机。
                 await pushRegistrar.uploadIfPossible()
+                await checkProfileSetup()
             } else {
                 unreadStore.stopPolling()
+                needsProfileSetup = false
                 await unreadStore.refresh(token: nil)
             }
+        }
+        // 首次设置不能跳过，所以用 fullScreenCover 而不是 sheet——
+        // sheet 即使关掉了交互式下拉，顶部仍留着可下拉的观感。
+        .fullScreenCover(isPresented: $needsProfileSetup) {
+            ProfileSetupSheet { needsProfileSetup = false }
+                .environmentObject(accountViewModel)
+                .environment(\.accountAPIClient, accountAPIClient)
         }
         .task {
             pushRegistrar.configure(
@@ -195,6 +205,20 @@ struct ContentView: View {
         }
         .environment(\.wishAPIClient, apiClient)
         .environment(\.accountAPIClient, accountAPIClient)
+    }
+}
+
+extension ContentView {
+    /// 登录后判断要不要拉起首次设置。
+    ///
+    /// 以服务端的 `needsSetup` 为准，不看本地缓存：换设备登录的老用户早就设过，
+    /// 缓存却是空的，照缓存判断会把他也拦一遍。取不到就不打扰——
+    /// 网络不好不该变成一道进不去的墙。
+    private func checkProfileSetup() async {
+        guard let token = accountViewModel.accessToken else { return }
+        guard let profile = try? await accountAPIClient.profile(token: token) else { return }
+        ProfileCache.save(profile)
+        needsProfileSetup = profile.needsSetup == true
     }
 }
 

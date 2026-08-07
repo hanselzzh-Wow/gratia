@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 
@@ -1146,6 +1147,58 @@ test("被封禁的昵称不可用，且封禁只在运营勾选时发生", async
       method: "POST", headers: a, body: JSON.stringify({ displayName: "普通重名" }),
     });
     assert.equal(nowBanned.status, 400, "勾了封禁之后这个名字应当不可用");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("预设头像免审：直接成为对外可见的头像", async () => {
+  const { request, env } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const href = String(url);
+    if (href.includes("api.weixin.qq.com")) {
+      return Response.json({ openid: `openid-${new URL(href).searchParams.get("js_code")}` });
+    }
+    return originalFetch(url, init);
+  };
+  try {
+    const token = (await json(await request("/api/auth/wechat", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ code: "preset-avatar-user" }),
+    }))).token;
+    const h = { authorization: `Bearer ${token}` };
+
+    // 读真正的那张预设图，而不是造一段假字节：这条测试要守住的正是
+    // 「文件内容 → 哈希 → 免审」这条链，用假数据等于什么都没测。
+    const presetPath = new URL("../ios/Gratia/PresetAvatars/preset-1.png", import.meta.url);
+    const preset = new Uint8Array(readFileSync(presetPath));
+
+    const form = new FormData();
+    form.set("displayName", "用预设头像的人");
+    form.set("avatar", new File([preset], "preset-1.png", { type: "image/png" }));
+    const submitted = await json(await request("/api/account/profile", { method: "POST", headers: h, body: form }));
+
+    assert.equal(submitted.avatarPending, false, "预设头像不该进人工审核队列");
+    assert.equal(submitted.displayNamePending, true, "昵称仍然要审——免审只针对预设图");
+
+    // 关键：别人现在就该看到这张头像，而不是等运营上线点一下
+    const pending = await json(
+      await request("/api/admin/profiles", { headers: { "x-admin-key": "test-admin-pin" } }),
+    );
+    const userId = pending.profiles[0].userId;
+    const publicView = await json(
+      await request(`/api/admin/profiles`, { headers: { "x-admin-key": "test-admin-pin" } }),
+    );
+    assert.ok(publicView.profiles.some((p) => p.userId === userId), "昵称仍在待审队列里");
+
+    // 换成一张不在白名单里的图 → 必须走人工审核
+    const other = new FormData();
+    other.set("avatar", new File([new Uint8Array([9, 9, 9, 9])], "x.png", { type: "image/png" }));
+    const custom = await json(await request("/api/account/profile", { method: "POST", headers: h, body: other }));
+    assert.equal(custom.avatarPending, true, "非预设图必须进人工审核——否则改个请求就能绕过审核");
   } finally {
     globalThis.fetch = originalFetch;
   }

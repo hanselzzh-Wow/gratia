@@ -11,6 +11,16 @@ targets:
     deploymentTarget: "18.0"
     sources:
       - path: Gratia
+        excludes:
+          - PresetAvatars
+      # folder reference：Xcode 原样拷贝，不走 PNG 压缩。
+      #
+      # 这一步是必需的，不是洁癖：服务端按内容的 SHA-256 认出预设头像并免去
+      # 人工审核，而 Xcode 默认会用 pngcrush 重新编码 target 里的 PNG，
+      # 字节一变哈希就对不上，那 12 张图会全部掉回人工审核队列——
+      # 不报错，只是用户按引导选了头像，别人看到的依然是灰色人像。
+      - path: Gratia/PresetAvatars
+        type: folder
     dependencies:
       - package: GratiaCore
     settings:

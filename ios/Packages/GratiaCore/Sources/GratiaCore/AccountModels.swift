@@ -173,16 +173,41 @@ public protocol AccountAPIProtocol: Sendable {
 public struct UserProfileDTO: Codable, Sendable, Equatable {
     public let displayName: String
     public let avatarUrl: String?
+    /// 任一在审即为 true
     public let pendingReview: Bool
     public let reviewNote: String?
+    /// 昵称与头像各自的状态：一样被退回时，另一样不受牵连。
+    /// 都是 Optional——旧版本缓存下来的 JSON 里没有这几个键，
+    /// 声明成非可选会让解码整个失败，用户升级后资料页直接空白。
+    public let displayNamePending: Bool?
+    public let avatarPending: Bool?
+    public let displayNameNote: String?
+    public let avatarNote: String?
+    /// 从未设过昵称。新用户登录后据此拉起首次设置。
+    public let needsSetup: Bool?
 
     /// public struct 的 memberwise init 默认是 internal，跨 module 构造不了。
     /// 与 `PublicWishDTO` 保持一致，显式提供。
-    public init(displayName: String, avatarUrl: String?, pendingReview: Bool, reviewNote: String?) {
+    public init(
+        displayName: String,
+        avatarUrl: String?,
+        pendingReview: Bool,
+        reviewNote: String?,
+        displayNamePending: Bool? = nil,
+        avatarPending: Bool? = nil,
+        displayNameNote: String? = nil,
+        avatarNote: String? = nil,
+        needsSetup: Bool? = nil
+    ) {
         self.displayName = displayName
         self.avatarUrl = avatarUrl
         self.pendingReview = pendingReview
         self.reviewNote = reviewNote
+        self.displayNamePending = displayNamePending
+        self.avatarPending = avatarPending
+        self.displayNameNote = displayNameNote
+        self.avatarNote = avatarNote
+        self.needsSetup = needsSetup
     }
 }
 
