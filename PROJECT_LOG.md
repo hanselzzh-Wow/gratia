@@ -983,3 +983,15 @@ Cloudflare Worker API
 - 新增 `tests/ops-notifier.test.mjs` 共 6 条，通过 `worker.scheduled` 驱动真实链路（真 SQL、真表结构），覆盖：空队列不发、有内容发一封且数量与链接正确、同一批不重复发、新增内容再发、未配密钥静默跳过、邮件失败后下次仍会重试。实测 `npm test` 37/37 通过（原 31 + 新增 6），`npm run lint` 零输出。
 - 部署前已导出生产库至 `~/Developer/gratia-backups/d1-20260807-104520.sql`；`npm run deploy:cloudflare` 成功，Version ID `7bbde88d-8391-4b47-91d7-b10884f924a1`，部署输出确认 `schedule: */15 * * * *` 已生效。
 - 未验证且不得误报：**邮件提醒尚未真正发出过一封** —— `RESEND_API_KEY` 与 `OPS_NOTIFY_EMAIL` 两个 secret 均未配置，线上 Cron 当前走的是「未配置邮件密钥」分支。需注册 Resend 取得 API key 并写入后才会生效。Beta App Review 结果未知。商店截图工作停在半途：素材已生成并入 assets（8 个资源共 122 KB），`StoryIllustrationView` 已改为读图片，但头像接入与重拍未完成。
+
+## 2026-08-07｜待审心愿对发布者可见性的说明文案
+
+- 产品负责人提出：心愿发布后发布者应能看到自己的心愿，只是他人不可见，并标注审核后的去向。核查后确认**数据层本就支持**：`listAccountActivity` 的查询为 `WHERE w.user_id = ?`，无状态过滤，`pending_review` 的心愿一直会返回给发布者，「我的 → 我发布的」也一直显示，状态标签为「待审核」。
+- 实际缺口是解释：卡片上只有孤立的「待审核」三字，未说明他人当前能否看到、通过后会怎样。已在 `ios/Gratia/ProfileView.swift` 的 `requestRow` 中为 `pending_review` 状态增加说明块：「现在仅你可见。通过后会出现在「帮助」页，其他人才能看到并响应。」仅该状态显示，通过后自动消失。
+- 措辞未采用产品负责人建议的「愿望池」，改用「帮助」页：App 内该页实际标题为「等待帮助的心愿」、底部标签为「帮助」，引入新词会导致用户按图索骥找不到对应页面。若要改用「愿望池」，需连同页面标题一并修改。
+- 核查发现发布成功页的说明已充分（「心愿送出，正在审核中」+ 状态流转路线 + 「去我的查看进度」入口），未作改动。
+- 为验证该文案版式，向 `DemoContent` 增加 `activity`（「我发布的」演示数据，首条固定为 `pending_review`），并在 `AccountActivityViewModel.load()` 增加 DEBUG 分支。已在模拟器实测截图确认版式正确，同时确认版本号显示为 `V1.0.0 (Build 9)`，读取自 Info.plist。
+- 一并删除 `StoryPost.Illustration` 中未使用且无对应素材的 `blossom` case（重写 `StoryIllustrationView` 为图片渲染后遗留，导致 switch 不完备编译失败）。
+- 验证：iOS 41/41 通过，Release 配置编译通过（确认 DEBUG 分支不影响正式构建），后端 37/37，`npm run lint` 零输出。
+- 记录一处提交纪律疏漏：8 个演示图片资源（`DemoMedia*`、`DemoAvatar*`）与 `StoryIllustration.swift` 由 Canvas 绘制改为图片渲染这两项，实际混入了提交 `4652385`（该提交信息只描述邮件通知功能）。历史未改写；素材来源与用途在本文件 2026-08-07 相关条目中有记录，可据此追溯。
+- 未验证且不得误报：本轮改动**未打新构建**。TestFlight 上仍是构建 8，正在 Beta App Review 中，测试者看不到这句说明；需待审核结束后再打构建 9。

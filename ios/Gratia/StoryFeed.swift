@@ -17,7 +17,6 @@ struct StoryPost: Identifiable, Equatable {
     enum Illustration: Equatable {
         case nightRiver     // 江边夜色
         case handwritten    // 手写卡片
-        case blossom        // 树与花
     }
 
     let id: String

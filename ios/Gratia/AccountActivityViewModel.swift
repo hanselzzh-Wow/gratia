@@ -41,6 +41,14 @@ final class AccountActivityViewModel: ObservableObject {
     func load() {
         loadTask?.cancel()
 
+        #if DEBUG
+        // 截图与版式验证用；Release 不编译这段，线上只显示服务端返回的真实记录。
+        if DemoContent.isEnabled, let demo = DemoContent.activity {
+            state = .loaded(demo)
+            return
+        }
+        #endif
+
         guard let token = accessToken() else {
             state = .requiresSignIn
             return

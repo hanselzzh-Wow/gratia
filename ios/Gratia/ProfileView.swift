@@ -360,6 +360,25 @@ struct MyActivityView: View {
                 .foregroundStyle(DesignSystem.Rose.ink2)
                 .lineLimit(2)
 
+            // 待审期间发布者能在这里看到自己的心愿，但它不在任何公开列表里。
+            // 只标一个「待审核」不够——发布者会以为发失败了，或者以为别人
+            // 已经能看到。把「现在谁能看见」和「通过后会怎样」都说出来。
+            if wish.status == .pendingReview {
+                Label {
+                    Text("现在仅你可见。通过后会出现在「帮助」页，其他人才能看到并响应。")
+                } icon: {
+                    Image(systemName: "eye.slash")
+                }
+                .font(DesignSystem.captionFont)
+                .foregroundStyle(DesignSystem.Rose.ink2)
+                .padding(DesignSystem.spacing8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: DesignSystem.radiusSmall)
+                        .fill(DesignSystem.Rose.tint)
+                )
+            }
+
             // 有人响应时直接给出提示与入口，不让发布者只能靠翻私聊才发现。
             if let count = wish.responseCount, count > 0 {
                 HStack(spacing: DesignSystem.spacing4) {

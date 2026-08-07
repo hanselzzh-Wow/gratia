@@ -57,6 +57,30 @@ enum DemoContent {
         """
     )
 
+    /// 「我的 → 我发布的」：第一条故意停在待审状态，
+    /// 用来验证「现在仅你可见」那段说明的版式，截图里也看得到它。
+    static let activity: AccountActivityDTO? = decodeOne(
+        """
+        {
+          "requests": [
+            {"id":"m1","publicCode":"GR-2317","city":"上海","landmark":"外滩 · 南京东路口",
+             "occasion":"生日祝福","message":"她在国外过生日。想请一位路过外滩的朋友，对着江面替我说一句「生日快乐」，录一段就好。",
+             "deliveryType":"spoken_video","deadlineText":"本周六前","rewardFen":0,
+             "status":"pending_review","createdAt":0,"updatedAt":0,
+             "hasDeliverable":false,"canConfirmCompletion":false,
+             "responseCount":0,"canSelectResponder":false},
+            {"id":"m2","publicCode":"GR-2309","city":"成都","landmark":"四川大学 · 望江校区",
+             "occasion":"毕业祝福","message":"妹妹毕业我赶不回去。想请一位字好看的朋友，把我要说的话写成卡片，那天交到她手上。",
+             "deliveryType":"handwritten_card","deadlineText":"毕业典礼当天","rewardFen":0,
+             "status":"in_progress","createdAt":0,"updatedAt":0,
+             "hasDeliverable":false,"canConfirmCompletion":false,
+             "responseCount":2,"canSelectResponder":true}
+          ],
+          "responses": []
+        }
+        """
+    )
+
     // MARK: - 构造
 
     private static func make(
@@ -75,6 +99,10 @@ enum DemoContent {
 
     private static func decode<T: Decodable>(_ json: String) -> [T] {
         (try? JSONDecoder().decode([T].self, from: Data(json.utf8))) ?? []
+    }
+
+    private static func decodeOne<T: Decodable>(_ json: String) -> T? {
+        try? JSONDecoder().decode(T.self, from: Data(json.utf8))
     }
 }
 #endif
