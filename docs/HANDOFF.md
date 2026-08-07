@@ -22,17 +22,18 @@ App 内**不涉及任何金额**，**不收集任何联系方式**。
 | 分支 | `appstore/1.0`（`main` 停在 2026-07-20，不再是实现来源） |
 | 生产 API | **`https://api.hanselzhang.com`**（自定义域名，国内可达） |
 | 旧地址 | `https://haluowode-mvp.hanselzzh.workers.dev` 仍指向同一 Worker，保留备查 |
-| 数据库迁移 | `0000`–`0010` 全部已应用 |
+| 数据库迁移 | `0000`–`0011` 全部已应用 |
 | 运营台 | `https://hanselzzh-wow.github.io/ops/`（有待审内容会自动发邮件提醒） |
 | 法务页面 | `/legal/privacy/`、`/legal/terms/` 已公开 |
 | Apple 令牌撤销 | 已端到端验证通过 |
-| TestFlight | 构建 10 已提交 Beta 审核；公开链接 `https://testflight.apple.com/join/ftyuGZ8n`（审核通过后生效，上限 100 人） |
-| 后端测试 | 37/37 |
+| TestFlight | 构建 10 在 Beta 审核队列中；11–13 已上传未提交（不打断 10 的审核）。公开链接 `https://testflight.apple.com/join/ftyuGZ8n`（审核通过后生效，上限 100 人） |
+| 推送通知 | 代码已完整，缺 APNs 密钥；见「八·五、启用推送」 |
+| 后端测试 | 45/45 |
 | iOS 测试 | 49/49 |
 
-### 构建号：下一个可用是 11
+### 构建号：下一个可用是 14
 
-构建 1–10 已被 App Store Connect 占用，构建号不能复用。`ios/project.yml` 的 `CURRENT_PROJECT_VERSION` 已置为 11；`scripts/ios-release.mjs` 会在归档前先核对有没有撞号。**上传成功后要立刻加一。**
+构建 1–13 已被 App Store Connect 占用，构建号不能复用。`ios/project.yml` 的 `CURRENT_PROJECT_VERSION` 已置为 14；`scripts/ios-release.mjs` 会在归档前先核对有没有撞号。**上传成功后要立刻加一。**
 
 > **同一时间只能有一个构建在 Beta 审核中。** 已提交的审核**无法通过 API 撤销**（`betaAppReviewSubmissions` 只允许 CREATE/GET），要换构建送审只能先在 App Store Connect 网页上停掉当前那个，否则提交会被 422「Another build in the same train is already in beta review」挡回。
 
@@ -249,9 +250,39 @@ Apple 要求使用 Sign in with Apple 且支持账户删除的 App **必须在�
 ### 不阻塞但已知
 
 - **界面没有多语言**：iOS 端 381 条、服务端 139 条中文硬编码。`InfoPlist.strings` 已有中英两版（桌面名跟随系统语言），但界面内容永远是中文。做全球市场时需要抽 `Localizable.strings`。
-- **推送通知未实现**：无 APNs 配置、无权限申请。「消息通知设置」入口已移除，实现推送时需连同权限申请一起加回。
+- **推送通知：代码已完整，等一把 APNs 密钥才真正生效**。服务端六个触发点、iOS 端权限申请与令牌上报、「我的 → 通知」入口都已就位，没配密钥时全链路静默跳过，不报错也不阻断任何业务流程。要让它真的发出去，见下方「启用推送」。
 - **心愿场景与交付形式仍是中国语境**：「生日祝福/口播视频/手写卡片」等选项写死在客户端。
 - **中国区上架另有门槛**：ICP 备案要求域名指向境内服务器，而后端在 Cloudflare；社交/UGC 类应用还涉及实名制要求。**TestFlight 不受影响**，仅正式上架含中国大陆时相关。这块需要专业合规意见，不要只依赖仓库里的记述。
+
+---
+
+## 八·五、启用推送
+
+代码全在，缺的只有一把密钥。**APNs 认证密钥无法通过 App Store Connect API 创建，必须在网页上手动建。**
+
+1. 到 [developer.apple.com/account/resources/authkeys/add](https://developer.apple.com/account/resources/authkeys/add) 新建 Key，勾选 **Apple Push Notifications service (APNs)**，下载 `.p8`——**只能下载一次**，丢了只能作废重建。
+2. 把它和其他签名材料放一起（`~/Developer/gratia-signing/`，仓库外、700 权限），不要进仓库、不要放 `/tmp`。
+3. 写两个 secret（这两条要自己跑，密钥不该经过第三方之手）：
+
+```bash
+npx wrangler secret put APNS_KEY_ID    # 就是 Key ID，10 位，形如 ABCD123456
+npx wrangler secret put APNS_PRIVATE_KEY < ~/Developer/gratia-signing/apns.p8
+```
+
+`APPLE_TEAM_ID` 与 `APPLE_BUNDLE_ID` 已在 `wrangler.jsonc` 的 vars 里，不用另配。
+
+### 验证它真的通了
+
+装 TestFlight 构建 → 「我的 → 通知」点开启 → 系统弹框允许 → 用另一个账号给你发一条私聊消息。收不到时按这个顺序查：
+
+| 现象 | 多半是 |
+| --- | --- |
+| 服务端日志 `[push] 跳过：未配置 APNs 密钥` | secret 没写成功 |
+| 日志 `跳过：该用户没有已注册的设备` | 客户端没上报成功，多半是没授权，或 `aps-environment` 不在包里 |
+| APNs 回 `BadDeviceToken` | 环境错配：Xcode 直接装的包是 sandbox，TestFlight/App Store 是 production，两套令牌空间互不相认 |
+| APNs 回 `TooManyProviderTokenUpdates` | 鉴权 JWT 刷太勤。已按实例缓存 50 分钟，正常不该出现 |
+
+模拟器收不到真推送，只能用真机验。
 
 ---
 
