@@ -995,3 +995,13 @@ Cloudflare Worker API
 - 验证：iOS 41/41 通过，Release 配置编译通过（确认 DEBUG 分支不影响正式构建），后端 37/37，`npm run lint` 零输出。
 - 记录一处提交纪律疏漏：8 个演示图片资源（`DemoMedia*`、`DemoAvatar*`）与 `StoryIllustration.swift` 由 Canvas 绘制改为图片渲染这两项，实际混入了提交 `4652385`（该提交信息只描述邮件通知功能）。历史未改写；素材来源与用途在本文件 2026-08-07 相关条目中有记录，可据此追溯。
 - 未验证且不得误报：本轮改动**未打新构建**。TestFlight 上仍是构建 8，正在 Beta App Review 中，测试者看不到这句说明；需待审核结束后再打构建 9。
+
+## 2026-08-07｜修复暗色模式下界面撕裂（上白下黑）
+
+- 产品负责人报告：App 无暗色模式，但系统切到暗色时底部 Dock 会跟着变黑，出现「上面白、下面黑」。
+- 根因：`DesignSystem` 的颜色全部是写死的浅色字面量（`Color(red:green:blue:)`），无暗色变体；而 `ContentView` 的 `UITabBarAppearance` 调用的是 `configureWithDefaultBackground()`——系统默认背景本身是随外观变化的动态色。两者叠加即产生撕裂。
+- 另发现一处比撕裂更严重的问题：Dock 图标颜色同为写死值（未选中 `#A9A2A5`、选中 `#191719`），暗色下选中态的近黑图标落在黑色背景上几乎不可见。
+- 修复：在 `GratiaApp` 的根视图加 `.preferredColorScheme(.light)`，全 App 锁定浅色。该设置同时作用于所有系统组件（Dock 背景、Sheet、弹窗、Sign in with Apple 按钮），是补齐整套暗色配色之前唯一自洽的状态。
+- 实测验证：`xcrun simctl ui booted appearance dark` 切至系统暗色后重新截图，Dock 区域平均亮度 235.5（0=黑，255=白），图标清晰可辨；整屏保持浅色，无撕裂。验证后已将模拟器外观还原为 light。
+- iOS 41/41 通过。
+- 未验证且不得误报：**未实现真正的暗色模式**，仅是锁定浅色。要支持暗色需为 `DesignSystem` 每个颜色补暗色变体并逐屏校对对比度，届时才应移除 `.preferredColorScheme(.light)`。本轮改动未打新构建，TestFlight 上仍为构建 8。
