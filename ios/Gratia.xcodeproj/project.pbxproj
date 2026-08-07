@@ -398,7 +398,7 @@
 				);
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hanselzzh.gratia;
-				PROVISIONING_PROFILE_SPECIFIER = "Gratia App Store";
+				PROVISIONING_PROFILE_SPECIFIER = "Gratia App Store Push";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};

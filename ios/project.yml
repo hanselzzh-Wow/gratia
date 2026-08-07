@@ -26,7 +26,7 @@ targets:
         # 构建号一经上传即被 App Store Connect 占用，不能复用。1–12 已上传，
         # 所以这里停在下一个可用号 13。`node scripts/ios-release.mjs` 会在
         # 归档之前先核对这个号有没有被占用，撞号就直接中断。
-        CURRENT_PROJECT_VERSION: 13
+        CURRENT_PROJECT_VERSION: 14
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
       configs:
@@ -43,7 +43,7 @@ targets:
           CODE_SIGN_STYLE: Manual
           DEVELOPMENT_TEAM: HH9LKGK7DA
           CODE_SIGN_IDENTITY: "Apple Distribution"
-          PROVISIONING_PROFILE_SPECIFIER: "Gratia App Store"
+          PROVISIONING_PROFILE_SPECIFIER: "Gratia App Store Push"
 
   GratiaTests:
     type: bundle.unit-test

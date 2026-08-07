@@ -25,7 +25,10 @@ const REPO = resolve(import.meta.dirname, '..');
 const IOS = join(REPO, 'ios');
 const BUNDLE_ID = 'com.hanselzzh.gratia';
 const TEAM_ID = 'HH9LKGK7DA';
-const PROFILE_NAME = 'Gratia App Store';
+// 开启 Push Notifications 会让旧的 App Store 描述文件立刻变成 INVALID，
+// 必须换一份带 aps-environment 的。这里跟 App Store Connect 上的新名字保持一致；
+// 名字对不上的话，archive 会以「找不到描述文件」失败。
+const PROFILE_NAME = 'Gratia App Store Push';
 const upload = process.argv.includes('--upload');
 
 const run = (cmd, args, opts = {}) =>
@@ -125,10 +128,20 @@ try {
 if (!entitlements.includes('com.apple.developer.applesignin')) {
   fail('产物缺少 com.apple.developer.applesignin entitlement，Sign in with Apple 会失效。');
 }
+// 同理：缺了 aps-environment，App 拿不到 APNs 令牌，推送静默失效——
+// 而 archive 照样报成功。源码里写的是 development，Xcode 导出时会按描述文件
+// 改写成 production；改出来还是 development 说明用错了描述文件，
+// 这样的包发出去，令牌会落到 sandbox 令牌空间，生产网关一律 BadDeviceToken。
+if (!entitlements.includes('aps-environment')) {
+  fail('产物缺少 aps-environment entitlement，推送通知会静默失效。');
+}
+if (!/<key>aps-environment<\/key>\s*<string>production<\/string>/.test(entitlements)) {
+  fail('产物的 aps-environment 不是 production，说明签名用的不是 App Store 描述文件。');
+}
 
 const built = run('plutil', ['-extract', 'CFBundleVersion', 'raw', join(app, 'Info.plist')]).trim();
 if (built !== version) fail(`产物构建号是 ${built}，与 project.yml 的 ${version} 不一致`);
-console.log(`  ✓ Apple Distribution / ${TEAM_ID} / applesignin / build ${built}`);
+console.log(`  ✓ Apple Distribution / ${TEAM_ID} / applesignin / aps:production / build ${built}`);
 
 // 4. 导出。
 const exportOptions = join(out, 'ExportOptions.plist');
