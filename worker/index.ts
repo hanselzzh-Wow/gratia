@@ -527,14 +527,14 @@ async function handleWishApi(request: Request, env: Env) {
     // 「私聊」标签页：我参与的全部会话（含两种身份）
     if (url.pathname === "/api/account/conversations" && request.method === "GET") {
       const user = await requireAccount(request, env);
-      return json(request, env, await listMyConversations(env.DB, user.id));
+      return json(request, env, await listMyConversations(env.DB, user.id, url.origin));
     }
 
     // 单个会话的消息列表与发送。会话以「心愿 + 一条响应」为单位。
     const conversationMatch = url.pathname.match(/^\/api\/account\/conversations\/([^/]+)\/messages$/);
     if (conversationMatch && request.method === "GET") {
       const user = await requireAccount(request, env);
-      return json(request, env, await listConversationMessages(env.DB, decodeURIComponent(conversationMatch[1]), user.id));
+      return json(request, env, await listConversationMessages(env.DB, decodeURIComponent(conversationMatch[1]), user.id, url.origin));
     }
     if (conversationMatch && request.method === "POST") {
       const user = await requireAccount(request, env);

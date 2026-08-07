@@ -17,6 +17,9 @@ struct ChatView: View {
     @State private var errorMessage: String?
     @State private var showReport = false
     @State private var showBlockConfirm = false
+    /// 消息单独持有，不直接读 conversation.messages：
+    /// 发送时要能立刻把一条「正在发送」插进来，而 ConversationDTO 是不可变的。
+    @State private var messages: [ChatMessageDTO] = []
     @State private var showResponders = false
     @State private var showDelivery = false
 
@@ -26,9 +29,21 @@ struct ChatView: View {
             composer
         }
         .background(DesignSystem.Rose.canvas.ignoresSafeArea())
-        .navigationTitle(summary.counterpartName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            // 标题位放对方的头像与昵称。原来这里只有一行文字，而帮助者看到的
+            // 更是写死的「发布者」三个字——对面是个具体的人，不该只是个角色名。
+            ToolbarItem(placement: .principal) {
+                HStack(spacing: DesignSystem.spacing8) {
+                    CachedAvatar(url: counterpartAvatarURL, size: 28)
+                    Text(counterpartName)
+                        .font(DesignSystem.headlineFont)
+                        .foregroundStyle(DesignSystem.Rose.ink)
+                        .lineLimit(1)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("与 \(counterpartName) 的对话")
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
                     if summary.isRequester {
@@ -72,7 +87,7 @@ struct ChatView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: DesignSystem.spacing8) {
-                    if let conversation, conversation.messages.isEmpty {
+                    if conversation != nil, messages.isEmpty {
                         Text(summary.isRequester
                              ? "对方响应了你的心愿。可以先确认时间、地点和你希望的呈现方式。"
                              : "打个招呼，确认一下心愿的细节吧。")
@@ -82,15 +97,15 @@ struct ChatView: View {
                             .padding(.vertical, DesignSystem.spacing32)
                             .padding(.horizontal, DesignSystem.spacing24)
                     }
-                    ForEach(conversation?.messages ?? []) { message in
+                    ForEach(messages) { message in
                         bubble(message).id(message.id)
                     }
                 }
                 .padding(DesignSystem.spacing20)
             }
-            .motion(DesignSystem.Motion.content, value: conversation?.messages.count ?? 0)
-            .onChange(of: conversation?.messages.count ?? 0) { _, _ in
-                guard let last = conversation?.messages.last else { return }
+            .motion(DesignSystem.Motion.content, value: messages.count)
+            .onChange(of: messages.count) { _, _ in
+                guard let last = messages.last else { return }
                 withAnimation(DesignSystem.Motion.adaptive(DesignSystem.Motion.content, reduceMotion: reduceMotion)) {
                     proxy.scrollTo(last.id, anchor: .bottom)
                 }
@@ -118,6 +133,15 @@ struct ChatView: View {
             if !message.mine { Spacer(minLength: 48) }
         }
         .motionTransition(.opacity.combined(with: .move(edge: message.mine ? .trailing : .leading)))
+    }
+
+    /// 会话详情里的资料比列表更新，先用它；没加载出来时回落到列表带过来的。
+    private var counterpartName: String {
+        conversation?.counterpartName ?? summary.counterpartName
+    }
+    private var counterpartAvatarURL: URL? {
+        let text = conversation?.counterpartAvatarUrl ?? summary.counterpartAvatarUrl
+        return text.flatMap(URL.init(string:))
     }
 
     /// 我屏蔽了对方。对方屏蔽我时不显示这个——见下方 blockedNotice 的说明。
@@ -205,23 +229,54 @@ struct ChatView: View {
     private func load() async {
         guard let token = accountViewModel.accessToken else { return }
         do {
-            conversation = try await accountAPI.conversationMessages(responseId: summary.responseId, token: token)
+            let fresh = try await accountAPI.conversationMessages(responseId: summary.responseId, token: token)
+            conversation = fresh
+            // 保留还没落库的「正在发送」，否则一次后台刷新就会把它抹掉，
+            // 用户会看到自己刚发的消息闪一下又不见了。
+            let pending = messages.filter { $0.id.hasPrefix("pending-") }
+            messages = fresh.messages + pending.filter { p in
+                !fresh.messages.contains { $0.body == p.body && $0.mine }
+            }
         } catch {
             errorMessage = (error as? GratiaAPIError)?.errorDescription ?? "加载消息失败。"
         }
     }
 
+    /// 乐观发送：先清空输入框、先把消息放上屏，再发请求。
+    ///
+    /// 原来是反过来的——等服务端回话才清空输入框，然后再整个重拉一遍会话。
+    /// 在国际线路上那就是一两秒里字还杵在框里、按钮转圈；而重拉会把整个
+    /// conversation 换掉，列表重建，气泡的滑入动画在数据替换时被打断。
+    /// 聊天的发送必须是即时的，网络是它背后的事，不该让用户等。
     private func send() async {
         guard let token = accountViewModel.accessToken else { return }
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+
+        let pending = ChatMessageDTO(
+            id: "pending-\(UUID().uuidString)",
+            body: text,
+            mine: true,
+            createdAt: Int64(Date().timeIntervalSince1970 * 1000)
+        )
+        draft = ""
+        errorMessage = nil
+        withAnimation(DesignSystem.Motion.adaptive(DesignSystem.Motion.content, reduceMotion: reduceMotion)) {
+            messages.append(pending)
+        }
+
         isSending = true
         defer { isSending = false }
         do {
-            _ = try await accountAPI.sendMessage(responseId: summary.responseId, body: text, token: token)
-            draft = ""
-            errorMessage = nil
-            await load()
+            let saved = try await accountAPI.sendMessage(responseId: summary.responseId, body: text, token: token)
+            // 用服务端那条替换临时的：id 与时间以服务端为准，但不重排版面。
+            if let index = messages.firstIndex(where: { $0.id == pending.id }) {
+                messages[index] = saved
+            }
         } catch {
+            // 失败要把内容还给用户，别让他重打一遍。
+            messages.removeAll { $0.id == pending.id }
+            if draft.isEmpty { draft = text }
             errorMessage = (error as? GratiaAPIError)?.errorDescription ?? "发送失败，请重试。"
         }
     }

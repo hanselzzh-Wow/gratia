@@ -190,6 +190,8 @@ public struct ConversationSummaryDTO: Codable, Sendable, Identifiable, Equatable
     public let responseStatus: String
     public let viewerRole: String
     public let counterpartName: String
+    /// 对方的头像（已通过审核的那一版）。旧服务端不返回，故可选。
+    public let counterpartAvatarUrl: String?
     public let lastMessage: String?
     public let lastMessageAt: Int64?
     /// 本人在该会话的未读条数（只计对方发出的）
@@ -210,6 +212,15 @@ public struct ChatMessageDTO: Codable, Sendable, Identifiable, Equatable {
     public let body: String
     public let mine: Bool
     public let createdAt: Int64
+
+    /// 客户端需要构造「正在发送」的临时消息（乐观上屏），
+    /// 而 public struct 的 memberwise init 默认是 internal。
+    public init(id: String, body: String, mine: Bool, createdAt: Int64) {
+        self.id = id
+        self.body = body
+        self.mine = mine
+        self.createdAt = createdAt
+    }
 }
 
 public struct ConversationDTO: Codable, Sendable, Equatable {
@@ -218,6 +229,8 @@ public struct ConversationDTO: Codable, Sendable, Equatable {
     public let wishStatus: WishStatus
     public let responseStatus: String
     public let counterpartName: String
+    /// 对方的头像（已通过审核的那一版）。旧服务端不返回，故可选。
+    public let counterpartAvatarUrl: String?
     public let viewerRole: String
     public let messages: [ChatMessageDTO]
     /// 我屏蔽了对方。界面据此显示「取消屏蔽」。

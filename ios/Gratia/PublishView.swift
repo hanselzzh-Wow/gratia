@@ -75,7 +75,12 @@ struct PublishView: View {
         // 成功是全 App 唯一允许"弹"的时刻，配一次成功触感。
         .motion(DesignSystem.Motion.celebrate, value: isSuccess)
         // 每推进/回退一步都给一次轻触，让"这一步过了"有实感
-        .selectionHaptic(currentStep)
+        // 翻页是「推进」不是「选择」：.selection 是给 picker 滚动用的轻微咔哒，
+        // 用在换页上手感偏虚，改用轻量 impact。
+        .impactHaptic(currentStep)
+        // 选中场景与交付形式才是真正的「选择」，原本一点反馈都没有。
+        .selectionHaptic(viewModel.scene)
+        .selectionHaptic(viewModel.deliveryType)
         .sensoryFeedback(.success, trigger: isSuccess) { _, success in success }
         .sensoryFeedback(.error, trigger: viewModel.state) { _, state in
             if case .failed = state { return true }
@@ -279,7 +284,7 @@ struct PublishView: View {
                         .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).stroke(selected ? DesignSystem.accent : DesignSystem.hairline, lineWidth: selected ? 2 : 1))
                 )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(SelectionTileStyle())
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 

@@ -1071,6 +1071,30 @@ export async function recordResponderDeliverable(
 
 /// 判定某用户是否有权读写该会话，并返回会话双方。
 /// 只有心愿的发布者、或该响应的提交者本人可以进入。
+/// 会话里「对方是谁」。
+///
+/// 早先这里是写死的：发布者看到响应者填的名字，而响应者只看到「发布者」
+/// 三个字，没有头像。但发布者本来就有账号昵称与头像，且都是过了审的公开
+/// 资料——没有理由不显示。
+///
+/// 取 `getPublicProfile`（已通过审核的那一版），所以待审的昵称/头像不会外泄。
+/// 账号还没设过昵称时回落：发布者一侧用响应时填的名字，另一侧用「发布者」。
+async function counterpartIdentity(
+  db: D1Database,
+  access: { isOwner: boolean; counterpartId: string | null; responder_name: string },
+  _userId: string,
+  origin: string,
+) {
+  const fallbackName = access.isOwner ? access.responder_name : "发布者";
+  if (!access.counterpartId) return { displayName: fallbackName, avatarUrl: null as string | null };
+  const profile = await getPublicProfile(db, access.counterpartId, origin);
+  const named = profile.displayName && profile.displayName !== defaultDisplayName;
+  return {
+    displayName: named ? profile.displayName : fallbackName,
+    avatarUrl: profile.avatarUrl,
+  };
+}
+
 /// `requireWritable` 只用于会向会话写入内容的操作（发消息）。
 /// 读取、举报、屏蔽、取消屏蔽都不传，屏蔽状态下仍然可用。
 async function requireConversationAccess(
@@ -1138,7 +1162,12 @@ async function requireConversationAccess(
   return { ...row, isOwner, isResponder, counterpartId, blockedByMe, blockedByThem };
 }
 
-export async function listConversationMessages(db: D1Database, responseId: string, userId: string) {
+export async function listConversationMessages(
+  db: D1Database,
+  responseId: string,
+  userId: string,
+  origin: string,
+) {
   await ensureWishSchema(db);
   const access = await requireConversationAccess(db, responseId, userId);
   const rows = await db
@@ -1164,13 +1193,17 @@ export async function listConversationMessages(db: D1Database, responseId: strin
       .run();
   }
 
+  const counterpart = await counterpartIdentity(db, access, userId, origin);
+
   return {
     responseId,
     wishId: access.wish_id,
     wishStatus: access.wish_status,
     responseStatus: access.response_status,
-    // 对方以昵称示人，不暴露账号标识或联系方式
-    counterpartName: access.isOwner ? access.responder_name : "发布者",
+    // 对方以昵称与头像示人，不暴露账号标识或联系方式。
+    // 取的是**已通过审核**的那一版（getPublicProfile），待审内容不会外泄。
+    counterpartName: counterpart.displayName,
+    counterpartAvatarUrl: counterpart.avatarUrl,
     viewerRole: access.isOwner ? ("requester" as const) : ("responder" as const),
     /// 我屏蔽了对方——界面据此显示「取消屏蔽」。
     blockedByMe: access.blockedByMe,
@@ -1282,7 +1315,7 @@ export async function unblockCounterpart(db: D1Database, responseId: string, use
 
 /// 我参与的全部会话，供「私聊」标签页使用。
 /// 同时覆盖两种身份：我发布的心愿收到的响应，以及我响应过的心愿。
-export async function listMyConversations(db: D1Database, userId: string) {
+export async function listMyConversations(db: D1Database, userId: string, origin: string) {
   await ensureWishSchema(db);
   const rows = await db
     .prepare(
@@ -1341,6 +1374,22 @@ export async function listMyConversations(db: D1Database, userId: string) {
     return Boolean(other) && (blockedByMe.has(other!) || blockedMe.has(other!));
   };
 
+  // 一次性取齐所有对方的公开资料，避免每行一次查询。
+  const identities = new Map<string, { displayName: string; avatarUrl: string | null }>();
+  for (const row of rows.results) {
+    const other = counterpartOf(row);
+    if (!other) continue;
+    identities.set(
+      row.response_id,
+      await counterpartIdentity(
+        db,
+        { isOwner: row.owner_user_id === userId, counterpartId: other, responder_name: row.responder_name },
+        userId,
+        origin,
+      ),
+    );
+  }
+
   return {
     // Dock 角标用的总未读数，避免客户端自己累加。
     // 已屏蔽的会话不计入：屏蔽之后还为它顶着红点，等于强迫用户再去看一眼。
@@ -1362,7 +1411,9 @@ export async function listMyConversations(db: D1Database, userId: string) {
           wishStatus: row.wish_status,
           responseStatus: row.response_status,
           viewerRole: isOwner ? ("requester" as const) : ("responder" as const),
-          counterpartName: isOwner ? row.responder_name : "发布者",
+          counterpartName: identities.get(row.response_id)?.displayName
+            ?? (isOwner ? row.responder_name : "发布者"),
+          counterpartAvatarUrl: identities.get(row.response_id)?.avatarUrl ?? null,
           lastMessage: row.last_body,
           lastMessageAt: row.last_at,
           unreadCount: iBlocked || theyBlocked ? 0 : Number(row.unread ?? 0),

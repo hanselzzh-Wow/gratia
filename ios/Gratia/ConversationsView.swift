@@ -56,15 +56,12 @@ struct ConversationsView: View {
 
     private func row(_ conversation: ConversationSummaryDTO) -> some View {
         HStack(alignment: .top, spacing: DesignSystem.spacing12) {
-            Circle()
-                .fill(DesignSystem.Rose.soft)
-                .frame(width: 44, height: 44)
-                .overlay(
-                    Text(String(conversation.counterpartName.prefix(1)))
-                        .font(DesignSystem.bodyFont.weight(.semibold))
-                        .foregroundStyle(DesignSystem.Rose.deep)
-                )
-                .accessibilityHidden(true)
+            // 有头像就显示头像，没有才回落到首字母
+            CachedAvatar(
+                url: conversation.counterpartAvatarUrl.flatMap(URL.init(string:)),
+                size: 44
+            )
+            .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
                 HStack {

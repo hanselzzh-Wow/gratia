@@ -72,6 +72,20 @@ struct DesignSystem {
     static let captionFont = Font.caption2
 }
 
+/// 可选块（心愿场景、交付形式）的按压反馈。
+///
+/// 这些块原本用 `.buttonStyle(.plain)`，点下去完全没有反应——不缩放、不变色，
+/// 而它们恰恰是发布流程里最先被点到的控件，第一下就让人觉得这个 App 是死的。
+/// 与主按钮保持同一套按压语言（轻微缩放 + 压暗）。
+struct SelectionTileStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed ? 0.86 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .motion(DesignSystem.Motion.control, value: configuration.isPressed)
+    }
+}
+
 struct PrimaryButtonStyle: ButtonStyle {
     var isDisabled: Bool = false
 
