@@ -16,7 +16,7 @@
 // 等于 Sign in with Apple 直接失效。不打开产物看是发现不了的。
 // 所以下面第 3 步会强制校验归档产物，校验不过就中断。
 
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -34,6 +34,17 @@ const run = (cmd, args, opts = {}) =>
 function fail(message) {
   console.error(`\n✗ ${message}`);
   process.exit(1);
+}
+
+// xcodebuild 的失败原因可能只出现在 stderr，也可能是 codesign 那种不带
+// "error:" 前缀的行（errSecInternalComponent 就是）。只 grep "error:" 会
+// 把真正有用的那一行丢掉，只剩一句「归档失败」，等于没说。
+function printBuildFailure(error) {
+  const text = `${String(error.stdout ?? '')}\n${String(error.stderr ?? '')}`;
+  const interesting = text
+    .split('\n')
+    .filter((line) => /error:|errSec|Signing Identity|Provisioning profile|No profiles|The specified item/i.test(line));
+  console.error(interesting.length ? [...new Set(interesting)].slice(-15).join('\n') : text.slice(-2000));
 }
 
 // 1. 构建号必须还没被占用 —— 上传后不可复用，撞号要等到上传那一刻才报错。
@@ -82,7 +93,7 @@ try {
     { cwd: IOS, maxBuffer: 64 * 1024 * 1024 },
   );
 } catch (error) {
-  console.error(String(error.stdout ?? '').split('\n').filter((l) => l.includes('error:')).join('\n'));
+  printBuildFailure(error);
   fail('归档失败');
 }
 
@@ -94,14 +105,13 @@ if (!existsSync(join(app, 'embedded.mobileprovision'))) {
   fail('产物里没有 embedded.mobileprovision，说明这个归档根本没签名，不能上传。');
 }
 
-let signature;
-try {
-  signature = run('codesign', ['-dvv', app], { stdio: ['pipe', 'pipe', 'pipe'] });
-} catch (error) {
-  signature = String(error.stdout ?? '') + String(error.stderr ?? '');
-}
+// codesign -dvv 把签名信息写到 **stderr**，成功时 stdout 是空的。
+// 只读返回值（stdout）会永远拿到空字符串，于是这个校验会把每一个
+// 签名正确的产物都误判成「签名不是 Apple Distribution」。
+const inspect = spawnSync('codesign', ['-dvv', app], { encoding: 'utf8' });
+const signature = `${inspect.stdout ?? ''}${inspect.stderr ?? ''}`;
 if (!signature.includes('Apple Distribution')) {
-  fail(`签名不是 Apple Distribution：\n${signature}`);
+  fail(`签名不是 Apple Distribution：\n${signature.trim() || '(codesign 无输出)'}`);
 }
 if (!signature.includes(TEAM_ID)) fail(`签名的 Team 不是 ${TEAM_ID}`);
 
@@ -143,7 +153,7 @@ try {
     '-exportPath', exportPath,
   ], { maxBuffer: 64 * 1024 * 1024 });
 } catch (error) {
-  console.error(String(error.stdout ?? '').split('\n').filter((l) => l.includes('error:')).join('\n'));
+  printBuildFailure(error);
   fail('导出失败');
 }
 const ipa = join(exportPath, 'Gratia.ipa');

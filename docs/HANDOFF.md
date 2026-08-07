@@ -80,6 +80,7 @@ cd ios && ../.tools/xcodegen/xcodegen/bin/xcodegen generate --spec project.yml
 | 生成法务页面 | `node scripts/build-legal-pages.mjs` |
 | 查已占用的构建号 | `node scripts/asc-builds.mjs` |
 | 打并上传 iOS 构建 | `node scripts/ios-release.mjs --upload`（见第九节） |
+| 修签名（归档报 errSec 时） | `node scripts/ios-signing-setup.mjs` |
 | iOS 测试 | `cd ios && xcodebuild -project Gratia.xcodeproj -scheme Gratia -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' -configuration Debug CODE_SIGNING_ALLOWED=NO test` |
 
 ### ⚠️ 陷阱：测试跑的是构建产物
@@ -231,7 +232,31 @@ node scripts/ios-release.mjs --upload
 
 上传成功后**立刻**把 `ios/project.yml` 的 `CURRENT_PROJECT_VERSION` 加一。构建号一经上传即被占用，撞号要等到上传那一刻才报错。
 
-签名参数写在 `ios/project.yml` 的 **Release** 配置里（Manual + `Apple Distribution` + 描述文件 `Gratia App Store`），命令行不要再覆盖。分发证书在登录钥匙串，描述文件通过 App Store Connect API 创建，都不依赖 Xcode 图形界面登录。
+签名参数写在 `ios/project.yml` 的 **Release** 配置里（Manual + `Apple Distribution` + 描述文件 `Gratia App Store`），命令行不要再覆盖。
+
+#### 签名材料在哪
+
+**分发证书不在登录钥匙串里**（登录钥匙串只有 Apple Development），而在一个专用的临时钥匙串中，这样签名不会弹登录钥匙串的密码框。全部材料在 **`~/Developer/gratia-signing/`**（仓库外，权限 700）：
+
+| 文件 | 是什么 |
+| --- | --- |
+| `.kcpw` | p12 密码，同时用作该钥匙串的密码 |
+| `dist.p12` | 分发证书 + 私钥 |
+| `dist.key` / `dist.pem` / `dist.cer` | 明文私钥与证书（p12 的来源） |
+| `wwdr.pem` | Apple 中间证书 |
+| `Gratia_AppStore.mobileprovision` | 描述文件 |
+
+⚠️ **这是真实的分发私钥，丢了要重新申请证书**（个人账号证书数量有限）。它一度只存在于某个会话的 `/private/tmp` 临时目录里——随时会被清理——2026-08-07 才迁到这里。不要放回 `/tmp`，也不要提交进仓库。
+
+#### ⚠️ 归档报 `errSecInternalComponent` 时
+
+```bash
+node scripts/ios-signing-setup.mjs
+```
+
+这个错误**看不出**跟钥匙串有任何关系，但它十有八九就是：那个临时钥匙串自动锁上了，codesign 拿不到私钥。找不到 "Apple Distribution" 签名身份也是同一个原因。跑一次上面的脚本重建并解锁钥匙串，再打包即可。脚本会把自动锁定放宽到 6 小时并设好 partition list（少了它，codesign 每次都要弹系统授权框）。
+
+平时不需要跑它。
 
 #### ⚠️ 这条链上有两个会安静给出「成功」的坑
 

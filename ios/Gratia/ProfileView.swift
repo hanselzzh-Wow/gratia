@@ -178,10 +178,20 @@ struct ProfileView: View {
         HStack {
             Text("关于哈喽卧得").font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.Rose.ink)
             Spacer()
-            Text("V1.0.0 (Build 1)").font(DesignSystem.metadataFont).foregroundStyle(DesignSystem.Rose.ink3)
+            Text(Self.versionText).font(DesignSystem.metadataFont).foregroundStyle(DesignSystem.Rose.ink3)
         }
         .padding(DesignSystem.spacing16)
         .roseCard()
+    }
+
+    /// 从 Info.plist 读，不要写死。这里曾经是硬编码的 "V1.0.0 (Build 1)"，
+    /// 于是不管装的是哪个构建，界面永远显示 Build 1——TestFlight 测试者
+    /// 报问题时报出来的构建号是错的，等于没法定位到具体构建。
+    private static var versionText: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "V\(version) (Build \(build))"
     }
 }
 

@@ -961,3 +961,14 @@ Cloudflare Worker API
 - 该链路此前**完全没有测试**，这正是缺陷长期未被发现的原因。新增 `tests/api-workflow.test.mjs` 用例「returns absolute avatar URLs so off-origin clients can load them」：上传头像 → 断言 `avatarUrl` 匹配 `^https?://` → 用该地址实际取回文件并校验 `content-type` → 断言运营待办列表中的地址同样为绝对。新增测试在初次运行时即抓出 `submitProfile`/`reviewProfile` 两处漏改（`new URL(path, undefined)` 抛 `ERR_INVALID_URL`）。
 - 验证：`npm test` 实际 31/31 通过（原 30 + 新增 1）；`npm run lint` 零输出；`npx tsc --noEmit` 在 `server/`、`worker/` 未新增类型错误（既有的 `Cannot find name 'D1Database'` 等环境类型缺失为历史问题）。部署前已导出生产库到 `~/Developer/gratia-backups/d1-20260806-223318.sql`；`npm run deploy:cloudflare` 成功，Version ID `713d5b11-1c66-4492-969c-d02a3ac1644c`，部署后 `wrangler secret list` 实测六个密钥齐全（Apple 三项未被 `--secrets-file` 覆盖）。
 - 未验证且不得误报：生产上当前无待审资料（`/api/admin/profiles` 实测返回 `{"profiles":[]}`），因此生产环境的 `avatarUrl` 绝对地址未取得线上样本，需在 App 内提交一次头像后由运营台实际确认。另发现 iOS 端头像**未做任何压缩**即上传（`DirectLoopSheets.swift:492` 直接使用 `loadTransferable` 的原始 Data），线上已存在 1.69 MB 的头像原图，属独立的性能问题，本次未处理。
+
+## 2026-08-07｜构建 8 上传；修复签名钥匙串与硬编码版本号
+
+- 构建 8 已上传并经 App Store Connect 处理为 VALID（上传时间 2026-08-06T17:52:43-07:00），首个同时包含地点搜索、新品牌标记与绝对头像地址三项的构建。`scripts/ios-release.mjs` 全流程通过，产物校验实测 `Apple Distribution / HH9LKGK7DA / applesignin / build 8`。`CURRENT_PROJECT_VERSION` 已推进至 9。
+- 归档一度失败于 `errSecInternalComponent`。根因：分发证书不在登录钥匙串（登录钥匙串仅有 Apple Development），而在一个位于**上一会话 `/private/tmp` scratchpad** 的临时钥匙串中，该钥匙串已自动锁定。实测 `.kcpw` 是 p12 密码而非钥匙串密码（`openssl pkcs12 -passin` 验证 MAC verified OK，而 `security unlock-keychain` 报密码错误）。
+- 已将全部签名材料迁移至仓库外的 `~/Developer/gratia-signing/`（权限 700）：`.kcpw`、`dist.p12`、`dist.key`、`dist.pem`、`dist.cer`、`dist.csr`、`wwdr.pem`、`Gratia_AppStore.mobileprovision`。实测私钥与证书配对（`openssl rsa -pubout` 与 `openssl x509 -pubkey` 输出一致）。原位置在临时目录中，随时可能被清理，而其中是真实分发私钥。
+- 新增 `scripts/ios-signing-setup.mjs`：重建钥匙串、导入 p12 与 WWDR、设置 `set-key-partition-list`（否则 codesign 每次弹系统授权框）、`set-keychain-settings -lut 21600` 放宽自动锁定、并写入钥匙串搜索列表。实测可重复运行，输出 `Apple Distribution: Hansel Zhang (HH9LKGK7DA)`。
+- 修复 `scripts/ios-release.mjs` 两处自身缺陷：(1) 归档失败时只 grep `error:`，把 `errSecInternalComponent` 这类无前缀的行滤掉，只剩一句「归档失败」，已改为同时输出 stdout/stderr 并放宽匹配；(2) 产物校验用 `execFileSync` 读 `codesign -dvv` 的返回值，而该命令把签名信息写入 **stderr**，导致 stdout 恒为空、每个签名正确的产物都被误判为「签名不是 Apple Distribution」，已改用 `spawnSync` 合并读取。第二处缺陷此前未暴露是因为脚本在构建号检查阶段即退出。
+- 修复 `ios/Gratia/ProfileView.swift:181` 硬编码的版本号字符串 `"V1.0.0 (Build 1)"`：实测装在模拟器上的 App `CFBundleVersion` 为 8，界面却显示 Build 1，TestFlight 测试者据此报告的构建号将始终错误。已改为从 `Bundle.main.infoDictionary` 读取，重装后实测显示 `V1.0.0 (Build 8)`。
+- 已产出 4 张 App Store 截图（1320×2868，拍自构建 8，含叠加文案），存于本次会话 scratchpad 的 `final/`，尚未上传 ASC，待产品负责人确认。
+- 未验证且不得误报：截图中「帮助」页因生产库无待帮助心愿而为空状态，已舍弃不用；发布页补全建议列表未能截取——`simctl pbcopy` 以 Mac OS Roman 单字节解码输入，无法传入中文，且模拟器地区为英文时 `MKLocalSearchCompleter` 返回英文地名。iOS 测试 41/41 通过。
