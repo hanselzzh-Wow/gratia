@@ -121,7 +121,7 @@ struct ProfileView: View {
         }
     }
 
-    private func activityRow(title: String, detail: String, icon: String, isAsset: Bool = false) -> some View {
+    private func activityRow(title: LocalizedStringKey, detail: LocalizedStringKey, icon: String, isAsset: Bool = false) -> some View {
         HStack(spacing: DesignSystem.spacing12) {
             Group {
                 if isAsset {
@@ -185,7 +185,7 @@ struct ProfileView: View {
     }
 
 
-    private func supportRow(title: String, icon: String, trailing: String? = nil) -> some View {
+    private func supportRow(title: LocalizedStringKey, icon: String, trailing: LocalizedStringKey? = nil) -> some View {
         HStack(spacing: DesignSystem.spacing12) {
             Image(systemName: icon).font(.body.weight(.regular)).foregroundStyle(DesignSystem.Rose.primary).frame(width: 24)
             Text(title).font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.Rose.ink)
@@ -664,7 +664,7 @@ struct HelpAndSafetyView: View {
         }
     }
 
-    private func informationCard(title: String, body: String) -> some View {
+    private func informationCard(title: LocalizedStringKey, body: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
             Text(title).font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.Rose.ink)
             Text(body).font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.Rose.ink2).lineSpacing(3)
@@ -715,7 +715,7 @@ struct PrivacyPolicyView: View {
         }
     }
 
-    private func policySection(_ title: String, _ body: String) -> some View {
+    private func policySection(_ title: LocalizedStringKey, _ body: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
             Text(title).font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.Rose.ink)
             Text(body).font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.Rose.ink2).lineSpacing(3)

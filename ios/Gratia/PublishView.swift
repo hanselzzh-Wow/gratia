@@ -13,7 +13,9 @@ struct PublishView: View {
     @State private var stepForward = true
     @FocusState private var focusedField: PublishField?
 
-    private let scenes = ["生日祝福", "加油鼓励", "毕业祝福", "浪漫表白", "节日问候", "其他小心愿"]
+    // 取值来自 BusinessVocabulary：这些中文是**存进数据库的值**，不是文案。
+    // 直接本地化会让英文环境把 "Birthday wishes" 传上去，库里从此两套写法并存。
+    private let scenes = BusinessVocabulary.occasions
 
     private var isStep1Valid: Bool { !viewModel.landmark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     private var isStep2Valid: Bool { !viewModel.words.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && viewModel.words.count <= 120 }
@@ -195,7 +197,12 @@ struct PublishView: View {
             VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
                 fieldLabel("心愿场景")
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: DesignSystem.spacing8) {
-                    ForEach(scenes, id: \.self) { item in selectionTile(item, selected: viewModel.scene == item) { viewModel.scene = item } }
+                    ForEach(scenes, id: \.self) { item in
+                        // 存 item（中文原值），显示 display(item)（本地化后的）
+                        selectionTile(BusinessVocabulary.display(item), selected: viewModel.scene == item) {
+                            viewModel.scene = item
+                        }
+                    }
                 }
             }
             // 地点不再限定在几个写死的城市：任何地方都可能有人想去。
@@ -263,14 +270,14 @@ struct PublishView: View {
         }
     }
 
-    private func stepHeader(title: String, subtitle: String) -> some View {
+    private func stepHeader(title: LocalizedStringKey, subtitle: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
             Text(title).font(DesignSystem.titleFont).foregroundStyle(DesignSystem.ink900)
             Text(subtitle).font(DesignSystem.bodyFont).foregroundStyle(DesignSystem.ink700)
         }
     }
 
-    private func fieldLabel(_ text: String) -> some View {
+    private func fieldLabel(_ text: LocalizedStringKey) -> some View {
         Text(text).font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.ink900)
     }
 
@@ -290,7 +297,7 @@ struct PublishView: View {
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
-    private func inputField(label: String, placeholder: String, text: Binding<String>, field: PublishField, error: String?) -> some View {
+    private func inputField(label: LocalizedStringKey, placeholder: LocalizedStringKey, text: Binding<String>, field: PublishField, error: String?) -> some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
             fieldLabel(label)
             TextField(placeholder, text: text)
@@ -321,7 +328,7 @@ struct PublishView: View {
             .overlay(RoundedRectangle(cornerRadius: DesignSystem.radiusSmall).stroke(hasError ? DesignSystem.danger : (isFocused ? DesignSystem.accent : DesignSystem.hairlineStrong), lineWidth: isFocused ? 2 : 1))
     }
 
-    private func deliveryTypeRow(type: String, description: String, icon: String) -> some View {
+    private func deliveryTypeRow(type: String, description: LocalizedStringKey, icon: String) -> some View {
         let selected = viewModel.deliveryType == type
         return Button {
             viewModel.deliveryType = type
@@ -332,7 +339,7 @@ struct PublishView: View {
                     .foregroundStyle(selected ? DesignSystem.accent : DesignSystem.ink500)
                     .frame(width: 28)
                 VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
-                    Text(type).font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.ink900)
+                    Text(BusinessVocabulary.display(type)).font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.ink900)
                     Text(description).font(DesignSystem.captionFont).foregroundStyle(DesignSystem.ink700).multilineTextAlignment(.leading)
                 }
                 Spacer()
@@ -415,7 +422,7 @@ struct PublishView: View {
         .padding(.horizontal, DesignSystem.spacing24)
     }
 
-    private func processBadge(_ name: String, completed: Bool) -> some View {
+    private func processBadge(_ name: LocalizedStringKey, completed: Bool) -> some View {
         Text(name)
             .font(DesignSystem.captionFont.weight(.semibold))
             .foregroundStyle(completed ? DesignSystem.accent : DesignSystem.ink700)

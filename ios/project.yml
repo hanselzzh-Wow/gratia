@@ -1,6 +1,13 @@
 name: Gratia
 options:
   bundleIdPrefix: com.hanselzzh
+  # 不声明的话 XcodeGen 只写入 Base + 开发语言，en.lproj 不会被打进包，
+  # 英文设备照样显示中文——而且构建不会有任何警告。
+  developmentLanguage: zh-Hans
+  knownRegions:
+    - zh-Hans
+    - en
+    - Base
 packages:
   GratiaCore:
     path: Packages/GratiaCore

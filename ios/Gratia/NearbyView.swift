@@ -10,7 +10,8 @@ struct NearbyView: View {
     /// 卡片 → 详情的原地展开转场，源与目标必须共享同一个命名空间。
     @Namespace private var cardNamespace
 
-    private let deliveryTypes = ["全部", "口播视频", "景色配音", "手写卡片"]
+    // 同 PublishView：这些是与服务端对齐的业务值，只在显示时翻译。
+    private let deliveryTypes = ["全部"] + BusinessVocabulary.deliveryTypes
 
     private var filteredWishes: [PublicWishDTO] {
         guard case .loaded(let wishes) = viewModel.state else { return [] }
@@ -91,7 +92,8 @@ struct NearbyView: View {
                     Button {
                         selectedDeliveryFilter = type
                     } label: {
-                        Text(type)
+                        // 比较用 type（业务原值），显示用 display(type)。
+                        Text(BusinessVocabulary.display(type))
                             .font(DesignSystem.metadataFont.weight(.semibold))
                             .foregroundStyle(selectedDeliveryFilter == type ? .white : DesignSystem.ink700)
                             .padding(.horizontal, DesignSystem.spacing16)
@@ -540,7 +542,7 @@ struct ApplyResponseSheet: View {
         )
     }
 
-    private func textField(label: String, placeholder: String, text: Binding<String>, field: ResponseField, error: String?) -> some View {
+    private func textField(label: LocalizedStringKey, placeholder: LocalizedStringKey, text: Binding<String>, field: ResponseField, error: String?) -> some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
             Text(label)
                 .font(DesignSystem.headlineFont)
