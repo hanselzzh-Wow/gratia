@@ -972,3 +972,14 @@ Cloudflare Worker API
 - 修复 `ios/Gratia/ProfileView.swift:181` 硬编码的版本号字符串 `"V1.0.0 (Build 1)"`：实测装在模拟器上的 App `CFBundleVersion` 为 8，界面却显示 Build 1，TestFlight 测试者据此报告的构建号将始终错误。已改为从 `Bundle.main.infoDictionary` 读取，重装后实测显示 `V1.0.0 (Build 8)`。
 - 已产出 4 张 App Store 截图（1320×2868，拍自构建 8，含叠加文案），存于本次会话 scratchpad 的 `final/`，尚未上传 ASC，待产品负责人确认。
 - 未验证且不得误报：截图中「帮助」页因生产库无待帮助心愿而为空状态，已舍弃不用；发布页补全建议列表未能截取——`simctl pbcopy` 以 Mac OS Roman 单字节解码输入，无法传入中文，且模拟器地区为英文时 `MKLocalSearchCompleter` 返回英文地名。iOS 测试 41/41 通过。
+
+## 2026-08-07｜外部测试提交；新增运营台待审邮件提醒
+
+- 已澄清三条路径的门槛差异：TestFlight 内部测试只需构建 VALID + 出口合规；外部测试另需一次 Beta App Review 与测试说明；**商店截图仅正式上架需要**。此前的截图工作按正式上架推进，与"立即开始测试"的目标不在同一条路径上。
+- 外部测试已提交。实测前置项：Beta App Review 联系信息齐全（Hansel Zhang / hansel.zzh@gmail.com / [已隐去]，demoAccountRequired=false）、TestFlight App 级说明齐全（反馈邮箱、描述、隐私政策 URL）。缺失并已补齐两项：构建 8 未加入任何测试组、构建 8 的 `whatsNew` 为空。
+- 已写入构建 8 的 zh-Hans 测试说明，重点声明「心愿发布后不会立刻出现在列表里，需人工审核通过」，以及推送通知未实现、界面仅中文。已将构建 8 加入外部组「受邀试用」与内部组，`POST /v1/betaAppReviewSubmissions` 返回成功，实测状态 `WAITING_FOR_REVIEW`。公开链接 `https://testflight.apple.com/join/ftyuGZ8n`，上限 100 人，审核通过后生效。内部组测试员当前 0 人。
+- 就「发布心愿是否需要审核」作出判断：**保留**。App Review Guideline 1.2 对 UGC App 要求四件事——事前过滤不当内容、举报机制、屏蔽滥用用户、公开联系方式，且原文点名「以线下实物或服务交付告终的服务」，本 App 正属此类。实测代码中举报（`reportAbuse`）与屏蔽（`blockCounterpart`）已具备，但**没有任何关键词或自动过滤**，人工审核是第一项的唯一实现；取消即缺项。已建议：Beta 审核期间维持现状（用量极小），外部测试铺开后改为「自动过滤命中才进人工队列 + 事后抽查」，该方案同样满足 1.2。
+- 新增 `server/ops-notifier.ts` 与 Cron 触发（`*/15 * * * *`）：定时统计四类待审（心愿正文、昵称头像、公开到首页、举报），有内容则发提醒邮件。采用定时汇总而非逐条推送，避免连续发布时淹没邮箱；并以待审数量指纹去重，**仅在待审集合变化时发信**，队列清空时重置指纹。未配置 `RESEND_API_KEY`/`OPS_NOTIFY_EMAIL` 时静默跳过；邮件服务报错不抛出且不写入指纹，使该批内容下次仍会被提醒。提醒正文只含各类数量与运营台链接，不带出用户正文。
+- 新增 `tests/ops-notifier.test.mjs` 共 6 条，通过 `worker.scheduled` 驱动真实链路（真 SQL、真表结构），覆盖：空队列不发、有内容发一封且数量与链接正确、同一批不重复发、新增内容再发、未配密钥静默跳过、邮件失败后下次仍会重试。实测 `npm test` 37/37 通过（原 31 + 新增 6），`npm run lint` 零输出。
+- 部署前已导出生产库至 `~/Developer/gratia-backups/d1-20260807-104520.sql`；`npm run deploy:cloudflare` 成功，Version ID `7bbde88d-8391-4b47-91d7-b10884f924a1`，部署输出确认 `schedule: */15 * * * *` 已生效。
+- 未验证且不得误报：**邮件提醒尚未真正发出过一封** —— `RESEND_API_KEY` 与 `OPS_NOTIFY_EMAIL` 两个 secret 均未配置，线上 Cron 当前走的是「未配置邮件密钥」分支。需注册 Resend 取得 API key 并写入后才会生效。Beta App Review 结果未知。商店截图工作停在半途：素材已生成并入 assets（8 个资源共 122 KB），`StoryIllustrationView` 已改为读图片，但头像接入与重拍未完成。

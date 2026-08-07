@@ -25,6 +25,9 @@
   "vars": {
     "PUBLIC_APP_ORIGIN": "https://hanselzzh-wow.github.io"
   },
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
   "secrets": {
     "required": ["ADMIN_API_KEY", "RATE_LIMIT_SALT"]
   },

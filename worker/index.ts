@@ -61,6 +61,7 @@ import {
   type AppleAuthConfig,
 } from "../server/apple-identity";
 import { consumeRateLimit, RateLimitError } from "../server/rate-limit";
+import { sendPendingDigest } from "../server/ops-notifier";
 
 interface Env {
   ASSETS: Fetcher;
@@ -75,6 +76,10 @@ interface Env {
   APPLE_TEAM_ID?: string;
   APPLE_KEY_ID?: string;
   APPLE_PRIVATE_KEY?: string;
+  /// 待审提醒邮件；两者缺一则静默跳过，不影响任何主流程
+  RESEND_API_KEY?: string;
+  OPS_NOTIFY_EMAIL?: string;
+  OPS_NOTIFY_FROM?: string;
   IMAGES: {
     input(stream: ReadableStream): {
       transform(options: Record<string, unknown>): {
@@ -890,6 +895,22 @@ const worker = {
     }
 
     return handler.fetch(request, env, ctx);
+  },
+
+  /// 定时检查运营台待审队列，有变化就发一封提醒邮件。
+  /// 放在 Cron 而不是发布请求里：发心愿的人不该为发信等待，
+  /// 而且有人连发几条时逐条推送会把邮箱淹掉。
+  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(
+      sendPendingDigest(env.DB, {
+        apiKey: env.RESEND_API_KEY,
+        to: env.OPS_NOTIFY_EMAIL,
+        from: env.OPS_NOTIFY_FROM,
+        opsUrl: `${env.PUBLIC_APP_ORIGIN ?? "https://hanselzzh-wow.github.io"}/ops/`,
+      }).then((result) => {
+        console.log(`[ops-notify] ${result.reason}`, result.summary);
+      }),
+    );
   },
 };
 
