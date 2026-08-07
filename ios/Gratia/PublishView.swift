@@ -189,7 +189,9 @@ struct PublishView: View {
 
     private var step1View: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
-            stepHeader(title: "想送到哪里", subtitle: "选择心愿分类，并搜索或直接输入地点。")
+            // 措辞一律站在「你会收到什么」这一侧：成果是当地人交回给发布者本人的，
+            // 不存在第三个收件人。写成「送到哪里」「让对方收到什么」会把方向讲反。
+            stepHeader(title: "希望有人替你去哪里", subtitle: "选择心愿分类，并搜索或直接输入地点。")
             VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
                 fieldLabel("心愿场景")
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: DesignSystem.spacing8) {
@@ -208,7 +210,7 @@ struct PublishView: View {
 
     private var step2View: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing20) {
-            stepHeader(title: "想让对方收到什么", subtitle: "填写想说的话并选择交付形式。")
+            stepHeader(title: "希望收到什么", subtitle: "写下想让对方替你说的话，再选择你希望收到的形式。")
             VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
                 HStack {
                     fieldLabel("想说的话")
