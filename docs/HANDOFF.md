@@ -22,13 +22,13 @@ App 内**不涉及任何金额**，**不收集任何联系方式**。
 | 分支 | `appstore/1.0`（`main` 停在 2026-07-20，不再是实现来源） |
 | 生产 API | **`https://api.hanselzhang.com`**（自定义域名，国内可达） |
 | 旧地址 | `https://haluowode-mvp.hanselzzh.workers.dev` 仍指向同一 Worker，保留备查 |
-| 数据库迁移 | `0000`–`0011` 全部已应用 |
+| 数据库迁移 | `0000`–`0012` 全部已应用 |
 | 运营台 | `https://hanselzzh-wow.github.io/ops/`（有待审内容会自动发邮件提醒） |
 | 法务页面 | `/legal/privacy/`、`/legal/terms/` 已公开 |
 | Apple 令牌撤销 | 已端到端验证通过 |
 | TestFlight | 构建 10 在 Beta 审核队列中；11–13 已上传未提交（不打断 10 的审核）。公开链接 `https://testflight.apple.com/join/ftyuGZ8n`（审核通过后生效，上限 100 人） |
 | 推送通知 | **已启用**（2026-08-07）。密钥 `3AA48B42H3`，Sandbox & Production；已对 Apple 真实端点验证 |
-| 后端测试 | 45/45 |
+| 后端测试 | 49/49 |
 | iOS 测试 | 49/49 |
 
 ### 构建号：下一个可用是 14
@@ -186,6 +186,30 @@ App Review Guideline 1.2 要求 UGC App 具备四件事：**事前过滤不当�
 举报（`reportAbuse`）与屏蔽（`blockCounterpart`）都已实现，但代码里**没有任何关键词或自动过滤**——人工审核是「事前过滤」这一项的唯一实现，取消即缺项，正式提审很可能栽在 1.2 上。而且心愿正文会把一个陌生人引到一个具体的线下地点，内容风险比纯线上高。
 
 要减轻运营负担，正确的做法不是取消审核，而是把它从「全人工」改成「自动过滤命中才进人工队列 + 事后抽查」——Apple 认的是有没有过滤手段，自动过滤同样算。
+
+### 昵称：唯一、可封禁，与头像分开审核
+
+**昵称唯一性按规范化形式判定**（`normalizeDisplayName`，`server/wishes-repository.ts`）：NFKC 归一全角，去掉**全部**空白而不只是首尾，删掉零宽字符与双向控制符。「晚风电台」「晚风 电台」「晚风<零宽>电台」「ＲＡＤＩＯ」在别人眼里是同一个名字，只比原文等于给冒名顶替留了一道门。规则在应用层、库里只存 `display_name_key`，所以改规则不必动索引。查询与写入之间的竞态由部分唯一索引兜底，撞了返回 409。
+
+**封禁昵称**存在 `banned_display_names`，以规范化 key 为主键。运营在退回昵称时勾选才封禁——重名或格式问题被退不该永久锁死那个名字。运营台另有面板可直接增删。
+
+**昵称与头像各走一条审核线**（`display_name_status` / `avatar_status`）。合审的问题在退回一侧：为了退回一张不合适的头像，用户改好的昵称会被一起打回，他得重填两样，其中一样本来是合格的。审核接口的 `target` 参数取 `displayName` / `avatar` / `both`，不传按整份处理。
+
+### ⚠️ 预设头像免审：改图必须同步改哈希清单
+
+新用户必须设头像，但不是每个人手边都有合适的照片。12 张预设图（`ios/Gratia/PresetAvatars/`）是兜底，且**免人工审核**——否则用户按引导选了头像，别人看到的依然是灰色人像，等于没做。
+
+服务端按内容的 SHA-256 白名单（`server/preset-avatars.ts`）放行，不听客户端自称。两处容易踩：
+
+1. **改动 `scripts/generate-preset-avatars.py` 会改变哈希**，必须同步更新那份清单（脚本会打印新的）。不同步不会报错，只是那些图安静地退回走人工审核。
+2. **`PresetAvatars` 在 `ios/project.yml` 里必须是 folder reference**。普通 sources 会让 Xcode 用 pngcrush 重新编码这些 PNG，字节一变哈希就对不上，整条免审链路失效——同样不报错。改动工程配置后请重新校验构建产物：
+
+```bash
+APP=$(ls -dt ~/Library/Developer/Xcode/DerivedData/Gratia-*/Build/Products/Debug-iphonesimulator/Gratia.app | head -1)
+for i in $(seq 1 12); do
+  diff -q "$APP/PresetAvatars/preset-$i.png" ios/Gratia/PresetAvatars/preset-$i.png || echo "preset-$i 被改动了"
+done
+```
 
 ### 待审提醒邮件
 
