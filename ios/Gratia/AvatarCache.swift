@@ -53,8 +53,11 @@ struct CachedAvatar: View {
             if let image {
                 Image(uiImage: image).resizable().scaledToFill()
             } else {
+                // 按尺寸缩放，而不是写死一个字号：这个组件从 28pt 的私聊小头像
+                // 一直用到 96pt 的资料编辑大头像，固定 title3 在大圆里会缩成
+                // 中间一个小点。下限 16pt 保证小尺寸上不会反而看不清。
                 Image(systemName: "person")
-                    .font(.title3.weight(.medium))
+                    .font(.system(size: max(size * 0.4, 16), weight: .medium))
                     .foregroundStyle(DesignSystem.Rose.deep)
             }
         }

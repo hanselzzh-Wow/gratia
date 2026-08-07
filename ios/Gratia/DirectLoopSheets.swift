@@ -375,13 +375,25 @@ struct ProfileEditSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var profile: UserProfileDTO?
-    @State private var displayName = ""
+    @State private var displayName: String
     @State private var pickedAvatar: PhotosPickerItem?
     @State private var avatarPreview: Image?
     @State private var avatarData: Data?
     @State private var isSubmitting = false
     @State private var submitted = false
     @State private var errorMessage: String?
+
+    /// 用本机缓存的资料开局，而不是空值。
+    ///
+    /// `load()` 是异步的，sheet 打开的那一刻网络还没回来——原先这里是 nil 与
+    /// 空串，于是「修改资料」一点开，看到的是灰色人像和空昵称框，等一下才
+    /// 变回自己的。「我的」页面早就从 `ProfileCache` 开局了（`AccountSectionView`），
+    /// 只有这个 sheet 漏了，所以症状是「列表里好好的，一点进去就没了」。
+    init() {
+        let cached = ProfileCache.load()
+        _profile = State(initialValue: cached)
+        _displayName = State(initialValue: cached?.displayName ?? "")
+    }
 
     var body: some View {
         NavigationStack {
@@ -401,21 +413,18 @@ struct ProfileEditSheet: View {
                     }
                     PhotosPicker(selection: $pickedAvatar, matching: .images) {
                         ZStack {
-                            Circle().fill(DesignSystem.Rose.soft).frame(width: 96, height: 96)
                             if let avatarPreview {
+                                // 刚从相册选的那张，优先于线上版本。
                                 avatarPreview.resizable().scaledToFill()
                                     .frame(width: 96, height: 96).clipShape(Circle())
-                            } else if let url = profile?.avatarUrl, let remote = URL(string: url) {
-                                AsyncImage(url: remote) { image in
-                                    image.resizable().scaledToFill()
-                                } placeholder: {
-                                    Image(systemName: "person").font(.largeTitle)
-                                        .foregroundStyle(DesignSystem.Rose.deep)
-                                }
-                                .frame(width: 96, height: 96).clipShape(Circle())
                             } else {
-                                Image(systemName: "person").font(.largeTitle)
-                                    .foregroundStyle(DesignSystem.Rose.deep)
+                                // 用 CachedAvatar 而不是 AsyncImage：后者必然先渲染一帧
+                                // placeholder，也就是先给用户看一个灰色人像，再换成他
+                                // 自己的头像。CachedAvatar 命中磁盘缓存时是同步出图的。
+                                CachedAvatar(
+                                    url: profile?.avatarUrl.flatMap(URL.init(string:)),
+                                    size: 96
+                                )
                             }
                             Circle()
                                 .fill(DesignSystem.Rose.primary)
@@ -490,8 +499,16 @@ struct ProfileEditSheet: View {
 
     private func load() async {
         guard let token = accountViewModel.accessToken else { return }
-        profile = try? await accountAPI.profile(token: token)
-        displayName = profile?.displayName ?? ""
+        // 取不到就保持缓存里那份。原先是 `profile = try? await …`，一旦断网
+        // 就把已经显示对了的资料擦成 nil——界面反而从「对的」退回「空的」。
+        guard let fresh = try? await accountAPI.profile(token: token) else { return }
+        // 用户可能在网络回来之前就开始改昵称了。只有他还没动过时才同步，
+        // 否则这一行会把人家打了一半的字覆盖掉。
+        if displayName == (profile?.displayName ?? "") {
+            displayName = fresh.displayName
+        }
+        profile = fresh
+        ProfileCache.save(fresh)
     }
 
     private func loadAvatarPreview() async {
@@ -535,11 +552,20 @@ struct ProfileEditSheet: View {
         isSubmitting = true
         defer { isSubmitting = false }
         do {
-            profile = try await accountAPI.updateProfile(
+            let updated = try await accountAPI.updateProfile(
                 displayName: trimmed,
                 avatar: avatarData,
                 token: token
             )
+            profile = updated
+            // 不写回缓存的话，关掉这个 sheet 回到「我的」，看到的还是改之前那份。
+            ProfileCache.save(updated)
+            // 刚上传的那张图就在手里，直接落盘：否则回到「我的」还要再从网络
+            // 下载一遍自己刚传的头像，白等一次往返。
+            if let avatarData,
+               let url = updated.avatarUrl.flatMap(URL.init(string:)) {
+                AvatarCache.store(avatarData, for: url)
+            }
             // 提交成功后先给出明确回执再关闭：内容要经人工审核，
             // 用户必须知道"已提交、但他人还看不到"。
             submitted = true
