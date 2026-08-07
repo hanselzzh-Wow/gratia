@@ -7,6 +7,7 @@ import {
   WishApiError,
   type AbuseReport,
   type PendingProfile,
+  type BannedName,
   type PendingStory,
   type ReportedMessage,
 } from "../../lib/wishes-client";
@@ -60,6 +61,8 @@ export default function OperationsPage() {
   const [stories, setStories] = useState<PendingStory[]>([]);
   const [reports, setReports] = useState<AbuseReport[]>([]);
   const [openReport, setOpenReport] = useState<{ id: string; messages: ReportedMessage[] } | null>(null);
+  const [bannedNames, setBannedNames] = useState<BannedName[]>([]);
+  const [banDraft, setBanDraft] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -86,18 +89,21 @@ export default function OperationsPage() {
     setError("");
     setNotice("");
     try {
-      const [wishResult, providerResult, profileResult, storyResult, reportResult] = await Promise.all([
-        wishesClient.listAdmin(key),
-        wishesClient.listProviders(key),
-        wishesClient.listPendingProfiles(key),
-        wishesClient.listPendingStories(key),
-        wishesClient.listReports(key),
-      ]);
+      const [wishResult, providerResult, profileResult, storyResult, reportResult, bannedResult] =
+        await Promise.all([
+          wishesClient.listAdmin(key),
+          wishesClient.listProviders(key),
+          wishesClient.listPendingProfiles(key),
+          wishesClient.listPendingStories(key),
+          wishesClient.listReports(key),
+          wishesClient.listBannedNames(key),
+        ]);
       setWishes(wishResult.wishes);
       setProviders(providerResult.providers);
       setProfiles(profileResult.profiles);
       setStories(storyResult.stories);
       setReports(reportResult.reports);
+      setBannedNames(bannedResult.names);
       setAdminKey(key);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "运营台连接失败");
@@ -107,15 +113,64 @@ export default function OperationsPage() {
     }
   }
 
-  async function moderateProfile(userId: string, action: "approve" | "reject") {
+  async function moderateProfile(
+    userId: string,
+    action: "approve" | "reject",
+    target: "displayName" | "avatar" | "both" = "both",
+  ) {
     setBusyId(userId);
     try {
-      const note = action === "reject" ? window.prompt("退回理由（会展示给用户）") ?? undefined : undefined;
-      await wishesClient.reviewProfile(adminKey, userId, action, note);
-      setNotice(action === "approve" ? "资料已通过" : "资料已退回");
+      let note: string | undefined;
+      let ban = false;
+      if (action === "reject") {
+        note = window.prompt("退回理由（会展示给用户）") ?? undefined;
+        // 封禁只对昵称有意义，而且要单独确认：重名被退不该永久锁死那个名字，
+        // 辱骂或冒充官方的才该。默认不封。
+        if (target !== "avatar") {
+          ban = window.confirm(
+            "同时把这个昵称加入封禁列表吗？\n\n" +
+              "加入后任何人都不能再用它（换大小写或加空格也不行）。\n" +
+              "只因为重名或格式问题退回的话，请选「取消」。",
+          );
+        }
+      }
+      await wishesClient.reviewProfile(adminKey, userId, action, note, { target, ban });
+      const what = target === "displayName" ? "昵称" : target === "avatar" ? "头像" : "资料";
+      setNotice(`${what}已${action === "approve" ? "通过" : "退回"}${ban ? "，并已加入封禁列表" : ""}`);
       await load();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "操作失败");
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function addBannedName() {
+    const name = banDraft.trim();
+    if (!name) return;
+    setBusyId("ban");
+    try {
+      const reason = window.prompt("封禁理由（只有运营看得到）") ?? undefined;
+      await wishesClient.banName(adminKey, name, reason);
+      setBanDraft("");
+      setNotice(`已封禁「${name}」`);
+      await load();
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "封禁失败");
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function removeBannedName(key: string, original: string) {
+    if (!window.confirm(`解除对「${original}」的封禁？之后任何人都可以使用它。`)) return;
+    setBusyId("ban");
+    try {
+      await wishesClient.unbanName(adminKey, key);
+      setNotice(`已解除「${original}」`);
+      await load();
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "解除失败");
     } finally {
       setBusyId("");
     }
@@ -361,7 +416,7 @@ export default function OperationsPage() {
               <p className="ops-empty">没有待审核的昵称或头像。</p>
             ) : (
               profiles.map((profile) => (
-                <div key={profile.userId} className="ops-review-row">
+                <div key={profile.userId} className="ops-review-row ops-profile-row">
                   {profile.avatarUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={profile.avatarUrl} alt="待审核头像" className="ops-avatar" />
@@ -374,11 +429,38 @@ export default function OperationsPage() {
                       {profile.submittedAt ? dateTime(profile.submittedAt) : ""}
                     </span>
                   </div>
-                  <div className="ops-review-actions">
-                    <button type="button" disabled={busyId === profile.userId}
-                      onClick={() => moderateProfile(profile.userId, "approve")}>通过</button>
-                    <button type="button" className="ops-danger" disabled={busyId === profile.userId}
-                      onClick={() => moderateProfile(profile.userId, "reject")}>退回</button>
+                  {/*
+                    昵称与头像分开处理。同一条里两样可能只有一样在等——
+                    另一样已通过的话不该再给按钮，否则一点就把它重新拖回待审。
+                  */}
+                  <div className="ops-profile-actions">
+                    {profile.displayNamePending !== false && (
+                      <div className="ops-profile-line">
+                        <span className="ops-profile-label">昵称</span>
+                        <button type="button" disabled={busyId === profile.userId}
+                          onClick={() => moderateProfile(profile.userId, "approve", "displayName")}>通过</button>
+                        <button type="button" className="ops-danger" disabled={busyId === profile.userId}
+                          onClick={() => moderateProfile(profile.userId, "reject", "displayName")}>退回</button>
+                      </div>
+                    )}
+                    {profile.avatarPending !== false && profile.avatarUrl && (
+                      <div className="ops-profile-line">
+                        <span className="ops-profile-label">头像</span>
+                        <button type="button" disabled={busyId === profile.userId}
+                          onClick={() => moderateProfile(profile.userId, "approve", "avatar")}>通过</button>
+                        <button type="button" className="ops-danger" disabled={busyId === profile.userId}
+                          onClick={() => moderateProfile(profile.userId, "reject", "avatar")}>退回</button>
+                      </div>
+                    )}
+                    {profile.displayNamePending !== false && profile.avatarPending !== false && (
+                      <div className="ops-profile-line">
+                        <span className="ops-profile-label">两样</span>
+                        <button type="button" disabled={busyId === profile.userId}
+                          onClick={() => moderateProfile(profile.userId, "approve", "both")}>都通过</button>
+                        <button type="button" className="ops-danger" disabled={busyId === profile.userId}
+                          onClick={() => moderateProfile(profile.userId, "reject", "both")}>都退回</button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -455,6 +537,47 @@ export default function OperationsPage() {
                 </div>
               ))
             )}
+          </div>
+
+          {/*
+            封禁昵称。除了退回时顺手勾选，这里也能直接维护——冒充官方一类的词
+            应该在有人用之前就先挡住，而不是等第一个人用了再去退回。
+          */}
+          <div className="ops-review-group">
+            <h3>封禁昵称 {bannedNames.length > 0 && <span className="ops-badge">{bannedNames.length}</span>}</h3>
+            <p className="ops-hint">
+              按规范化形式匹配：换大小写、加空格、插入不可见字符都绕不过去。
+            </p>
+            {bannedNames.length === 0 ? (
+              <p className="ops-empty">还没有封禁任何昵称。</p>
+            ) : (
+              <div className="ops-banned-list">
+                {bannedNames.map((banned) => (
+                  <span key={banned.key} className="ops-banned-chip" title={banned.reason ?? undefined}>
+                    {banned.original}
+                    <button type="button" disabled={busyId === "ban"}
+                      aria-label={`解除封禁 ${banned.original}`}
+                      onClick={() => removeBannedName(banned.key, banned.original)}>×</button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="ops-banned-form">
+              <input
+                value={banDraft}
+                onChange={(event) => setBanDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void addBannedName();
+                  }
+                }}
+                placeholder="要封禁的昵称"
+                aria-label="要封禁的昵称"
+              />
+              <button type="button" disabled={busyId === "ban" || !banDraft.trim()}
+                onClick={() => void addBannedName()}>封禁</button>
+            </div>
           </div>
         </section>
 

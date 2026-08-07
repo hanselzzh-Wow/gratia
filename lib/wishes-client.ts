@@ -148,11 +148,47 @@ export const wishesClient = {
     });
   },
 
-  async reviewProfile(adminKey: string, userId: string, action: "approve" | "reject", note?: string) {
+  /**
+   * 审核用户资料。
+   *
+   * `target` 指明处理哪一样——昵称与头像是两条独立的线，不传则按整份处理。
+   * `ban` 只在退回昵称时有意义：重名被退不该永久锁死那个名字，辱骂性的才该，
+   * 所以由运营自己勾。
+   */
+  async reviewProfile(
+    adminKey: string,
+    userId: string,
+    action: "approve" | "reject",
+    note?: string,
+    options: { target?: "displayName" | "avatar" | "both"; ban?: boolean } = {},
+  ) {
     return requestJson<unknown>(`/api/admin/profiles/${encodeURIComponent(userId)}`, {
       method: "PATCH",
       headers: { "x-admin-key": adminKey },
-      body: JSON.stringify({ action, note }),
+      body: JSON.stringify({ action, note, target: options.target, ban: options.ban }),
+    });
+  },
+
+  // MARK: - 封禁昵称
+
+  async listBannedNames(adminKey: string) {
+    return requestJson<{ names: BannedName[] }>("/api/admin/banned-names", {
+      headers: { "x-admin-key": adminKey },
+    });
+  },
+
+  async banName(adminKey: string, name: string, reason?: string) {
+    return requestJson<unknown>("/api/admin/banned-names", {
+      method: "POST",
+      headers: { "x-admin-key": adminKey },
+      body: JSON.stringify({ name, reason }),
+    });
+  },
+
+  async unbanName(adminKey: string, key: string) {
+    return requestJson<unknown>(`/api/admin/banned-names/${encodeURIComponent(key)}`, {
+      method: "DELETE",
+      headers: { "x-admin-key": adminKey },
     });
   },
 
@@ -202,6 +238,16 @@ export type PendingProfile = {
   displayName: string | null;
   avatarUrl: string | null;
   submittedAt: number | null;
+  /// 这一条里哪一样还在等：另一样可能早就通过了
+  displayNamePending?: boolean;
+  avatarPending?: boolean;
+};
+
+export type BannedName = {
+  key: string;
+  original: string;
+  reason: string | null;
+  createdAt: number;
 };
 
 export type PendingStoryMedia = { id: string; url: string; kind: string };

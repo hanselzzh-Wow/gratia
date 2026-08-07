@@ -1170,7 +1170,6 @@ test("昵称与头像分开审核：退回一样不牵连另一样", async () =>
       body: JSON.stringify({ code: "split-review" }),
     }))).token;
     const h = { authorization: `Bearer ${token}` };
-    const hj = { ...h, "content-type": "application/json" };
 
     // 同时提交昵称与头像
     const form = new FormData();
