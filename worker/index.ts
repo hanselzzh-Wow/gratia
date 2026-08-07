@@ -30,6 +30,7 @@ import {
   listMyConversations,
   reportAbuse,
   blockCounterpart,
+  unblockCounterpart,
   publishWishStory,
   unpublishWishStory,
   listPublishedStories,
@@ -569,6 +570,11 @@ async function handleWishApi(request: Request, env: Env) {
     if (blockMatch && request.method === "POST") {
       const user = await requireAccount(request, env);
       return json(request, env, await blockCounterpart(env.DB, decodeURIComponent(blockMatch[1]), user.id), 201);
+    }
+    // 取消屏蔽。用 DELETE 而不是另开一个路径：它撤销的正是上面那次 POST。
+    if (blockMatch && request.method === "DELETE") {
+      const user = await requireAccount(request, env);
+      return json(request, env, await unblockCounterpart(env.DB, decodeURIComponent(blockMatch[1]), user.id));
     }
 
     // 发布者查看本人心愿收到的响应（不含响应者联系方式）

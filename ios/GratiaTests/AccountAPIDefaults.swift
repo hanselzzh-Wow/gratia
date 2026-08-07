@@ -40,6 +40,10 @@ extension AccountAPIProtocol {
         throw unimplemented()
     }
 
+    public func unblockCounterpart(responseId: String, token: String) async throws {
+        throw unimplemented()
+    }
+
     public func publishStory(wishId: String, nickname: String?, token: String) async throws {
         throw unimplemented()
     }

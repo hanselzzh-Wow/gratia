@@ -38,7 +38,13 @@ struct ChatView: View {
                     }
                     Divider()
                     Button("举报", role: .destructive) { showReport = true }
-                    Button("屏蔽对方", role: .destructive) { showBlockConfirm = true }
+                    // 屏蔽是可撤销的：早先只有单向的「屏蔽」，一旦点下去
+                    // 会话就消失且没有回头路。
+                    if blockedByMe {
+                        Button("取消屏蔽") { Task { await unblock() } }
+                    } else {
+                        Button("屏蔽对方", role: .destructive) { showBlockConfirm = true }
+                    }
                 } label: {
                     Image(systemName: "ellipsis.circle")
                         .accessibilityLabel("更多操作")
@@ -55,7 +61,8 @@ struct ChatView: View {
         .sheet(isPresented: $showDelivery) {
             DeliverySubmitSheet(wishId: summary.wishId)
         }
-        .confirmationDialog("屏蔽后你们将无法再互相联系，该会话会从双方列表中消失。", isPresented: $showBlockConfirm, titleVisibility: .visible) {
+        .confirmationDialog("屏蔽后双方都不能再在这段对话里发消息。这段记录会保留，你可以随时取消屏蔽。",
+                            isPresented: $showBlockConfirm, titleVisibility: .visible) {
             Button("屏蔽对方", role: .destructive) { Task { await block() } }
             Button("取消", role: .cancel) {}
         }
@@ -113,6 +120,39 @@ struct ChatView: View {
         .motionTransition(.opacity.combined(with: .move(edge: message.mine ? .trailing : .leading)))
     }
 
+    /// 我屏蔽了对方。对方屏蔽我时不显示这个——见下方 blockedNotice 的说明。
+    private var blockedByMe: Bool { conversation?.blockedByMe ?? false }
+    private var canSendMessages: Bool { conversation?.canSendMessages ?? true }
+
+    /// 屏蔽状态下的输入区：不删除会话、不隐藏历史，只是发不出去。
+    private var blockedNotice: some View {
+        HStack(spacing: DesignSystem.spacing8) {
+            Image(systemName: "hand.raised.slash")
+            // 只在「我屏蔽了对方」时说明原因并给出出口。
+            // 对方屏蔽我时**不明说**，只讲结果：挑明通常只会激化对立。
+            // 但必须讲清「到此为止」——站内私聊是双方唯一的接触面，
+            // 而帮助者可能正准备去现场，别让他白跑。
+            if blockedByMe {
+                Text("你已屏蔽对方，双方都无法再发送消息。")
+                Spacer(minLength: 0)
+                Button("取消屏蔽") { Task { await unblock() } }
+                    .font(DesignSystem.metadataFont.weight(.semibold))
+                    .foregroundStyle(DesignSystem.accent)
+            } else {
+                Text("这段对话已无法发送新消息。")
+                Spacer(minLength: 0)
+            }
+        }
+        .font(DesignSystem.metadataFont)
+        .foregroundStyle(DesignSystem.Rose.ink2)
+        .padding(DesignSystem.spacing12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
+                .fill(DesignSystem.Rose.tint)
+        )
+    }
+
     private var composer: some View {
         VStack(spacing: DesignSystem.spacing8) {
             if let errorMessage {
@@ -122,6 +162,9 @@ struct ChatView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .motionTransition(.opacity)
             }
+            if !canSendMessages {
+                blockedNotice
+            } else {
             HStack(spacing: DesignSystem.spacing8) {
                 TextField("说点什么…", text: $draft, axis: .vertical)
                     .lineLimit(1...4)
@@ -146,6 +189,7 @@ struct ChatView: View {
                 .frame(minWidth: 44, minHeight: 44)
                 .accessibilityLabel("发送")
             }
+            }
         }
         .motion(DesignSystem.Motion.content, value: errorMessage)
         .impactHaptic(conversation?.messages.count ?? 0)
@@ -155,7 +199,7 @@ struct ChatView: View {
     }
 
     private var canSend: Bool {
-        !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSending
+        canSendMessages && !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSending
     }
 
     private func load() async {
@@ -186,9 +230,21 @@ struct ChatView: View {
         guard let token = accountViewModel.accessToken else { return }
         do {
             try await accountAPI.blockCounterpart(responseId: summary.responseId, token: token)
-            dismiss()
+            // 不再 dismiss：屏蔽之后会话仍然留着，只是发不出消息。
+            // 重新拉一次以更新屏蔽状态与输入区。
+            await load()
         } catch {
             errorMessage = (error as? GratiaAPIError)?.errorDescription ?? "屏蔽失败，请重试。"
+        }
+    }
+
+    private func unblock() async {
+        guard let token = accountViewModel.accessToken else { return }
+        do {
+            try await accountAPI.unblockCounterpart(responseId: summary.responseId, token: token)
+            await load()
+        } catch {
+            errorMessage = (error as? GratiaAPIError)?.errorDescription ?? "取消屏蔽失败，请重试。"
         }
     }
 }

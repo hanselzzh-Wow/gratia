@@ -1071,7 +1071,14 @@ export async function recordResponderDeliverable(
 
 /// 判定某用户是否有权读写该会话，并返回会话双方。
 /// 只有心愿的发布者、或该响应的提交者本人可以进入。
-async function requireConversationAccess(db: D1Database, responseId: string, userId: string) {
+/// `requireWritable` 只用于会向会话写入内容的操作（发消息）。
+/// 读取、举报、屏蔽、取消屏蔽都不传，屏蔽状态下仍然可用。
+async function requireConversationAccess(
+  db: D1Database,
+  responseId: string,
+  userId: string,
+  options: { requireWritable?: boolean } = {},
+) {
   const row = await db
     .prepare(
       `SELECT r.id AS response_id, r.wish_id, r.user_id AS responder_user_id, r.responder_name,
@@ -1096,17 +1103,39 @@ async function requireConversationAccess(db: D1Database, responseId: string, use
   if (!isOwner && !isResponder) throw new WishWorkflowError("你无权查看该会话", 403);
 
   const counterpartId = isOwner ? row.responder_user_id : row.owner_user_id;
-  // 任一方拉黑之后，会话即不可继续。
+
+  // 屏蔽只切断「继续发消息」，不切断「看得见这段对话」。
+  //
+  // 早先这里在任一方屏蔽后直接抛 403，连历史消息都读不到，会话也从列表里
+  // 消失——用户屏蔽一个骚扰者的代价是把这段记录一起弄丢，而且没有回头路
+  // （当时也没有取消屏蔽的接口）。屏蔽应当是「我不想再收到你的消息」，
+  // 不是「把这件事从我的记录里删掉」。
+  let blockedByMe = false;
+  let blockedByThem = false;
   if (counterpartId) {
-    const blocked = await db
+    const rows = await db
       .prepare(
-        "SELECT 1 FROM user_blocks WHERE (blocker_user_id = ? AND blocked_user_id = ?) OR (blocker_user_id = ? AND blocked_user_id = ?) LIMIT 1",
+        `SELECT blocker_user_id FROM user_blocks
+          WHERE (blocker_user_id = ? AND blocked_user_id = ?)
+             OR (blocker_user_id = ? AND blocked_user_id = ?)`,
       )
       .bind(userId, counterpartId, counterpartId, userId)
-      .first();
-    if (blocked) throw new WishWorkflowError("该会话已被屏蔽", 403);
+      .all<{ blocker_user_id: string }>();
+    for (const r of rows.results) {
+      if (r.blocker_user_id === userId) blockedByMe = true;
+      else blockedByThem = true;
+    }
   }
-  return { ...row, isOwner, isResponder, counterpartId };
+
+  // 只有需要写入的操作（发消息）才拒绝；读取一律放行。
+  if (options.requireWritable && (blockedByMe || blockedByThem)) {
+    throw new WishWorkflowError(
+      blockedByMe ? "你已屏蔽对方，取消屏蔽后才能继续发消息" : "消息发送失败，对方已停止接收",
+      403,
+    );
+  }
+
+  return { ...row, isOwner, isResponder, counterpartId, blockedByMe, blockedByThem };
 }
 
 export async function listConversationMessages(db: D1Database, responseId: string, userId: string) {
@@ -1143,6 +1172,15 @@ export async function listConversationMessages(db: D1Database, responseId: strin
     // 对方以昵称示人，不暴露账号标识或联系方式
     counterpartName: access.isOwner ? access.responder_name : "发布者",
     viewerRole: access.isOwner ? ("requester" as const) : ("responder" as const),
+    /// 我屏蔽了对方——界面据此显示「取消屏蔽」。
+    blockedByMe: access.blockedByMe,
+    /// 对方屏蔽了我。**界面不要明说「对方屏蔽了你」**，只提示发不出去即可——
+    /// 挑明通常只会激化对立，让人换个方式继续纠缠。
+    ///
+    /// 但也不能什么都不说：站内私聊是双方**唯一**的接触面（不交换任何联系
+    /// 方式），而帮助者可能正在为这条心愿跑现场。让他明确知道「这段对话
+    /// 到此为止」，至少不会白跑一趟。
+    blockedByThem: access.blockedByThem,
     messages: rows.results.map((row) => ({
       id: row.id,
       body: row.body,
@@ -1159,7 +1197,8 @@ export async function sendConversationMessage(
   body: string,
 ) {
   await ensureWishSchema(db);
-  const access = await requireConversationAccess(db, responseId, userId);
+  // 只有这里需要写权限：屏蔽状态下读历史、举报、取消屏蔽都仍然可用。
+  const access = await requireConversationAccess(db, responseId, userId, { requireWritable: true });
   const text = body.trim();
   if (text.length < 1 || text.length > 500) {
     throw new WishWorkflowError("消息内容需在 1–500 字之间", 400);
@@ -1214,7 +1253,9 @@ export async function reportAbuse(
   return { id, status: "open" as const };
 }
 
-/// 拉黑对方。拉黑后双向不可再进入该会话。
+/// 屏蔽对方：双方都无法再向该会话发消息，但**会话与历史消息仍然保留**，
+/// 两边都还看得见。屏蔽是即时生效的，不经任何人工审核——需要人工处理的
+/// 是举报，两者是分开的两件事。
 export async function blockCounterpart(db: D1Database, responseId: string, userId: string) {
   await ensureWishSchema(db);
   const access = await requireConversationAccess(db, responseId, userId);
@@ -1224,6 +1265,19 @@ export async function blockCounterpart(db: D1Database, responseId: string, userI
     .bind(userId, access.counterpartId, Date.now())
     .run();
   return { blocked: true };
+}
+
+/// 取消屏蔽。只能撤销**自己发起的**那条：对方屏蔽了我，不该由我来解除。
+export async function unblockCounterpart(db: D1Database, responseId: string, userId: string) {
+  await ensureWishSchema(db);
+  const access = await requireConversationAccess(db, responseId, userId);
+  if (!access.counterpartId) throw new WishWorkflowError("该会话没有可取消屏蔽的对象", 400);
+  await db
+    .prepare("DELETE FROM user_blocks WHERE blocker_user_id = ? AND blocked_user_id = ?")
+    .bind(userId, access.counterpartId)
+    .run();
+  // 对方那条屏蔽（如果有）依然生效，所以这里不能一律返回「可以发消息了」。
+  return { blocked: false, stillBlockedByThem: access.blockedByThem };
 }
 
 /// 我参与的全部会话，供「私聊」标签页使用。
@@ -1268,32 +1322,37 @@ export async function listMyConversations(db: D1Database, userId: string) {
       unread: number;
     }>();
 
-  // 被任一方拉黑的会话不再出现在列表里
+  // 屏蔽过的会话**仍然留在列表里**，只是标记出来、不计未读。
+  // 早先是直接滤掉：屏蔽一个骚扰者的代价是把整段记录也弄丢，而且没有回头路。
   const blocks = await db
     .prepare("SELECT blocker_user_id, blocked_user_id FROM user_blocks WHERE blocker_user_id = ? OR blocked_user_id = ?")
     .bind(userId, userId)
     .all<{ blocker_user_id: string; blocked_user_id: string }>();
-  const blockedIds = new Set(
-    blocks.results.flatMap((row) => [row.blocker_user_id, row.blocked_user_id]).filter((id) => id !== userId),
+  const blockedByMe = new Set(
+    blocks.results.filter((r) => r.blocker_user_id === userId).map((r) => r.blocked_user_id),
   );
-
-  const visible = rows.results.filter((row) => {
-    const isOwner = row.owner_user_id === userId;
-    const counterpart = isOwner ? row.responder_user_id : row.owner_user_id;
-    return !counterpart || !blockedIds.has(counterpart);
-  });
+  const blockedMe = new Set(
+    blocks.results.filter((r) => r.blocked_user_id === userId).map((r) => r.blocker_user_id),
+  );
+  const counterpartOf = (row: { owner_user_id: string | null; responder_user_id: string | null }) =>
+    row.owner_user_id === userId ? row.responder_user_id : row.owner_user_id;
+  const isBlocked = (row: { owner_user_id: string | null; responder_user_id: string | null }) => {
+    const other = counterpartOf(row);
+    return Boolean(other) && (blockedByMe.has(other!) || blockedMe.has(other!));
+  };
 
   return {
-    // Dock 角标用的总未读数，避免客户端自己累加
-    totalUnread: visible.reduce((sum, row) => sum + Number(row.unread ?? 0), 0),
+    // Dock 角标用的总未读数，避免客户端自己累加。
+    // 已屏蔽的会话不计入：屏蔽之后还为它顶着红点，等于强迫用户再去看一眼。
+    totalUnread: rows.results
+      .filter((row) => !isBlocked(row))
+      .reduce((sum, row) => sum + Number(row.unread ?? 0), 0),
     conversations: rows.results
-      .filter((row) => {
-        const isOwner = row.owner_user_id === userId;
-        const counterpart = isOwner ? row.responder_user_id : row.owner_user_id;
-        return !counterpart || !blockedIds.has(counterpart);
-      })
       .map((row) => {
         const isOwner = row.owner_user_id === userId;
+        const other = counterpartOf(row);
+        const iBlocked = Boolean(other) && blockedByMe.has(other!);
+        const theyBlocked = Boolean(other) && blockedMe.has(other!);
         return {
           responseId: row.response_id,
           wishId: row.wish_id,
@@ -1306,7 +1365,11 @@ export async function listMyConversations(db: D1Database, userId: string) {
           counterpartName: isOwner ? row.responder_name : "发布者",
           lastMessage: row.last_body,
           lastMessageAt: row.last_at,
-          unreadCount: Number(row.unread ?? 0),
+          unreadCount: iBlocked || theyBlocked ? 0 : Number(row.unread ?? 0),
+          /// 我屏蔽了对方——列表据此显示「已屏蔽」，进去可以取消。
+          blockedByMe: iBlocked,
+          /// 对方屏蔽了我。界面不要明说，只表现为发不出消息。
+          blockedByThem: theyBlocked,
         };
       }),
   };

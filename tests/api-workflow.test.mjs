@@ -799,15 +799,70 @@ test("scopes conversations to the two parties and supports report and block", as
     });
     assert.equal(reported.status, 201);
 
-    // 拉黑后会话不可进入，也不再出现在列表
+    // 屏蔽只切断「继续发消息」，不切断「看得见这段对话」。
+    // 早先是屏蔽后连读都 403、会话直接从列表消失——屏蔽一个骚扰者的代价
+    // 变成把整段记录也弄丢，而且当时没有任何取消屏蔽的办法。
     const blocked = await request(`/api/account/conversations/${responseId}/block`, {
       method: "POST", headers: h(ownerToken),
     });
     assert.equal(blocked.status, 201);
-    const afterBlock = await request(`/api/account/conversations/${responseId}/messages`, { headers: h(helperToken) });
-    assert.equal(afterBlock.status, 403);
-    const helperListAfter = await json(await request("/api/account/conversations", { headers: h(helperToken) }));
-    assert.equal(helperListAfter.conversations.length, 0);
+
+    // 双方都仍然读得到历史消息
+    for (const [who, token] of [["屏蔽方", ownerToken], ["被屏蔽方", helperToken]]) {
+      const after = await request(`/api/account/conversations/${responseId}/messages`, { headers: h(token) });
+      assert.equal(after.status, 200, `${who}屏蔽后仍应能读历史消息`);
+      const body = await after.json();
+      assert.ok(body.messages.length > 0, `${who}的历史消息不能消失`);
+    }
+
+    // 屏蔽状态双向标记正确：发起方是 blockedByMe，另一方是 blockedByThem
+    const ownerAfterBlock = await json(await request(`/api/account/conversations/${responseId}/messages`, { headers: h(ownerToken) }));
+    assert.equal(ownerAfterBlock.blockedByMe, true);
+    assert.equal(ownerAfterBlock.blockedByThem, false);
+    const helperAfterBlock = await json(await request(`/api/account/conversations/${responseId}/messages`, { headers: h(helperToken) }));
+    assert.equal(helperAfterBlock.blockedByMe, false);
+    assert.equal(helperAfterBlock.blockedByThem, true);
+
+    // 会话仍在双方列表里，并带屏蔽标记；已屏蔽的会话不计未读
+    for (const [who, token, expectMine] of [["屏蔽方", ownerToken, true], ["被屏蔽方", helperToken, false]]) {
+      const list = await json(await request("/api/account/conversations", { headers: h(token) }));
+      assert.equal(list.conversations.length, 1, `${who}的列表里会话不应消失`);
+      assert.equal(list.conversations[0].blockedByMe, expectMine);
+      assert.equal(list.conversations[0].blockedByThem, !expectMine);
+      assert.equal(list.conversations[0].unreadCount, 0, "已屏蔽的会话不该再顶着未读红点");
+      assert.equal(list.totalUnread, 0);
+    }
+
+    // 但双方都发不出新消息
+    for (const [who, token] of [["屏蔽方", ownerToken], ["被屏蔽方", helperToken]]) {
+      const send = await request(`/api/account/conversations/${responseId}/messages`, {
+        method: "POST", headers: h(token), body: JSON.stringify({ body: "还能发吗" }),
+      });
+      assert.equal(send.status, 403, `${who}在屏蔽状态下不应能发消息`);
+    }
+
+    // 取消屏蔽后恢复可发送
+    const unblocked = await request(`/api/account/conversations/${responseId}/block`, {
+      method: "DELETE", headers: h(ownerToken),
+    });
+    assert.equal(unblocked.status, 200);
+    const resumed = await request(`/api/account/conversations/${responseId}/messages`, {
+      method: "POST", headers: h(ownerToken), body: JSON.stringify({ body: "恢复联系" }),
+    });
+    assert.equal(resumed.status, 201, "取消屏蔽后应能重新发消息");
+
+    // 取消屏蔽只撤销自己那条：对方屏蔽我时，我不能替对方解除
+    await request(`/api/account/conversations/${responseId}/block`, {
+      method: "POST", headers: h(helperToken),
+    });
+    const ownerTriesToUnblock = await request(`/api/account/conversations/${responseId}/block`, {
+      method: "DELETE", headers: h(ownerToken),
+    });
+    assert.equal(ownerTriesToUnblock.status, 200);
+    const stillBlocked = await request(`/api/account/conversations/${responseId}/messages`, {
+      method: "POST", headers: h(ownerToken), body: JSON.stringify({ body: "对方还屏蔽着我" }),
+    });
+    assert.equal(stillBlocked.status, 403, "不能通过取消自己的屏蔽来绕过对方的屏蔽");
   } finally {
     globalThis.fetch = originalFetch;
   }

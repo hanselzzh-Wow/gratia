@@ -269,6 +269,16 @@ extension WishAPIClient: AccountAPIProtocol {
         )
     }
 
+    /// 取消屏蔽：撤销的正是上面那次 POST，所以用 DELETE 同一路径。
+    /// 只能撤销自己发起的那条——对方屏蔽了我，不该由我来解除。
+    public func unblockCounterpart(responseId: String, token: String) async throws {
+        let _: DiscardedEnvelope = try await executeRequest(
+            method: "DELETE",
+            path: "/api/account/conversations/\(responseId)/block",
+            bearerToken: token
+        )
+    }
+
     public func publishStory(wishId: String, nickname: String?, token: String) async throws {
         let payload = try JSONSerialization.data(withJSONObject: ["nickname": nickname ?? ""])
         let _: DiscardedEnvelope = try await executeRequest(

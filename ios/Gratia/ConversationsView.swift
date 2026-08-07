@@ -81,9 +81,21 @@ struct ConversationsView: View {
                             RoundedRectangle(cornerRadius: 4).fill(DesignSystem.Rose.soft.opacity(0.6))
                         )
                     Spacer()
-                    Text(conversation.wishStatus.label)
-                        .font(DesignSystem.captionFont)
-                        .foregroundStyle(DesignSystem.Rose.ink3)
+                    // 屏蔽过的会话仍然留在列表里，只是标出来——早先是直接
+                    // 滤掉，屏蔽一个骚扰者的代价是把整段记录也弄丢。
+                    // 只标「我屏蔽的」；对方屏蔽我时不标，进去自然发不出消息。
+                    if conversation.blockedByMe ?? false {
+                        Text("已屏蔽")
+                            .font(DesignSystem.captionFont)
+                            .foregroundStyle(DesignSystem.Rose.ink3)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(RoundedRectangle(cornerRadius: 4).fill(DesignSystem.Rose.tint))
+                    } else {
+                        Text(conversation.wishStatus.label)
+                            .font(DesignSystem.captionFont)
+                            .foregroundStyle(DesignSystem.Rose.ink3)
+                    }
                 }
                 Text(conversation.title)
                     .font(DesignSystem.metadataFont)

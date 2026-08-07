@@ -143,6 +143,7 @@ public protocol AccountAPIProtocol: Sendable {
     /// 举报与拉黑：App 内含陌生人即时通讯时，指南 1.2 要求必须提供。
     func reportAbuse(responseId: String, reason: String, detail: String?, token: String) async throws
     func blockCounterpart(responseId: String, token: String) async throws
+    func unblockCounterpart(responseId: String, token: String) async throws
     /// 需求方在完成后单独决定是否公开到首页
     func publishStory(wishId: String, nickname: String?, token: String) async throws
     func stories() async throws -> [StoryDTO]
@@ -193,6 +194,12 @@ public struct ConversationSummaryDTO: Codable, Sendable, Identifiable, Equatable
     public let lastMessageAt: Int64?
     /// 本人在该会话的未读条数（只计对方发出的）
     public let unreadCount: Int?
+    /// 我屏蔽了对方——列表据此显示「已屏蔽」
+    public let blockedByMe: Bool?
+    /// 对方屏蔽了我。界面不明说，只表现为发不出消息。
+    public let blockedByThem: Bool?
+
+    public var isBlocked: Bool { (blockedByMe ?? false) || (blockedByThem ?? false) }
 
     public var id: String { responseId }
     public var isRequester: Bool { viewerRole == "requester" }
@@ -213,6 +220,15 @@ public struct ConversationDTO: Codable, Sendable, Equatable {
     public let counterpartName: String
     public let viewerRole: String
     public let messages: [ChatMessageDTO]
+    /// 我屏蔽了对方。界面据此显示「取消屏蔽」。
+    public let blockedByMe: Bool?
+    /// 对方屏蔽了我。**界面不要明说**，只表现为发不出消息：
+    /// 挑明通常只会激化对立。但要让人看懂「到此为止」——
+    /// 帮助者可能正准备去现场，别让他白跑一趟。
+    public let blockedByThem: Bool?
+
+    /// 任一方屏蔽都不能再发消息，但会话与历史消息仍然可见。
+    public var canSendMessages: Bool { !(blockedByMe ?? false) && !(blockedByThem ?? false) }
 
     public var isRequester: Bool { viewerRole == "requester" }
     /// 已被选中的响应；帮助者据此显示「完成帮助」入口

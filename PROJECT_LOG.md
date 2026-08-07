@@ -1056,3 +1056,14 @@ Cloudflare Worker API
 - 一并为 `UserProfileDTO` 补 `public init`——public struct 的 memberwise init 默认为 internal，跨 module 无法构造，测试因此编译失败。与 `PublicWishDTO` 保持一致。
 - 验证：iOS 49/49 通过（原 41 + ProfileCache 5 + AvatarCache 3），Release 配置编译通过。
 - 未验证且不得误报：**修复效果未经真机确认**。另需说明一点预期：缓存需先成功加载一次才会有内容，因此装上新构建后的**第一次**冷启动仍会显示默认值，第二次起才不闪——若仅测一次会误判为未修复。构建 10 已提交 Beta 审核（`WAITING_FOR_REVIEW`），本轮修复不在其中。
+
+## 2026-08-07｜屏蔽改为可撤销、会话保留；并纠正一处产品前提错误
+
+- 产品负责人提出三点：增加取消屏蔽；屏蔽不需审核；屏蔽后应只是不能发消息，而非会话直接消失。
+- 核查结论：**屏蔽本就不需要审核**。`blockCounterpart` 直接写入 `user_blocks` 即时生效，运营台代码中 `grep 屏蔽|block` 零命中——运营台可见并可批注的是**举报**（`resolveAbuseReport`，带 note），两者机制不同。安全中心文案将举报与屏蔽写在同一句，易致误解，已改写并明确「屏蔽是立即生效的，不需要等待审核」。
+- 已修复的真实缺陷：`requireConversationAccess` 原在任一方屏蔽后直接抛 403，连历史消息都不可读；`listMyConversations` 直接滤除该会话。其效果是**用户为自保而屏蔽骚扰者时，会把整段记录一并弄丢，且当时没有任何取消屏蔽的接口**。
+- 改动：`requireConversationAccess` 增加 `requireWritable` 选项，仅发消息传入；返回 `blockedByMe` / `blockedByThem`。会话列表保留被屏蔽会话并加标记，且不计未读。新增 `unblockCounterpart` 与 `DELETE /api/account/conversations/{id}/block`，只撤销本人发起的那条。DTO、iOS 客户端、ChatView（菜单切换、输入区替换为提示条、取消屏蔽入口）、会话列表标记均已跟进。
+- **纠正一处产品前提错误**：先前在三处代码注释中写下「这个 App 的双方是要见面的」，并以此论证「不明说被对方屏蔽」。该前提完全错误——本 App 的前提正是双方**相隔千里、永远不会见面**，发布者去不了现场才需要当地人代跑，「远方」是产品存在的理由而非缺陷。已改正三处注释（`server/wishes-repository.ts`、`ios/Gratia/ChatView.swift`、`AccountModels.swift`），改用成立的理由：明说被屏蔽通常只会激化对立；同时补充真正相关的考量——站内私聊是双方**唯一**接触面（不交换任何联系方式），帮助者可能正准备去现场，必须让其看懂「到此为止」，以免白跑。
+- 该正确理解反而**加强**了保留会话的决定：既然只有站内私聊一个接触面，这段记录就是唯一能证明发生过什么的地方，不应在屏蔽时一并销毁。
+- 测试：`tests/api-workflow.test.mjs` 屏蔽用例改写并扩充，覆盖屏蔽后双方仍可读历史、双向标记正确、会话仍在列表且不计未读、双方均不可发送、取消屏蔽后恢复、以及**不能通过取消自己的屏蔽绕过对方的屏蔽**。后端实测 37/37，iOS 49/49，`npm run lint` 零输出。
+- 未验证且不得误报：本轮改动**未部署、未打新构建**。构建 10 仍在 Beta 审核队列（`WAITING_FOR_REVIEW`），这批改动需构建 11 才会生效。
