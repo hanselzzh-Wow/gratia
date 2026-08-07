@@ -158,6 +158,14 @@ public protocol AccountAPIProtocol: Sendable {
     /// 本人资料。昵称与头像先审后可见，本人始终看到自己刚提交的版本。
     func profile(token: String) async throws -> UserProfileDTO
     func updateProfile(displayName: String?, avatar: Data?, token: String) async throws -> UserProfileDTO
+
+    // MARK: - 推送
+
+    /// 上报本机的 APNs 令牌。令牌会随重装、恢复备份、系统升级变化，
+    /// 所以每次拿到都要上报，而不是只在第一次授权时报一次。
+    func registerDeviceToken(_ token: String, environment: String, accountToken: String) async throws
+    /// 注销本账户在服务端登记的全部设备令牌。
+    func removeDeviceTokens(accountToken: String) async throws
 }
 
 /// 昵称与头像会出现在私聊、响应列表与公开故事里，属于公开可见的用户生成

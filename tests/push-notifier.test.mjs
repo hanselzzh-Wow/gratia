@@ -154,6 +154,30 @@ test("退出登录注销令牌后不再收到推送", async () => {
   } finally { apns.restore(); }
 });
 
+test("删除账户会一并删掉设备令牌", async () => {
+  const { request, database } = await setup({
+    WECHAT_MINI_PROGRAM_APP_ID: "id", WECHAT_MINI_PROGRAM_APP_SECRET: "s",
+  });
+  const apns = apnsStub();
+  try {
+    const token = await signIn(request, "delete-me");
+    await request("/api/account/device-token", {
+      method: "POST", headers: h(token), body: JSON.stringify({ token: "device-doomed" }),
+    });
+    assert.equal(database.database.prepare("SELECT COUNT(*) AS n FROM device_tokens").get().n, 1);
+
+    const deleted = await request("/api/me", { method: "DELETE", headers: h(token) });
+    assert.equal(deleted.status, 200);
+
+    // 心愿与响应里的称呼是匿名化保留（履约与审计需要），设备令牌不同：
+    // 它唯一标识一台设备，留着既无用途，也不符合 5.1.1(v) 的删除要求。
+    assert.equal(
+      database.database.prepare("SELECT COUNT(*) AS n FROM device_tokens").get().n, 0,
+      "注销账户后设备令牌必须硬删除，不能残留",
+    );
+  } finally { apns.restore(); }
+});
+
 test("收到私聊消息时推给对方，且不推给自己", async () => {
   const pem = await testPrivateKeyPem();
   const { request, settle } = await setup({
@@ -180,7 +204,7 @@ test("收到私聊消息时推给对方，且不推给自己", async () => {
     });
     const responded = await (await request(`/api/account/wishes/${wishId}/responses`, {
       method: "POST", headers: h(helperToken),
-      body: JSON.stringify({ responderName: "阿哲", contact: "wx2", note: "我住附近", contentLicenseAgreed: true }),
+      body: JSON.stringify({ responderName: "阿哲", responderContact: "wx2", note: "我住附近", contactConsent: true }),
     })).json();
     const responseId = responded.response.id;
 
@@ -236,7 +260,7 @@ test("APNs 报 410 时删除失效令牌，不再反复重试", async () => {
     });
     const responded = await (await request(`/api/account/wishes/${wishId}/responses`, {
       method: "POST", headers: h(helperToken),
-      body: JSON.stringify({ responderName: "阿哲", contact: "wx2", note: "我住附近", contentLicenseAgreed: true }),
+      body: JSON.stringify({ responderName: "阿哲", responderContact: "wx2", note: "我住附近", contactConsent: true }),
     })).json();
     await request("/api/account/device-token", {
       method: "POST", headers: h(ownerToken), body: JSON.stringify({ token: "device-gone" }),

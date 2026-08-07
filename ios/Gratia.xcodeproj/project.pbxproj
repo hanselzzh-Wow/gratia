@@ -25,6 +25,7 @@
 		41FF06E7DF0C1CA882C69BDB /* AccountActivityViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1225DB309049E0134FAE3793 /* AccountActivityViewModel.swift */; };
 		42979FC068C6085B915C278E /* ConversationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16F7B3238AC5635EFD408DF /* ConversationsView.swift */; };
 		42C6DACE1AEA8ED50DECA68D /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0B9BEAB790EF6ABA7760090 /* DesignSystem.swift */; };
+		4E3C561D869F69F22384F541 /* PushNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6D00C27F796C5AA25713152 /* PushNotifications.swift */; };
 		53F2BAD7C44C477B7114CE3B /* StoryFeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A97A30DFD6F668F1CFA31A4 /* StoryFeedViewModel.swift */; };
 		5432C543EB8E7E0D7BBA860F /* TrackWishViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53DBF5E9E41DBD4BC73D8496 /* TrackWishViewModel.swift */; };
 		5644D799C5217E9F272A42FE /* AccountSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08BFAC383603EACB45D510E4 /* AccountSectionView.swift */; };
@@ -103,6 +104,7 @@
 		B27A98F463E8A70126C14D6A /* PublishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishView.swift; sourceTree = "<group>"; };
 		B93AFD88F1F09CF9754760DC /* DemoContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoContent.swift; sourceTree = "<group>"; };
 		BF46A7A28BDF0A09ECBDD745 /* ProfileCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCache.swift; sourceTree = "<group>"; };
+		C6D00C27F796C5AA25713152 /* PushNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotifications.swift; sourceTree = "<group>"; };
 		C868C46CB1E1DA7E38BE3DAF /* AccountAPIDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountAPIDefaults.swift; sourceTree = "<group>"; };
 		CF23C22DC7461B17113480AF /* ProfileCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCacheTests.swift; sourceTree = "<group>"; };
 		D52E7A0A9E533CD1D6639EB1 /* GratiaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GratiaApp.swift; sourceTree = "<group>"; };
@@ -154,6 +156,7 @@
 				278DAB8065683F8CB27FA482 /* ProgressView.swift */,
 				B27A98F463E8A70126C14D6A /* PublishView.swift */,
 				243A2E7E364EFDC484724D5E /* PublishWishViewModel.swift */,
+				C6D00C27F796C5AA25713152 /* PushNotifications.swift */,
 				09CC6A62D3BF41E1747BC893 /* SearchView.swift */,
 				E293CB61121C6103E49CAA85 /* SessionStore.swift */,
 				EDCF307D9312D06426E08E89 /* StoryFeed.swift */,
@@ -326,6 +329,7 @@
 				E79E2361FE0424BC26618E45 /* ProgressView.swift in Sources */,
 				CB15F0F28EB1937AD1357F72 /* PublishView.swift in Sources */,
 				CBD12E84900B7BB55F3CC3DA /* PublishWishViewModel.swift in Sources */,
+				4E3C561D869F69F22384F541 /* PushNotifications.swift in Sources */,
 				CB00A9981798886EB38DBACD /* SearchView.swift in Sources */,
 				7708594615255E1C566EF18E /* SessionStore.swift in Sources */,
 				93D16354C4FE7B6652E62F7B /* StoryFeed.swift in Sources */,
@@ -384,7 +388,7 @@
 				CODE_SIGN_ENTITLEMENTS = Gratia/Gratia.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				DEVELOPMENT_TEAM = HH9LKGK7DA;
 				INFOPLIST_FILE = Gratia/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -524,7 +528,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Gratia/Gratia.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				INFOPLIST_FILE = Gratia/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (

@@ -372,4 +372,26 @@ extension WishAPIClient: AccountAPIProtocol {
         )
         return try parseResponse(try await transport.send(request: request))
     }
+
+    // MARK: - 推送
+
+    public func registerDeviceToken(_ token: String, environment: String, accountToken: String) async throws {
+        let payload = try JSONSerialization.data(
+            withJSONObject: ["token": token, "environment": environment]
+        )
+        let _: DiscardedEnvelope = try await executeRequest(
+            method: "POST",
+            path: "/api/account/device-token",
+            body: payload,
+            bearerToken: accountToken
+        )
+    }
+
+    public func removeDeviceTokens(accountToken: String) async throws {
+        let _: DiscardedEnvelope = try await executeRequest(
+            method: "DELETE",
+            path: "/api/account/device-token",
+            bearerToken: accountToken
+        )
+    }
 }

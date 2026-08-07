@@ -150,6 +150,10 @@ export async function deleteAuthenticatedAccount(db: D1Database, userId: string)
         "UPDATE wish_responses SET responder_name = '已注销用户', responder_contact = 'deleted:' || id, updated_at = ? WHERE user_id = ?",
       )
       .bind(now, userId),
+    // 设备令牌是硬删除，不是匿名化：它唯一标识一台设备，留着既无审计价值，
+    // 也不符合 5.1.1(v) 对「删除账户即删除关联数据」的要求。别的行保留是因为
+    // 履约与审计需要，这一行不需要。
+    db.prepare("DELETE FROM device_tokens WHERE user_id = ?").bind(userId),
   ]);
 
   return {

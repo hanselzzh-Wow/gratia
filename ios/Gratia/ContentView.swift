@@ -43,6 +43,8 @@ struct ContentView: View {
     @StateObject private var accountViewModel: AccountViewModel
     @StateObject private var filterState = StoryFilterState()
     @StateObject private var unreadStore: UnreadStore
+    @ObservedObject private var pushRegistrar = PushRegistrar.shared
+    @Environment(\.scenePhase) private var scenePhase
     private let apiClient: WishAPIProtocol
     private let accountAPIClient: AccountAPIProtocol
 
@@ -158,10 +160,38 @@ struct ContentView: View {
         .task(id: accountViewModel.isSignedIn) {
             if accountViewModel.isSignedIn {
                 unreadStore.startPolling { accountViewModel.accessToken }
+                // 令牌可能在登录之前就拿到了（先允许通知、后登录）。
+                // 这一次补报是那条路径唯一的上报时机。
+                await pushRegistrar.uploadIfPossible()
             } else {
                 unreadStore.stopPolling()
                 await unreadStore.refresh(token: nil)
             }
+        }
+        .task {
+            pushRegistrar.configure(
+                accountAPI: accountAPIClient,
+                accessToken: { [weak accountViewModel] in accountViewModel?.accessToken }
+            )
+            await pushRegistrar.refreshAuthorization()
+        }
+        // 用户可能在系统设置里关掉通知再切回来，界面上的状态得跟上。
+        .onChange(of: scenePhase) { phase in
+            guard phase == .active else { return }
+            Task { await pushRegistrar.refreshAuthorization() }
+        }
+        // 点通知进来：1.0 只跳到对应栏目，不深入到具体会话或心愿详情——
+        // 跨导航栈的深链需要每个页面都支持外部驱动的路由，那是另一件事。
+        .onChange(of: pushRegistrar.pendingTarget) { target in
+            guard let target else { return }
+            if target.hasPrefix("conversation:") {
+                selectedTab = Tab.messages
+                previousTab = Tab.messages
+            } else if target.hasPrefix("wish:") {
+                selectedTab = Tab.profile
+                previousTab = Tab.profile
+            }
+            pushRegistrar.pendingTarget = nil
         }
         .environment(\.wishAPIClient, apiClient)
         .environment(\.accountAPIClient, accountAPIClient)

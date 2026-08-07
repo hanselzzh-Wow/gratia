@@ -6,5 +6,10 @@
 	<array>
 		<string>Default</string>
 	</array>
+	<!-- 写 development，Xcode 直接跑时才拿得到 sandbox 令牌。
+	     导出 App Store 包时 Xcode 按描述文件自动改写成 production，
+	     不需要也不该为了发版手动改这一行。 -->
+	<key>aps-environment</key>
+	<string>development</string>
 </dict>
 </plist>

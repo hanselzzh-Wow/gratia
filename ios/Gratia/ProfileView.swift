@@ -10,6 +10,7 @@ struct ProfileView: View {
     @State private var showHelpView = false
     @State private var showPrivacyView = false
     @State private var showDeleteConfirmation = false
+    @ObservedObject private var pushRegistrar = PushRegistrar.shared
 
     var body: some View {
         NavigationStack {
@@ -154,9 +155,32 @@ struct ProfileView: View {
             Text("服务与支持").font(DesignSystem.headlineFont).foregroundStyle(DesignSystem.Rose.ink)
             Button { showHelpView = true } label: { supportRow(title: "帮助与安全中心", icon: "shield") }
             Button { showPrivacyView = true } label: { supportRow(title: "隐私政策与条款", icon: "document") }
-            // 本版本没有推送通知：既未注册 UNUserNotificationCenter，也没有
-            // aps-environment entitlement。跳到系统设置那里根本不会有「通知」
-            // 一栏，因此不提供这个入口——指向不存在功能的入口只会让人困惑。
+            notificationRow
+        }
+    }
+
+    /// 通知入口的三种状态对应三种不同的动作，不能合并成一个开关：
+    /// 没问过 → 由我们弹系统授权框；已拒绝 → 只能引导去系统设置（App 无权
+    /// 再次弹框）；已开启 → 说明现状即可。
+    @ViewBuilder
+    private var notificationRow: some View {
+        switch pushRegistrar.authorization {
+        case .notDetermined:
+            Button {
+                Task { await pushRegistrar.requestAuthorization() }
+            } label: {
+                supportRow(title: "开启通知", icon: "bell", trailing: "未开启")
+            }
+        case .denied:
+            Button {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
+                supportRow(title: "通知", icon: "bell.slash", trailing: "去系统设置开启")
+            }
+        case .authorized:
+            supportRow(title: "通知", icon: "bell", trailing: "已开启")
         }
     }
 

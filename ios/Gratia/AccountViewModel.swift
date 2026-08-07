@@ -118,6 +118,10 @@ final class AccountViewModel: ObservableObject {
 
     /// 退出登录只清除本机会话，不影响服务端的心愿与帮助记录。
     func signOut() {
+        // 先拿着还有效的 token 去注销推送令牌，再清会话。顺序反了的话
+        // 请求发不出去，这台设备会继续收到下一个登录者的通知。
+        let expiring = session?.token
+        Task { await PushRegistrar.shared.unregister(accountToken: expiring) }
         session = nil
         sessionStore.clear()
         errorMessage = nil

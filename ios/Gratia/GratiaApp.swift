@@ -2,6 +2,9 @@ import SwiftUI
 
 @main
 struct GratiaApp: App {
+    /// SwiftUI 的 App 协议没有接收 APNs 令牌的入口，只能借 UIKit 的 delegate。
+    @UIApplicationDelegateAdaptor(PushAppDelegate.self) private var pushDelegate
+
     init() {
         // AsyncImage 走 URLSession 的共享缓存，而系统默认的磁盘缓存很小，
         // 头像很容易被挤掉，于是每次冷启动都要重新下载。服务端已经给了
