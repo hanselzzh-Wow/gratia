@@ -1550,24 +1550,69 @@ export type UserProfile = {
   displayName: string;
   /// 绝对 URL（见 avatarUrlFor）；没有头像时为 null
   avatarUrl: string | null;
-  /// 待审核时为 true，用于在「我的」上给本人一个明确提示
+  /// 任一在审即为 true。保留它是为了旧客户端仍能显示「审核中」。
   pendingReview: boolean;
   reviewNote: string | null;
+  /// 昵称与头像各自的审核状态与驳回理由：一样被退回，另一样不受牵连
+  displayNamePending?: boolean;
+  avatarPending?: boolean;
+  displayNameNote?: string | null;
+  avatarNote?: string | null;
+  /// 从未设过昵称——客户端据此拉起首次设置引导
+  needsSetup?: boolean;
 };
+
+/**
+ * 昵称的规范化形式，唯一性与封禁都以它为准。
+ *
+ * 去掉**全部**空白而不只是首尾：「小 白」和「小白」在别人眼里是同一个名字，
+ * 留着中间的空格等于给绕过唯一性开了一道门，冒名顶替最爱用这一手。
+ * 同理，NFKC 把全角、罗马数字、上下标之类的兼容字符归一，零宽字符与
+ * 双向控制符直接删掉——它们在界面上不可见，却能让两个昵称在字节上不同。
+ */
+export function normalizeDisplayName(name: string): string {
+  return name
+    .normalize("NFKC")
+    // 用转义写，不要把这些字符本身放进源码——它们在编辑器里同样不可见，
+    // 谁也看不出这行正则到底删了什么。
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "")
+    .replace(/\s+/gu, "")
+    .toLowerCase();
+}
 
 /// 本人视角：看到自己刚提交的版本
 export async function getOwnProfile(db: D1Database, userId: string, origin: string): Promise<UserProfile> {
   await ensureWishSchema(db);
   const row = await db
-    .prepare("SELECT display_name, avatar_key, profile_status, profile_note FROM users WHERE id = ? LIMIT 1")
+    .prepare(
+      `SELECT display_name, avatar_key, display_name_status, avatar_status,
+              display_name_note, avatar_note
+       FROM users WHERE id = ? LIMIT 1`,
+    )
     .bind(userId)
-    .first<{ display_name: string | null; avatar_key: string | null; profile_status: string; profile_note: string | null }>();
+    .first<{
+      display_name: string | null;
+      avatar_key: string | null;
+      display_name_status: string;
+      avatar_status: string;
+      display_name_note: string | null;
+      avatar_note: string | null;
+    }>();
   if (!row) throw new WishWorkflowError("未找到账户", 404);
+  // 去重：整份退回时两条线记的是同一句话，直接拼会变成「含违规词；含违规词」。
+  const notes = [...new Set([row.display_name_note, row.avatar_note].filter(Boolean))];
   return {
     displayName: row.display_name || defaultDisplayName,
     avatarUrl: avatarUrlFor(row.avatar_key, origin),
-    pendingReview: row.profile_status === "pending",
-    reviewNote: row.profile_note,
+    // 两条线各自的状态；`pendingReview` 保留为「任一在审」，老客户端仍能用。
+    displayNamePending: row.display_name_status === "pending",
+    avatarPending: row.avatar_status === "pending",
+    displayNameNote: row.display_name_note,
+    avatarNote: row.avatar_note,
+    pendingReview: row.display_name_status === "pending" || row.avatar_status === "pending",
+    reviewNote: notes.length ? notes.join("；") : null,
+    // 没设过昵称的就是新用户，客户端据此拉起首次设置引导。
+    needsSetup: !row.display_name,
   };
 }
 
@@ -1585,11 +1630,43 @@ export async function getPublicProfile(db: D1Database, userId: string, origin: s
   };
 }
 
-/// 提交新的昵称或头像。提交即进入待审核，他人仍看旧版本。
+/// 昵称是否已被别人占用。以规范化 key 比较，绕不过空格与大小写。
+export async function isDisplayNameTaken(db: D1Database, name: string, exceptUserId: string) {
+  const key = normalizeDisplayName(name);
+  if (!key) return false;
+  const row = await db
+    .prepare(
+      "SELECT id FROM users WHERE display_name_key = ? AND id <> ? AND deleted_at IS NULL LIMIT 1",
+    )
+    .bind(key, exceptUserId)
+    .first<{ id: string }>();
+  return Boolean(row);
+}
+
+export async function isDisplayNameBanned(db: D1Database, name: string) {
+  const key = normalizeDisplayName(name);
+  if (!key) return false;
+  const row = await db
+    .prepare("SELECT name_key FROM banned_display_names WHERE name_key = ? LIMIT 1")
+    .bind(key)
+    .first<{ name_key: string }>();
+  return Boolean(row);
+}
+
+/**
+ * 提交新的昵称或头像。提交即进入待审核，他人仍看旧版本。
+ *
+ * 两样分开记状态：只改昵称时不该把已经通过的头像重新拖回待审队列，
+ * 反之亦然——否则每改一次昵称，运营就要把那张早就看过的头像再看一遍。
+ *
+ * `presetAvatar` 是 App 内置的那几张预设图之一。它们是我们自己的素材，
+ * 不是用户上传的内容，直接置为通过：否则新用户按引导选了头像，别人看到的
+ * 依然是灰色人像，一直等到运营上线点一下为止，那这个「必须设头像」就白做了。
+ */
 export async function submitProfile(
   db: D1Database,
   userId: string,
-  input: { displayName?: string; avatarKey?: string },
+  input: { displayName?: string; avatarKey?: string; presetAvatar?: boolean },
   origin: string,
 ) {
   await ensureWishSchema(db);
@@ -1602,60 +1679,195 @@ export async function submitProfile(
     if (name.length < 1 || name.length > 20) {
       throw new WishWorkflowError("昵称需在 1–20 个字之间", 400);
     }
-    updates.push("display_name = ?");
-    values.push(name);
+    const key = normalizeDisplayName(name);
+    // 规范化之后可能什么都不剩：整串都是空格、零宽字符之类。
+    if (!key) throw new WishWorkflowError("昵称不能只包含空格或不可见字符", 400);
+    if (await isDisplayNameBanned(db, name)) {
+      throw new WishWorkflowError("这个昵称不可用，请换一个", 400);
+    }
+    if (await isDisplayNameTaken(db, name, userId)) {
+      throw new WishWorkflowError("这个昵称已经有人在用了，请换一个", 409);
+    }
+    updates.push("display_name = ?", "display_name_key = ?");
+    values.push(name, key);
+    updates.push("display_name_status = 'pending'", "display_name_note = NULL");
   }
   if (input.avatarKey !== undefined) {
     updates.push("avatar_key = ?");
     values.push(input.avatarKey);
+    if (input.presetAvatar) {
+      // 预设图直接生效，同时提升为对外可见版本。
+      updates.push("avatar_status = 'approved'", "avatar_note = NULL", "approved_avatar_key = ?");
+      values.push(input.avatarKey);
+    } else {
+      updates.push("avatar_status = 'pending'", "avatar_note = NULL");
+    }
   }
   if (updates.length === 0) throw new WishWorkflowError("没有要更新的内容", 400);
 
-  updates.push("profile_status = 'pending'", "profile_note = NULL", "profile_updated_at = ?");
+  updates.push("profile_updated_at = ?");
   values.push(now, userId);
-  await db.prepare(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`).bind(...values).run();
+  try {
+    await db.prepare(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`).bind(...values).run();
+  } catch (error) {
+    // 唯一索引兜底：上面的查询与这次写入之间存在竞态，两个人同时提交
+    // 同一个昵称时，先到的写成功，后到的会撞索引。这不是内部错误，
+    // 对用户来说和「已经有人在用」是同一件事。
+    if (String(error).includes("UNIQUE") || String(error).includes("constraint")) {
+      throw new WishWorkflowError("这个昵称已经有人在用了，请换一个", 409);
+    }
+    throw error;
+  }
   return getOwnProfile(db, userId, origin);
 }
 
-/// 运营审核用户资料。通过则把待审内容提升为对外可见版本。
+/**
+ * 运营审核用户资料。`target` 指明这次处理的是哪一样。
+ *
+ * 分开处理的意义在退回这一侧：退回会把内容回落到上一版通过的资料，
+ * 合审时为了退回一张不合适的头像，用户改好的昵称会被一起打回，
+ * 他得重填两样，其中一样本来是合格的。
+ *
+ * `ban` 只在退回昵称时有意义，且由运营自己勾——「小白」重名被退不该永久
+ * 锁死这个名字，辱骂性的才该。默认不封。
+ */
 export async function reviewProfile(
   db: D1Database,
   userId: string,
   action: "approve" | "reject",
   note: string | undefined,
   origin: string,
+  options: { target?: "displayName" | "avatar" | "both"; ban?: boolean } = {},
 ) {
   await ensureWishSchema(db);
+  const target = options.target ?? "both";
+  const touchName = target === "displayName" || target === "both";
+  const touchAvatar = target === "avatar" || target === "both";
+  const sets: string[] = [];
+  const values: unknown[] = [];
+
   if (action === "approve") {
-    await db
-      .prepare(
-        `UPDATE users SET approved_display_name = display_name, approved_avatar_key = avatar_key,
-                          profile_status = 'approved', profile_note = NULL WHERE id = ?`,
-      )
-      .bind(userId)
-      .run();
+    if (touchName) {
+      sets.push("approved_display_name = display_name", "display_name_status = 'approved'", "display_name_note = NULL");
+    }
+    if (touchAvatar) {
+      sets.push("approved_avatar_key = avatar_key", "avatar_status = 'approved'", "avatar_note = NULL");
+    }
   } else {
-    // 退回时清掉待审内容，回落到上一版通过的资料，避免违规内容滞留
-    await db
-      .prepare(
-        `UPDATE users SET display_name = approved_display_name, avatar_key = approved_avatar_key,
-                          profile_status = 'rejected', profile_note = ? WHERE id = ?`,
-      )
-      .bind(note ?? "资料未通过审核，请修改后重新提交", userId)
-      .run();
+    const reason = note ?? "未通过审核，请修改后重新提交";
+    if (touchName) {
+      // 退回前先把这个昵称记下来——回落之后 display_name 就被覆盖了，
+      // 那时再想封禁它已经查不到原值。
+      if (options.ban) {
+        const current = await db
+          .prepare("SELECT display_name FROM users WHERE id = ? LIMIT 1")
+          .bind(userId)
+          .first<{ display_name: string | null }>();
+        const original = current?.display_name?.trim();
+        if (original) {
+          const key = normalizeDisplayName(original);
+          if (key) {
+            await db
+              .prepare(
+                `INSERT INTO banned_display_names (name_key, original, reason, created_at)
+                 VALUES (?, ?, ?, ?) ON CONFLICT(name_key) DO UPDATE SET reason = excluded.reason`,
+              )
+              .bind(key, original, note ?? null, Date.now())
+              .run();
+          }
+        }
+      }
+      // 回落到上一版通过的昵称。key 不在这里算——规范化规则在应用层，
+      // SQL 里做不出来，改由下面那条独立语句重算。
+      sets.push(
+        "display_name = approved_display_name",
+        "display_name_status = 'rejected'",
+        "display_name_note = ?",
+      );
+      values.push(reason);
+    }
+    if (touchAvatar) {
+      sets.push("avatar_key = approved_avatar_key", "avatar_status = 'rejected'", "avatar_note = ?");
+      values.push(reason);
+    }
+  }
+
+  if (sets.length) {
+    values.push(userId);
+    await db.prepare(`UPDATE users SET ${sets.join(", ")} WHERE id = ?`).bind(...values).run();
+    // 退回昵称后要重算 key：回落成上一版通过的昵称，key 必须跟着变，
+    // 否则被退回的那个名字仍占着唯一索引。用一条独立语句处理，
+    // 因为规范化规则在应用层，SQL 里算不出来。
+    if (action === "reject" && touchName) {
+      const row = await db
+        .prepare("SELECT display_name FROM users WHERE id = ? LIMIT 1")
+        .bind(userId)
+        .first<{ display_name: string | null }>();
+      const fallback = row?.display_name?.trim();
+      await db
+        .prepare("UPDATE users SET display_name_key = ? WHERE id = ?")
+        .bind(fallback ? normalizeDisplayName(fallback) : null, userId)
+        .run();
+    }
   }
   return getOwnProfile(db, userId, origin);
 }
 
-/// 运营待办：待审核的用户资料
+/// 封禁昵称的增删查，供运营台直接维护。
+export async function listBannedDisplayNames(db: D1Database) {
+  await ensureWishSchema(db);
+  const rows = await db
+    .prepare("SELECT name_key, original, reason, created_at FROM banned_display_names ORDER BY created_at DESC LIMIT 200")
+    .all<{ name_key: string; original: string; reason: string | null; created_at: number }>();
+  return {
+    names: rows.results.map((row) => ({
+      key: row.name_key,
+      original: row.original,
+      reason: row.reason,
+      createdAt: row.created_at,
+    })),
+  };
+}
+
+export async function banDisplayName(db: D1Database, name: string, reason?: string) {
+  await ensureWishSchema(db);
+  const original = name.trim();
+  const key = normalizeDisplayName(original);
+  if (!key) throw new WishWorkflowError("昵称不能为空", 400);
+  await db
+    .prepare(
+      `INSERT INTO banned_display_names (name_key, original, reason, created_at)
+       VALUES (?, ?, ?, ?) ON CONFLICT(name_key) DO UPDATE SET reason = excluded.reason`,
+    )
+    .bind(key, original, reason ?? null, Date.now())
+    .run();
+  return { banned: true, key };
+}
+
+export async function unbanDisplayName(db: D1Database, key: string) {
+  await ensureWishSchema(db);
+  await db.prepare("DELETE FROM banned_display_names WHERE name_key = ?").bind(key).run();
+  return { removed: true };
+}
+
+/// 运营待办：待审核的用户资料。昵称与头像各自待审，一样在审就要出现在队列里。
 export async function listPendingProfiles(db: D1Database, origin: string) {
   await ensureWishSchema(db);
   const rows = await db
     .prepare(
-      `SELECT id, display_name, avatar_key, profile_updated_at FROM users
-       WHERE profile_status = 'pending' ORDER BY profile_updated_at ASC LIMIT 100`,
+      `SELECT id, display_name, avatar_key, display_name_status, avatar_status, profile_updated_at
+       FROM users
+       WHERE display_name_status = 'pending' OR avatar_status = 'pending'
+       ORDER BY profile_updated_at ASC LIMIT 100`,
     )
-    .all<{ id: string; display_name: string | null; avatar_key: string | null; profile_updated_at: number | null }>();
+    .all<{
+      id: string;
+      display_name: string | null;
+      avatar_key: string | null;
+      display_name_status: string;
+      avatar_status: string;
+      profile_updated_at: number | null;
+    }>();
   return {
     profiles: rows.results.map((row) => ({
       userId: row.id,
@@ -1663,6 +1875,9 @@ export async function listPendingProfiles(db: D1Database, origin: string) {
       // 运营台是 GitHub Pages 上的静态页，相对地址会被解析到 github.io 上去
       avatarUrl: avatarUrlFor(row.avatar_key, origin),
       submittedAt: row.profile_updated_at,
+      // 让运营知道这一条里到底哪一样在等：另一样可能早就通过了
+      displayNamePending: row.display_name_status === "pending",
+      avatarPending: row.avatar_status === "pending",
     })),
   };
 }

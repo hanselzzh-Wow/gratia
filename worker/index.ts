@@ -38,6 +38,9 @@ import {
   submitProfile,
   reviewProfile,
   listPendingProfiles,
+  listBannedDisplayNames,
+  banDisplayName,
+  unbanDisplayName,
   listPendingStories,
   reviewStory,
   listAbuseReports,
@@ -63,6 +66,7 @@ import {
 } from "../server/apple-identity";
 import { consumeRateLimit, RateLimitError } from "../server/rate-limit";
 import { sendPendingDigest } from "../server/ops-notifier";
+import { isPresetAvatar } from "../server/preset-avatars";
 import {
   registerDeviceToken,
   removeDeviceTokens,
@@ -475,6 +479,7 @@ async function handleWishApi(request: Request, env: Env, ctx: ExecutionContext) 
 
       let displayName: string | undefined;
       let avatarKey: string | undefined;
+      let presetAvatar = false;
       if (contentType.includes("multipart/form-data")) {
         const form = await request.formData();
         const name = form.get("displayName");
@@ -488,15 +493,24 @@ async function handleWishApi(request: Request, env: Env, ctx: ExecutionContext) 
           if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
             return json(request, env, { error: "头像仅支持 JPG、PNG 或 WebP" }, 415);
           }
+          // 先读进内存再判定：预设图要按内容指纹认，不能听客户端自称
+          // ——否则随便改个请求字段就能让任意图片跳过人工审核。
+          // 上面已把体积限制在 5MB 内，读全量是安全的。
+          const bytes = await file.arrayBuffer();
+          presetAvatar = await isPresetAvatar(bytes);
           avatarKey = `avatars/${crypto.randomUUID()}`;
-          await env.UPLOADS.put(avatarKey, file.stream(), { httpMetadata: { contentType: file.type } });
+          await env.UPLOADS.put(avatarKey, bytes, { httpMetadata: { contentType: file.type } });
         }
       } else {
         const payload = (await request.json().catch(() => ({}))) as { displayName?: unknown };
         if (typeof payload.displayName === "string") displayName = payload.displayName;
       }
 
-      return json(request, env, await submitProfile(env.DB, user.id, { displayName, avatarKey }, url.origin));
+      return json(
+        request,
+        env,
+        await submitProfile(env.DB, user.id, { displayName, avatarKey, presetAvatar }, url.origin),
+      );
     }
 
     // 运营审核公开申请。帮助者上传的影像在此之前从未被审核过，
@@ -555,8 +569,16 @@ async function handleWishApi(request: Request, env: Env, ctx: ExecutionContext) 
     const profileReviewMatch = url.pathname.match(/^\/api\/admin\/profiles\/([^/]+)$/);
     if (profileReviewMatch && request.method === "PATCH") {
       await requireAdmin(request, env);
-      const payload = (await request.json()) as { action?: unknown; note?: unknown };
+      const payload = (await request.json()) as {
+        action?: unknown;
+        note?: unknown;
+        target?: unknown;
+        ban?: unknown;
+      };
       const action = payload.action === "reject" ? "reject" : "approve";
+      // 不传 target 时按整份处理，旧的运营台不会因为这次改动失灵。
+      const target =
+        payload.target === "displayName" || payload.target === "avatar" ? payload.target : "both";
       return json(
         request,
         env,
@@ -566,8 +588,33 @@ async function handleWishApi(request: Request, env: Env, ctx: ExecutionContext) 
           action,
           typeof payload.note === "string" ? payload.note : undefined,
           url.origin,
+          { target, ban: payload.ban === true },
         ),
       );
+    }
+
+    // 封禁昵称列表的维护
+    if (url.pathname === "/api/admin/banned-names" && request.method === "GET") {
+      await requireAdmin(request, env);
+      return json(request, env, await listBannedDisplayNames(env.DB));
+    }
+    if (url.pathname === "/api/admin/banned-names" && request.method === "POST") {
+      await requireAdmin(request, env);
+      const payload = (await request.json().catch(() => ({}))) as { name?: unknown; reason?: unknown };
+      if (typeof payload.name !== "string" || !payload.name.trim()) {
+        return json(request, env, { error: "缺少昵称" }, 400);
+      }
+      return json(
+        request,
+        env,
+        await banDisplayName(env.DB, payload.name, typeof payload.reason === "string" ? payload.reason : undefined),
+        201,
+      );
+    }
+    const unbanMatch = url.pathname.match(/^\/api\/admin\/banned-names\/([^/]+)$/);
+    if (unbanMatch && request.method === "DELETE") {
+      await requireAdmin(request, env);
+      return json(request, env, await unbanDisplayName(env.DB, decodeURIComponent(unbanMatch[1])));
     }
 
     // 首页故事流：只含需求方明确公开过的已完成心愿，无需登录即可浏览

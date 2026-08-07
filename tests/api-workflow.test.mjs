@@ -1012,6 +1012,201 @@ test("holds nickname and avatar changes for review before others can see them", 
   }
 });
 
+test("昵称唯一：规范化之后重名的一律挡下", async () => {
+  const { request, env } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const href = String(url);
+    if (href.includes("api.weixin.qq.com")) {
+      return Response.json({ openid: `openid-${new URL(href).searchParams.get("js_code")}` });
+    }
+    return originalFetch(url, init);
+  };
+  try {
+    const login = async (code) =>
+      (await json(await request("/api/auth/wechat", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code }),
+      }))).token;
+    const a = { "content-type": "application/json", authorization: `Bearer ${await login("uniq-a")}` };
+    const b = { "content-type": "application/json", authorization: `Bearer ${await login("uniq-b")}` };
+
+    const first = await request("/api/account/profile", {
+      method: "POST", headers: a, body: JSON.stringify({ displayName: "晚风电台" }),
+    });
+    assert.equal(first.status, 200);
+
+    // 完全相同
+    const dup = await request("/api/account/profile", {
+      method: "POST", headers: b, body: JSON.stringify({ displayName: "晚风电台" }),
+    });
+    assert.equal(dup.status, 409, "重名必须挡下");
+
+    // 加空格绕过——「晚风 电台」和「晚风电台」在别人眼里是同一个名字
+    const spaced = await request("/api/account/profile", {
+      method: "POST", headers: b, body: JSON.stringify({ displayName: "晚风 电台" }),
+    });
+    assert.equal(spaced.status, 409, "插空格不能绕过唯一性");
+
+    // 零宽字符绕过：界面上完全看不出区别
+    const zeroWidth = await request("/api/account/profile", {
+      method: "POST", headers: b, body: JSON.stringify({ displayName: "晚风\u200B电台" }),
+    });
+    assert.equal(zeroWidth.status, 409, "零宽字符不能绕过唯一性");
+
+    // 大小写与全角：ABC / abc / ＡＢＣ 视为同一个
+    await request("/api/account/profile", {
+      method: "POST", headers: a, body: JSON.stringify({ displayName: "Radio" }),
+    });
+    const fullwidth = await request("/api/account/profile", {
+      method: "POST", headers: b, body: JSON.stringify({ displayName: "ｒａｄｉｏ" }),
+    });
+    assert.equal(fullwidth.status, 409, "全角与大小写不能绕过唯一性");
+
+    // 自己改回自己的昵称不该被自己挡住
+    const self = await request("/api/account/profile", {
+      method: "POST", headers: a, body: JSON.stringify({ displayName: "Radio" }),
+    });
+    assert.equal(self.status, 200, "不能把用户自己的昵称判成重名");
+
+    // 整串都是空白或不可见字符
+    const blank = await request("/api/account/profile", {
+      method: "POST", headers: b, body: JSON.stringify({ displayName: "\u200B\u200B" }),
+    });
+    assert.equal(blank.status, 400);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("被封禁的昵称不可用，且封禁只在运营勾选时发生", async () => {
+  const { request, env } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const href = String(url);
+    if (href.includes("api.weixin.qq.com")) {
+      return Response.json({ openid: `openid-${new URL(href).searchParams.get("js_code")}` });
+    }
+    return originalFetch(url, init);
+  };
+  const admin = { "content-type": "application/json", "x-admin-key": "test-admin-pin" };
+  try {
+    const login = async (code) =>
+      (await json(await request("/api/auth/wechat", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code }),
+      }))).token;
+    const a = { "content-type": "application/json", authorization: `Bearer ${await login("banned-user-a")}` };
+    const b = { "content-type": "application/json", authorization: `Bearer ${await login("banned-user-b")}` };
+
+    // 运营直接封一个词
+    const banned = await request("/api/admin/banned-names", {
+      method: "POST", headers: admin, body: JSON.stringify({ name: "管理员", reason: "冒充官方" }),
+    });
+    assert.equal(banned.status, 201);
+
+    const blocked = await request("/api/account/profile", {
+      method: "POST", headers: a, body: JSON.stringify({ displayName: "管理员" }),
+    });
+    assert.equal(blocked.status, 400, "封禁词不可用");
+
+    // 换个大小写/空格同样挡下
+    const evaded = await request("/api/account/profile", {
+      method: "POST", headers: a, body: JSON.stringify({ displayName: "管理 员" }),
+    });
+    assert.equal(evaded.status, 400, "封禁也要按规范化后的形式判定");
+
+    // 退回但不勾封禁 → 这个名字之后别人还能用
+    await request("/api/account/profile", {
+      method: "POST", headers: a, body: JSON.stringify({ displayName: "普通重名" }),
+    });
+    const list1 = await json(await request("/api/admin/profiles", { headers: admin }));
+    const userA = list1.profiles[0].userId;
+    await request(`/api/admin/profiles/${userA}`, {
+      method: "PATCH", headers: admin,
+      body: JSON.stringify({ action: "reject", target: "displayName", note: "重名" }),
+    });
+    const reusable = await request("/api/account/profile", {
+      method: "POST", headers: b, body: JSON.stringify({ displayName: "普通重名" }),
+    });
+    assert.equal(reusable.status, 200, "没勾封禁的退回不该永久锁死这个名字");
+
+    // 退回并勾封禁 → 谁都不能再用
+    const list2 = await json(await request("/api/admin/profiles", { headers: admin }));
+    const userB = list2.profiles.find((p) => p.userId !== userA)?.userId ?? list2.profiles[0].userId;
+    await request(`/api/admin/profiles/${userB}`, {
+      method: "PATCH", headers: admin,
+      body: JSON.stringify({ action: "reject", target: "displayName", note: "辱骂", ban: true }),
+    });
+    const nowBanned = await request("/api/account/profile", {
+      method: "POST", headers: a, body: JSON.stringify({ displayName: "普通重名" }),
+    });
+    assert.equal(nowBanned.status, 400, "勾了封禁之后这个名字应当不可用");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("昵称与头像分开审核：退回一样不牵连另一样", async () => {
+  const { request, env } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const href = String(url);
+    if (href.includes("api.weixin.qq.com")) {
+      return Response.json({ openid: `openid-${new URL(href).searchParams.get("js_code")}` });
+    }
+    return originalFetch(url, init);
+  };
+  const admin = { "content-type": "application/json", "x-admin-key": "test-admin-pin" };
+  try {
+    const token = (await json(await request("/api/auth/wechat", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ code: "split-review" }),
+    }))).token;
+    const h = { authorization: `Bearer ${token}` };
+    const hj = { ...h, "content-type": "application/json" };
+
+    // 同时提交昵称与头像
+    const form = new FormData();
+    form.set("displayName", "海边信号塔");
+    form.set("avatar", new File([new Uint8Array([1, 2, 3, 4])], "a.png", { type: "image/png" }));
+    const submitted = await json(await request("/api/account/profile", { method: "POST", headers: h, body: form }));
+    assert.equal(submitted.displayNamePending, true);
+    assert.equal(submitted.avatarPending, true);
+
+    const pending = await json(await request("/api/admin/profiles", { headers: admin }));
+    const userId = pending.profiles[0].userId;
+
+    // 只通过昵称
+    const nameOk = await json(await request(`/api/admin/profiles/${userId}`, {
+      method: "PATCH", headers: admin,
+      body: JSON.stringify({ action: "approve", target: "displayName" }),
+    }));
+    assert.equal(nameOk.displayNamePending, false, "昵称应已通过");
+    assert.equal(nameOk.avatarPending, true, "头像不该被一起处理掉");
+
+    // 再单独退回头像 —— 昵称必须原封不动
+    const avatarRejected = await json(await request(`/api/admin/profiles/${userId}`, {
+      method: "PATCH", headers: admin,
+      body: JSON.stringify({ action: "reject", target: "avatar", note: "头像不合适" }),
+    }));
+    assert.equal(
+      avatarRejected.displayName, "海边信号塔",
+      "退回头像不该把已经通过的昵称一起打回——用户会被迫重填一样本来合格的内容",
+    );
+    assert.equal(avatarRejected.avatarNote, "头像不合适");
+    assert.equal(avatarRejected.displayNameNote, null, "昵称不该带上头像的驳回理由");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 // 这条链此前完全没有测试，于是「头像地址返回相对路径」一直没被发现：
 // 文件确实进了 R2、键也写进了库，但运营台（GitHub Pages 静态页）会把
 // /api/avatars/... 解析到 github.io 上拿到 404，iOS 的 URL(string:) 则

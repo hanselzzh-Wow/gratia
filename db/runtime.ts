@@ -255,6 +255,15 @@ async function addCompatibilityColumns(db: D1Database) {
     ["profile_status", "TEXT NOT NULL DEFAULT 'approved'"],
     ["profile_note", "TEXT"],
     ["profile_updated_at", "INTEGER"],
+    // 昵称与头像各走一条审核线。最常见的情况恰恰是只有一半有问题——
+    // 合在一起审，为了退回头像就得把用户改好的昵称一并打回。
+    ["display_name_status", "TEXT NOT NULL DEFAULT 'approved'"],
+    ["avatar_status", "TEXT NOT NULL DEFAULT 'approved'"],
+    ["display_name_note", "TEXT"],
+    ["avatar_note", "TEXT"],
+    // 规范化后的昵称，唯一性判定用。规则在应用层（normalizeDisplayName），
+    // 这里只存结果，改规则时不必动索引。
+    ["display_name_key", "TEXT"],
   ];
   for (const [column, definition] of userAdds) {
     if (!userColumns.results.some((existing) => existing.name === column)) {
@@ -265,6 +274,19 @@ async function addCompatibilityColumns(db: D1Database) {
   await db.batch([
     db.prepare("CREATE INDEX IF NOT EXISTS wishes_user_created_idx ON wishes(user_id, created_at)"),
     db.prepare("CREATE INDEX IF NOT EXISTS wish_responses_user_created_idx ON wish_responses(user_id, created_at)"),
+    // 部分唯一索引：已注销的账户不该继续占着昵称。
+    db.prepare(
+      `CREATE UNIQUE INDEX IF NOT EXISTS users_display_name_key_idx ON users(display_name_key)
+       WHERE display_name_key IS NOT NULL AND deleted_at IS NULL`,
+    ),
+    db.prepare(
+      `CREATE TABLE IF NOT EXISTS banned_display_names (
+        name_key TEXT PRIMARY KEY NOT NULL,
+        original TEXT NOT NULL,
+        reason TEXT,
+        created_at INTEGER NOT NULL
+      )`,
+    ),
   ]);
 }
 
