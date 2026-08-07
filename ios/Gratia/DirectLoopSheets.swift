@@ -172,6 +172,7 @@ struct DeliverySubmitSheet: View {
                         Text("想对 TA 说的话").font(DesignSystem.headlineFont)
                         TextField("比如当时的天气、现场的样子…", text: $note, axis: .vertical)
                             .lineLimit(3...8)
+                            .foregroundStyle(DesignSystem.Rose.ink)
                             .padding(DesignSystem.spacing12)
                             .background(
                                 RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
@@ -308,6 +309,7 @@ struct PublishStorySheet: View {
                     VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
                         Text("公开时显示的昵称").font(DesignSystem.headlineFont)
                         TextField("留空则显示「匿名」", text: $nickname)
+                            .foregroundStyle(DesignSystem.Rose.ink)
                             .padding(DesignSystem.spacing12)
                             .background(
                                 RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)
@@ -427,6 +429,9 @@ struct ProfileEditSheet: View {
                     VStack(alignment: .leading, spacing: DesignSystem.spacing8) {
                         Text("昵称").font(DesignSystem.headlineFont)
                         TextField("1–20 个字", text: $displayName)
+                            // 默认的 .primary 会随系统外观变白，而底色是写死的
+                            // 浅玫色——暗色下就是白字浅底，等于看不见自己在打什么。
+                            .foregroundStyle(DesignSystem.Rose.ink)
                             .padding(DesignSystem.spacing12)
                             .background(
                                 RoundedRectangle(cornerRadius: DesignSystem.radiusMedium)

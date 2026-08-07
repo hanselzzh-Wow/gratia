@@ -163,6 +163,7 @@ struct PlaceField: View {
 
             TextField("搜索或直接输入，例如：西湖断桥", text: $model.query)
                 .font(DesignSystem.bodyFont)
+                .foregroundStyle(DesignSystem.Rose.ink)
                 .focused($focused)
                 .padding(DesignSystem.spacing12)
                 .background(

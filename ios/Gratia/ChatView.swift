@@ -125,6 +125,9 @@ struct ChatView: View {
             HStack(spacing: DesignSystem.spacing8) {
                 TextField("说点什么…", text: $draft, axis: .vertical)
                     .lineLimit(1...4)
+                    // 显式设色：默认的 .primary 是随系统外观变化的动态色，
+                    // 而这里的底色是写死的浅色，暗色下会变成白字浅底。
+                    .foregroundStyle(DesignSystem.Rose.ink)
                     .textFieldStyle(.plain)
                     .padding(.horizontal, DesignSystem.spacing12)
                     .padding(.vertical, DesignSystem.spacing8)

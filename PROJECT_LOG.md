@@ -1005,3 +1005,13 @@ Cloudflare Worker API
 - 实测验证：`xcrun simctl ui booted appearance dark` 切至系统暗色后重新截图，Dock 区域平均亮度 235.5（0=黑，255=白），图标清晰可辨；整屏保持浅色，无撕裂。验证后已将模拟器外观还原为 light。
 - iOS 41/41 通过。
 - 未验证且不得误报：**未实现真正的暗色模式**，仅是锁定浅色。要支持暗色需为 `DesignSystem` 每个颜色补暗色变体并逐屏校对对比度，届时才应移除 `.preferredColorScheme(.light)`。本轮改动未打新构建，TestFlight 上仍为构建 8。
+
+## 2026-08-07｜输入框文字在暗色下不可见（与 Dock 撕裂同一根因）
+
+- 产品负责人报告：登录后修改昵称时，输入框与文字都是浅色，看不清输入内容。
+- 根因与前一条撕裂问题相同：`TextField` 未设 `foregroundStyle`，使用系统默认 `.primary`（随外观变化的动态色），而输入框底色是写死的 `DesignSystem.Rose.tint` 浅玫色。系统暗色下即为白字浅底。
+- 全量排查 14 个文本输入控件，**5 处未显式设置文字颜色**：`ChatView.swift:126`（私聊输入）、`DirectLoopSheets.swift:173`（交付备注）、`DirectLoopSheets.swift:310`（响应昵称）、`DirectLoopSheets.swift:429`（个人昵称，即报告所指）、`PlaceSearch.swift:164`（地点搜索，为本轮新增代码，同样遗漏）。其余 9 处已设色。
+- 已为该 5 处显式设置 `.foregroundStyle(DesignSystem.Rose.ink)`。此为在 `.preferredColorScheme(.light)` 之外的第二层加固：锁定浅色已可掩盖该问题，但那是隐式依赖，一旦将来移除锁定，这 5 处会同时复发。
+- 实测验证：模拟器切至系统暗色，进入发布页地点输入框输入文本后截图，输入框区域最暗像素值 24（近黑），深色像素占比 1.73%，文字在浅底上清晰可见。验证后已还原模拟器外观为 light。
+- iOS 41/41 通过。
+- 未验证且不得误报：**昵称输入框未单独在设备上验证**——该界面需登录后进入，模拟器无法完成 Sign in with Apple。验证走的是同一修复模式下的地点输入框；昵称框的代码改动与之完全一致，且已被 `.preferredColorScheme(.light)` 覆盖。本轮未打新构建，TestFlight 上仍为构建 8。
