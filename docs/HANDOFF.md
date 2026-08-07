@@ -27,7 +27,7 @@ App 内**不涉及任何金额**，**不收集任何联系方式**。
 | 法务页面 | `/legal/privacy/`、`/legal/terms/` 已公开 |
 | Apple 令牌撤销 | 已端到端验证通过 |
 | TestFlight | 构建 10 在 Beta 审核队列中；11–13 已上传未提交（不打断 10 的审核）。公开链接 `https://testflight.apple.com/join/ftyuGZ8n`（审核通过后生效，上限 100 人） |
-| 推送通知 | 代码已完整，缺 APNs 密钥；见「八·五、启用推送」 |
+| 推送通知 | **已启用**（2026-08-07）。密钥 `3AA48B42H3`，Sandbox & Production；已对 Apple 真实端点验证 |
 | 后端测试 | 45/45 |
 | iOS 测试 | 49/49 |
 
@@ -256,9 +256,15 @@ Apple 要求使用 Sign in with Apple 且支持账户删除的 App **必须在�
 
 ---
 
-## 八·五、启用推送
+## 八·五、推送
 
-代码全在，缺的只有一把密钥。**APNs 认证密钥无法通过 App Store Connect API 创建，必须在网页上手动建。**
+**已于 2026-08-07 启用并验证。** 下面是换密钥时的重做步骤。
+
+> 验证方式（不需要真机、不打扰任何用户）：本地用 `.p8` 签一把 APNs JWT，拿一个格式合法但不存在的设备令牌（64 个 `a`）去打 Apple 真实端点。回 `BadDeviceToken` 说明**密钥有效**——Apple 认了签名，只是设备是假的；回 `InvalidProviderToken` 才是密钥、Key ID、Team ID 三者对不上；回 `TopicDisallowed` 是 Key Restriction 的 topic 填错了。这套区分法和验证 Apple 令牌撤销时用的是同一个思路。
+>
+> ⚠️ 本地验证要用 **HTTP/2**：APNs 不接受 HTTP/1.1，而 Node 的 `fetch` 只走 1.1，会抛一个看不出所以然的 `HTTPParserError`。用 `curl --http2`。生产环境在 Cloudflare Workers 上没有这个限制。
+
+**APNs 认证密钥无法通过 App Store Connect API 创建，必须在网页上手动建。**
 
 1. 到 [developer.apple.com/account/resources/authkeys/add](https://developer.apple.com/account/resources/authkeys/add) 新建 Key，勾选 **Apple Push Notifications service (APNs)**，下载 `.p8`——**只能下载一次**，丢了只能作废重建。
 2. 把它和其他签名材料放一起（`~/Developer/gratia-signing/`，仓库外、700 权限），不要进仓库、不要放 `/tmp`。
