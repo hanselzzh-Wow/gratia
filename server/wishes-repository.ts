@@ -1255,7 +1255,14 @@ export async function sendConversationMessage(
     )
     .bind(id, access.wish_id, responseId, userId, text, now)
     .run();
-  return { id, body: text, mine: true, createdAt: now };
+  return {
+    message: { id, body: text, mine: true, createdAt: now },
+    /// 供调用方异步推送用。repository 不直接依赖推送模块——
+    /// 发一条消息不该因为 APNs 出问题而失败。
+    notify: access.counterpartId
+      ? { userId: access.counterpartId, responseId, preview: text }
+      : null,
+  };
 }
 
 /// 举报。App 内存在陌生人即时通讯时，App Store 指南 1.2 要求必须提供。

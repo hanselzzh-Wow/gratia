@@ -63,6 +63,12 @@ import {
 } from "../server/apple-identity";
 import { consumeRateLimit, RateLimitError } from "../server/rate-limit";
 import { sendPendingDigest } from "../server/ops-notifier";
+import {
+  registerDeviceToken,
+  removeDeviceTokens,
+  sendPush,
+  type PushPayload,
+} from "../server/push-notifier";
 
 interface Env {
   ASSETS: Fetcher;
@@ -77,6 +83,10 @@ interface Env {
   APPLE_TEAM_ID?: string;
   APPLE_KEY_ID?: string;
   APPLE_PRIVATE_KEY?: string;
+  /// 推送通知。APNs 密钥与 Sign in with Apple 的是**两把不同的 key**，
+  /// 创建时勾选的能力不同；缺任一项则静默跳过，不影响任何主流程。
+  APNS_KEY_ID?: string;
+  APNS_PRIVATE_KEY?: string;
   /// 待审提醒邮件；两者缺一则静默跳过，不影响任何主流程
   RESEND_API_KEY?: string;
   OPS_NOTIFY_EMAIL?: string;
@@ -222,7 +232,39 @@ async function exchangeWechatCode(env: Env, code: string) {
   return payload.openid;
 }
 
-async function handleWishApi(request: Request, env: Env) {
+/// 给某个用户推一条通知。始终经 `ctx.waitUntil` 调用，never awaited：
+/// 推送失败绝不能让业务请求失败——它是锦上添花，不是交易的一部分。
+async function notifyUser(env: Env, userId: string, payload: PushPayload) {
+  const result = await sendPush(env.DB, userId, payload, {
+    teamId: env.APPLE_TEAM_ID,
+    keyId: env.APNS_KEY_ID,
+    privateKey: env.APNS_PRIVATE_KEY,
+    bundleId: env.APPLE_BUNDLE_ID ?? "com.hanselzzh.gratia",
+  });
+  if (result.skipped) console.log(`[push] 跳过：${result.skipped}`);
+  return result;
+}
+
+/// 查这条心愿的发布者。放在 worker 层而不是改 repository 的返回签名：
+/// 推送是旁路，不该让业务函数为它多带一路数据。查询在 waitUntil 里跑。
+async function wishOwnerId(env: Env, wishId: string) {
+  const row = await env.DB.prepare("SELECT user_id FROM wishes WHERE id = ? LIMIT 1")
+    .bind(wishId)
+    .first<{ user_id: string | null }>();
+  return row?.user_id ?? null;
+}
+
+/// 查这条心愿当前被选中的帮助者。
+async function selectedResponderId(env: Env, wishId: string) {
+  const row = await env.DB.prepare(
+    "SELECT user_id FROM wish_responses WHERE wish_id = ? AND status = 'selected' LIMIT 1",
+  )
+    .bind(wishId)
+    .first<{ user_id: string | null }>();
+  return row?.user_id ?? null;
+}
+
+async function handleWishApi(request: Request, env: Env, ctx: ExecutionContext) {
   const url = new URL(request.url);
   if (!isAllowedOrigin(request, env)) {
     return json(request, env, { error: "不允许的请求来源" }, 403);
@@ -368,14 +410,42 @@ async function handleWishApi(request: Request, env: Env) {
       }
       await enforceRateLimit(request, env, "account_respond", 20, 60 * 60_000);
       const input = normalizeWishResponse(await request.json());
-      const result = await createWishResponse(env.DB, decodeURIComponent(accountResponseMatch[1]), input, user.id);
+      const wishId = decodeURIComponent(accountResponseMatch[1]);
+      const result = await createWishResponse(env.DB, wishId, input, user.id);
+      if (result.created) {
+        // 发布者等的就是这一刻：心愿发出去之后终于有人接。
+        ctx.waitUntil(
+          wishOwnerId(env, wishId).then((ownerId) =>
+            ownerId && ownerId !== user.id
+              ? notifyUser(env, ownerId, {
+                  title: "有人想帮你完成心愿",
+                  body: "去看看 TA 说了什么，可以直接私聊确认细节。",
+                  target: `wish:${wishId}`,
+                })
+              : undefined,
+          ),
+        );
+      }
       return json(request, env, result, result.created ? 201 : 200);
     }
 
     const accountCompletionMatch = url.pathname.match(/^\/api\/account\/wishes\/([^/]+)\/complete$/);
     if (accountCompletionMatch && request.method === "POST") {
       const user = await requireAccount(request, env);
-      const wish = await completeWishForOwner(env.DB, decodeURIComponent(accountCompletionMatch[1]), user.id);
+      const completedWishId = decodeURIComponent(accountCompletionMatch[1]);
+      // 先取帮助者：确认完成会把响应状态改掉，之后就查不到「被选中」的那条了。
+      const helperId = await selectedResponderId(env, completedWishId);
+      const wish = await completeWishForOwner(env.DB, completedWishId, user.id);
+      // 帮助者跑了一趟，理应知道对方收到了、这件事结束了。
+      if (helperId) {
+        ctx.waitUntil(
+          notifyUser(env, helperId, {
+            title: "对方确认收到了",
+            body: "你完成的心愿已被确认，谢谢你替 TA 走这一趟。",
+            target: `wish:${completedWishId}`,
+          }),
+        );
+      }
       return json(request, env, { wish });
     }
 
@@ -543,13 +613,26 @@ async function handleWishApi(request: Request, env: Env) {
       }
       await enforceRateLimit(request, env, "conversation_message", 120, 60 * 60_000);
       const payload = (await request.json()) as { body?: unknown };
-      const message = await sendConversationMessage(
+      const result = await sendConversationMessage(
         env.DB,
         decodeURIComponent(conversationMatch[1]),
         user.id,
         typeof payload.body === "string" ? payload.body : "",
       );
-      return json(request, env, { message }, 201);
+      if (result.notify) {
+        // waitUntil：发消息的人不该为一次 APNs 往返等待。
+        ctx.waitUntil(
+          notifyUser(env, result.notify.userId, {
+            title: "收到一条新消息",
+            // 预览截断到 60 字：通知栏放不下更多，而且这是别人的原话，
+            // 不该在锁屏上铺开一大段。
+            body: result.notify.preview.slice(0, 60),
+            target: `conversation:${result.notify.responseId}`,
+            threadId: result.notify.responseId,
+          }),
+        );
+      }
+      return json(request, env, { message: result.message }, 201);
     }
 
     // 举报与拉黑：App 内存在陌生人即时通讯时，指南 1.2 要求必须提供
@@ -564,6 +647,34 @@ async function handleWishApi(request: Request, env: Env) {
         detail: typeof payload.detail === "string" ? payload.detail : undefined,
       });
       return json(request, env, result, 201);
+    }
+
+    // 注册本机的推送令牌。登录后与每次启动时上报（令牌会变）。
+    if (url.pathname === "/api/account/device-token" && request.method === "POST") {
+      const user = await requireAccount(request, env);
+      const payload = (await request.json().catch(() => ({}))) as {
+        token?: unknown;
+        environment?: unknown;
+      };
+      const token = typeof payload.token === "string" ? payload.token.trim() : "";
+      if (!token) return json(request, env, { error: "缺少设备令牌" }, 400);
+      return json(
+        request,
+        env,
+        await registerDeviceToken(
+          env.DB,
+          user.id,
+          token,
+          typeof payload.environment === "string" ? payload.environment : "production",
+        ),
+        201,
+      );
+    }
+    // 退出登录时注销：不注销的话，通知会继续推到一台已经换人的设备上。
+    if (url.pathname === "/api/account/device-token" && request.method === "DELETE") {
+      const user = await requireAccount(request, env);
+      await removeDeviceTokens(env.DB, user.id);
+      return json(request, env, { removed: true });
     }
 
     const blockMatch = url.pathname.match(/^\/api\/account\/conversations\/([^/]+)\/block$/);
@@ -591,11 +702,24 @@ async function handleWishApi(request: Request, env: Env) {
     if (selectResponderMatch && request.method === "POST") {
       const user = await requireAccount(request, env);
       await enforceRateLimit(request, env, "account_select_responder", 30, 60 * 60_000);
+      const selectWishId = decodeURIComponent(selectResponderMatch[1]);
       const wish = await selectResponderForOwner(
         env.DB,
-        decodeURIComponent(selectResponderMatch[1]),
+        selectWishId,
         decodeURIComponent(selectResponderMatch[2]),
         user.id,
+      );
+      // 被选中的人要开始行动，而心愿是有期限的——这条通知有时效性。
+      ctx.waitUntil(
+        selectedResponderId(env, selectWishId).then((responderId) =>
+          responderId
+            ? notifyUser(env, responderId, {
+                title: "你被选中了",
+                body: "发布者选择了你来完成这个心愿，可以在私聊里确认细节。",
+                target: `wish:${selectWishId}`,
+              })
+            : undefined,
+        ),
       );
       return json(request, env, { wish });
     }
@@ -647,6 +771,19 @@ async function handleWishApi(request: Request, env: Env) {
           note: typeof form.get("note") === "string" ? String(form.get("note")).slice(0, 500) : undefined,
           files: stored,
         });
+        // 这是整个产品最值得打扰用户的一刻：他去不了的那个地方，
+        // 有人替他去了，东西回来了。
+        ctx.waitUntil(
+          wishOwnerId(env, wishId).then((ownerId) =>
+            ownerId
+              ? notifyUser(env, ownerId, {
+                  title: "你的心愿完成了",
+                  body: "有人替你去了那里，去看看 TA 带回了什么。",
+                  target: `wish:${wishId}`,
+                })
+              : undefined,
+          ),
+        );
         return json(request, env, { wish }, 201);
       } catch (error) {
         // 任何一步失败都不要在 R2 里留下孤儿文件
@@ -848,7 +985,23 @@ async function handleWishApi(request: Request, env: Env) {
     if (adminWishMatch && request.method === "PATCH") {
       await requireAdmin(request, env);
       const input = normalizeAdminAction(await request.json());
-      const wish = await applyAdminWishAction(env.DB, decodeURIComponent(adminWishMatch[1]), input);
+      const reviewedWishId = decodeURIComponent(adminWishMatch[1]);
+      const wish = await applyAdminWishAction(env.DB, reviewedWishId, input);
+      // 审核结果必须让发布者知道：通过了他才会去等响应；没通过更要说，
+      // 否则他会一直以为还在排队。
+      const reviewNotice =
+        wish.status === "matching"
+          ? { title: "心愿已通过审核", body: "它已经出现在「帮助」页，等待有人接下。" }
+          : wish.status === "rejected"
+            ? { title: "心愿未通过审核", body: wish.moderationNote || "请修改后重新发布。" }
+            : null;
+      if (reviewNotice) {
+        ctx.waitUntil(
+          wishOwnerId(env, reviewedWishId).then((ownerId) =>
+            ownerId ? notifyUser(env, ownerId, { ...reviewNotice, target: `wish:${reviewedWishId}` }) : undefined,
+          ),
+        );
+      }
       return json(request, env, { wish });
     }
 
@@ -886,7 +1039,7 @@ const worker = {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith("/api/")) {
-      return handleWishApi(request, env);
+      return handleWishApi(request, env, ctx);
     }
 
     if (url.pathname === "/_vinext/image") {

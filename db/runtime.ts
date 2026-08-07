@@ -165,6 +165,21 @@ const schemaStatements = [
     last_read_at INTEGER NOT NULL,
     PRIMARY KEY (response_id, user_id)
   )`,
+  // 推送用的设备令牌。以 token 为主键而不是 user_id：一个人可能有手机和
+  // iPad 两台设备，都该收到；同一台设备换账号登录时 user_id 会被覆盖。
+  //
+  // environment 区分 sandbox / production：TestFlight 与 App Store 的构建
+  // 走 production，Xcode 直接跑的 Debug 构建走 sandbox，发错端点会被 APNs
+  // 以 BadDeviceToken 拒绝，而且这个错误看不出是环境不对。
+  `CREATE TABLE IF NOT EXISTS device_tokens (
+    token TEXT PRIMARY KEY NOT NULL,
+    user_id TEXT NOT NULL,
+    platform TEXT NOT NULL DEFAULT 'ios',
+    environment TEXT NOT NULL DEFAULT 'production',
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`,
+  "CREATE INDEX IF NOT EXISTS device_tokens_user_idx ON device_tokens(user_id)",
 ] as const;
 
 async function addCompatibilityColumns(db: D1Database) {
