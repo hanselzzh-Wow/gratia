@@ -18,6 +18,14 @@ final class UnreadStore: ObservableObject {
     }
 
     func refresh(token: String?) async {
+        #if DEBUG
+        // 截图用：演示会话不经服务端，角标也要跟着演示数据走，
+        // 否则「私聊」页明明有未读，Dock 上却是零。
+        if DemoContent.isEnabled {
+            total = DemoContent.conversations.reduce(0) { $0 + ($1.unreadCount ?? 0) }
+            return
+        }
+        #endif
         guard let token else {
             total = 0
             return

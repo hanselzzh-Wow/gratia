@@ -14,7 +14,7 @@ struct ConversationsView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if !accountViewModel.isSignedIn {
+                if !accountViewModel.isSignedIn && !isDemo {
                     signedOutState
                 } else if isLoading && conversations.isEmpty {
                     SwiftUI.ProgressView("正在加载会话")
@@ -135,7 +135,22 @@ struct ConversationsView: View {
         .padding(DesignSystem.spacing32)
     }
 
+    /// 截图用：演示会话不需要登录也能显示。Release 恒为 false。
+    private var isDemo: Bool {
+        #if DEBUG
+        return DemoContent.isEnabled
+        #else
+        return false
+        #endif
+    }
+
     private func load() async {
+        #if DEBUG
+        if DemoContent.isEnabled {
+            conversations = DemoContent.conversations
+            return
+        }
+        #endif
         guard let token = accountViewModel.accessToken else {
             conversations = []
             return

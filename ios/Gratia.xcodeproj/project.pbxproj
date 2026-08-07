@@ -14,6 +14,7 @@
 		21B617B991630BAFEB5CDBD4 /* AccountAPIDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = C868C46CB1E1DA7E38BE3DAF /* AccountAPIDefaults.swift */; };
 		21F8DEAD1931168E73738A5D /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72D2E259FDEE2E3DB0B2E8F1 /* Models.swift */; };
 		2250F81DB572CCC7C34261AB /* WishResponseViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E606A18BF94217841CAC8C0 /* WishResponseViewModelTests.swift */; };
+		33EA4DE80C7B23F659764940 /* DemoContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B93AFD88F1F09CF9754760DC /* DemoContent.swift */; };
 		3A975D1BB8F1FB4D09BA4767 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 904CCFDC34CCEFA8B2934CDA /* PrivacyInfo.xcprivacy */; };
 		3D5565C2A102345DE187038B /* DirectLoopSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367412C8CD688463EF20D212 /* DirectLoopSheets.swift */; };
 		3EC9816FD81BFAE09EF1C747 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4202E8BED51315DCDE154C96 /* ChatView.swift */; };
@@ -27,6 +28,7 @@
 		56D705D597162DD2036787D7 /* WishResponseViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F3360BE51627B3FE2F5148 /* WishResponseViewModel.swift */; };
 		5E046551DD02EADC1C35AD8E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C7363214C62CFFF8D99A790 /* HomeView.swift */; };
 		66166BD4D6B9358F1056E918 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C2F7482E67E46A0D063A27 /* ProfileView.swift */; };
+		67AB3CF9827A79083B88D85E /* StoryIllustration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC8E15AE5269ED579FBD52A /* StoryIllustration.swift */; };
 		7708594615255E1C566EF18E /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E293CB61121C6103E49CAA85 /* SessionStore.swift */; };
 		8078745D4A8F8190DEF866B6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 021B94A2D7B0CE8E42985D6A /* ContentView.swift */; };
 		925BCCF3EFC1B9791A3BA582 /* WishListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5839488E244CE671E720CE8F /* WishListViewModelTests.swift */; };
@@ -85,6 +87,7 @@
 		6A34F4B89C3B8F948FE90EF9 /* GratiaCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GratiaCore; path = Packages/GratiaCore; sourceTree = SOURCE_ROOT; };
 		72D2E259FDEE2E3DB0B2E8F1 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		77C2F7482E67E46A0D063A27 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		7CC8E15AE5269ED579FBD52A /* StoryIllustration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryIllustration.swift; sourceTree = "<group>"; };
 		8F0300063F1ECF5FCF9BF2BB /* NearbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyView.swift; sourceTree = "<group>"; };
 		904CCFDC34CCEFA8B2934CDA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		9562D6D4180134409D0E9662 /* AccountViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViewModel.swift; sourceTree = "<group>"; };
@@ -94,6 +97,7 @@
 		A208952E64751E3F6A1FF44B /* Gratia.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Gratia.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2279F88B010B7F68495CAD5 /* PublishWishViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishWishViewModelTests.swift; sourceTree = "<group>"; };
 		B27A98F463E8A70126C14D6A /* PublishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishView.swift; sourceTree = "<group>"; };
+		B93AFD88F1F09CF9754760DC /* DemoContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoContent.swift; sourceTree = "<group>"; };
 		C868C46CB1E1DA7E38BE3DAF /* AccountAPIDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountAPIDefaults.swift; sourceTree = "<group>"; };
 		D52E7A0A9E533CD1D6639EB1 /* GratiaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GratiaApp.swift; sourceTree = "<group>"; };
 		E293CB61121C6103E49CAA85 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
@@ -127,6 +131,7 @@
 				A16F7B3238AC5635EFD408DF /* ConversationsView.swift */,
 				219E130EB02AFF224A486806 /* DeliveryPreviewView.swift */,
 				45E8E6280BC2E6F8D9DB5986 /* DeliverySaver.swift */,
+				B93AFD88F1F09CF9754760DC /* DemoContent.swift */,
 				A0B9BEAB790EF6ABA7760090 /* DesignSystem.swift */,
 				367412C8CD688463EF20D212 /* DirectLoopSheets.swift */,
 				F82C42C243F0C04E5113F5FB /* Gratia.entitlements */,
@@ -145,6 +150,7 @@
 				E293CB61121C6103E49CAA85 /* SessionStore.swift */,
 				EDCF307D9312D06426E08E89 /* StoryFeed.swift */,
 				2A97A30DFD6F668F1CFA31A4 /* StoryFeedViewModel.swift */,
+				7CC8E15AE5269ED579FBD52A /* StoryIllustration.swift */,
 				49D0426049FB3FBE7155C46D /* SwiftUI+Compat.swift */,
 				53DBF5E9E41DBD4BC73D8496 /* TrackWishViewModel.swift */,
 				E45B738FB1B3A968B3E0CC5F /* UnreadStore.swift */,
@@ -297,6 +303,7 @@
 				42979FC068C6085B915C278E /* ConversationsView.swift in Sources */,
 				B2BED8AC974761E66283F3CC /* DeliveryPreviewView.swift in Sources */,
 				EFA5096ED203FC98DDFA1CB8 /* DeliverySaver.swift in Sources */,
+				33EA4DE80C7B23F659764940 /* DemoContent.swift in Sources */,
 				42C6DACE1AEA8ED50DECA68D /* DesignSystem.swift in Sources */,
 				3D5565C2A102345DE187038B /* DirectLoopSheets.swift in Sources */,
 				0EC2FD4224AC1958CF9D7DEE /* GratiaApp.swift in Sources */,
@@ -312,6 +319,7 @@
 				7708594615255E1C566EF18E /* SessionStore.swift in Sources */,
 				93D16354C4FE7B6652E62F7B /* StoryFeed.swift in Sources */,
 				53F2BAD7C44C477B7114CE3B /* StoryFeedViewModel.swift in Sources */,
+				67AB3CF9827A79083B88D85E /* StoryIllustration.swift in Sources */,
 				D4A55551B8948B45E05DBEB0 /* SwiftUI+Compat.swift in Sources */,
 				5432C543EB8E7E0D7BBA860F /* TrackWishViewModel.swift in Sources */,
 				B27928214F177A8822734E69 /* UnreadStore.swift in Sources */,
@@ -364,7 +372,7 @@
 				CODE_SIGN_ENTITLEMENTS = Gratia/Gratia.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = HH9LKGK7DA;
 				INFOPLIST_FILE = Gratia/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -504,7 +512,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Gratia/Gratia.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				INFOPLIST_FILE = Gratia/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (

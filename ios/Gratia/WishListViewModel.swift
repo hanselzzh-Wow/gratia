@@ -23,6 +23,16 @@ public final class WishListViewModel: ObservableObject {
     }
 
     public func fetchWishes() async {
+        #if DEBUG
+        // 截图与版式验证用的虚构心愿。Release 构建不编译这段，
+        // 线上「帮助」页永远只显示服务端返回的真实心愿。
+        if DemoContent.isEnabled {
+            currentTask?.cancel()
+            state = .loaded(DemoContent.wishes)
+            return
+        }
+        #endif
+
         // 1. Actively cancel the previous task
         currentTask?.cancel()
 

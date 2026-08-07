@@ -11,6 +11,15 @@ struct StoryPost: Identifiable, Equatable {
         case video
     }
 
+    /// 演示数据的插画风格。**只有 DEBUG 的虚构示例会用**，真实故事一律为 nil、
+    /// 走中性占位——真实交付影像不在这里渲染，也不该被插画替代。
+    /// 用矢量插画而不是照片素材：画面不空，又不会被误认成真实用户拍的东西。
+    enum Illustration: Equatable {
+        case nightRiver     // 江边夜色
+        case handwritten    // 手写卡片
+        case blossom        // 树与花
+    }
+
     let id: String
     /// 用户自选的公开昵称；未经授权不展示真实姓名。
     let nickname: String
@@ -24,6 +33,8 @@ struct StoryPost: Identifiable, Equatable {
     /// 仅索引公开维度：城市、场景、内容形式、状态。
     let tags: [String]
     let isDemo: Bool
+    /// 见 `Illustration`：仅演示数据使用，真实故事为 nil。
+    var illustration: Illustration? = nil
 
     var avatarInitial: String { String(nickname.prefix(1)) }
 
@@ -69,9 +80,8 @@ enum StoryFeedSource {
     /// 生产构建没有授权故事时返回空数组 → 首页显示诚实空态。
     static var stories: [StoryPost] {
         #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("--demo-stories") {
-            return demoStories
-        }
+        // 与「帮助」「私聊」两页共用同一个开关，见 DemoContent。
+        if DemoContent.isEnabled { return demoStories }
         #endif
         return []
     }
@@ -90,7 +100,8 @@ enum StoryFeedSource {
             media: .video,
             mediaNote: "现场录像 · 由附近的陌生朋友完成",
             tags: ["上海", "生日祝福", "视频", "现场祝福", "精彩分享"],
-            isDemo: true
+            isDemo: true,
+            illustration: .nightRiver
         ),
         StoryPost(
             id: "demo-2",
@@ -104,7 +115,8 @@ enum StoryFeedSource {
             media: .photo,
             mediaNote: "手写卡片 · 由附近的陌生朋友完成",
             tags: ["成都", "毕业", "照片", "精彩分享"],
-            isDemo: true
+            isDemo: true,
+            illustration: .handwritten
         ),
         StoryPost(
             id: "demo-3",
@@ -160,15 +172,38 @@ struct StoryPostCard: View {
 
     private var avatar: some View {
         // 系统生成的首字母头像；上传真实头像需要单独公开授权。
+        // 用昵称哈希出一对柔和的渐变色，让一列头像彼此可区分，
+        // 而不是一排一模一样的色块。
         Circle()
-            .fill(DesignSystem.Rose.soft)
+            .fill(
+                LinearGradient(
+                    colors: Self.avatarColors(for: post.nickname),
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                )
+            )
             .frame(width: 40, height: 40)
             .overlay(
                 Text(post.avatarInitial)
                     .font(DesignSystem.headlineFont)
-                    .foregroundStyle(DesignSystem.Rose.deep)
+                    .foregroundStyle(.white)
             )
             .accessibilityHidden(true)
+    }
+
+    /// 固定在玫粉主色的邻近区间里挑，而不是让 hash 落到整个色环上——
+    /// 随机色相会挑出与品牌完全不搭的绿或青。
+    private static let avatarPalette: [[Color]] = [
+        [Color(red: 0.85, green: 0.55, blue: 0.65), Color(red: 0.62, green: 0.31, blue: 0.44)],
+        [Color(red: 0.88, green: 0.62, blue: 0.55), Color(red: 0.68, green: 0.38, blue: 0.34)],
+        [Color(red: 0.75, green: 0.60, blue: 0.76), Color(red: 0.50, green: 0.35, blue: 0.55)],
+        [Color(red: 0.86, green: 0.68, blue: 0.52), Color(red: 0.63, green: 0.44, blue: 0.30)],
+        [Color(red: 0.72, green: 0.62, blue: 0.70), Color(red: 0.46, green: 0.36, blue: 0.47)],
+    ]
+
+    private static func avatarColors(for nickname: String) -> [Color] {
+        // hashValue 每次启动都变，用字节和保证同一昵称的颜色稳定。
+        let seed = nickname.unicodeScalars.reduce(0) { $0 &+ Int($1.value) }
+        return avatarPalette[seed % avatarPalette.count]
     }
 
     private var nameRow: some View {
@@ -200,18 +235,24 @@ struct StoryPostCard: View {
     }
 
     private var mediaPlaceholder: some View {
-        // 虚构故事的媒体一律用中性占位表达，不使用可能被误认为真实用户照片的素材。
+        // 不使用可能被误认为真实用户照片的素材：演示数据走矢量插画，
+        // 真实故事（illustration 为 nil）仍是中性占位。
         ZStack {
             RoundedRectangle(cornerRadius: 16)
                 .fill(DesignSystem.Rose.tint)
-            VStack(spacing: DesignSystem.spacing8) {
-                Image(systemName: post.media == .video ? "video" : "photo")
-                    .font(.title2.weight(.regular))
-                    .foregroundStyle(DesignSystem.Rose.ink3)
-                if post.media == .video {
-                    Image(systemName: "play.circle.fill")
-                        .font(.largeTitle.weight(.regular))
-                        .foregroundStyle(DesignSystem.Rose.primary)
+            if let illustration = post.illustration {
+                StoryIllustrationView(kind: illustration, showsPlayButton: post.media == .video)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+            } else {
+                VStack(spacing: DesignSystem.spacing8) {
+                    Image(systemName: post.media == .video ? "video" : "photo")
+                        .font(.title2.weight(.regular))
+                        .foregroundStyle(DesignSystem.Rose.ink3)
+                    if post.media == .video {
+                        Image(systemName: "play.circle.fill")
+                            .font(.largeTitle.weight(.regular))
+                            .foregroundStyle(DesignSystem.Rose.primary)
+                    }
                 }
             }
         }
