@@ -1042,3 +1042,17 @@ Cloudflare Worker API
 - 一处流程提醒：新增 `ProfileCache.swift` 后首次编译失败（`cannot find 'ProfileCache' in scope`）——`project.yml` 为文件列表式，新增源文件必须重新运行 xcodegen 才会进入工程。
 - 验证：iOS 41/41 通过。
 - 未验证且不得误报：**压缩后的加载耗时未在真实网络下实测**——本机经代理，实测耗时仅从 2.6s 降至 1.9s，瓶颈是代理往返延迟而非传输量；真实网络下 1.6 MB 与 14 KB 的差距应显著更大，但需真机确认。缓存消除闪现的效果需装上新构建后才能验证，当前 TestFlight 最新为构建 9（不含本轮修复）。
+
+## 2026-08-07｜头像与昵称仍闪默认值：补头像磁盘缓存
+
+- 国内可用性已由产品负责人实测确认：构建 10 在国内网络（关闭代理）下可正常走通，速度可接受。域名迁移达成目标。
+- 产品负责人报告构建 10 上「头像与昵称仍是原来的问题」。排查过程：
+  1. 先怀疑启动时序清空缓存——查 `AccountViewModel.init` 中 `restoreSession()` 为**同步**读取钥匙串，登录态在首帧即正确，该假设不成立。
+  2. 新增 `ProfileCacheTests` 5 条，实测存取、清除、nil 处理全部通过——**缓存本身无缺陷**。
+  3. 判定剩余瓶颈在头像图片：`AsyncImage` 每次都从网络开始，且内部使用自有 URLSession，`App.init` 中替换 `URLCache.shared` 未必对其生效，故冷启动必然先渲染 placeholder。
+- 新增 `AvatarCache` + `CachedAvatar`：头像图片落磁盘，冷启动**同步**读出直接渲染，随后后台请求更新；退出登录时与 `ProfileCache` 一并清除。`AccountSectionView` 的 `AsyncImage` 已替换。
+- 新增 `AvatarCacheTests` 3 条，其中一条**当场抓出真实缺陷**：`directory` 原为 `static let`（仅求值一次并创建目录），而 `clear()` 会删除整个目录——退出登录后再登录，头像将永远无法写入缓存，且无任何报错，只会安静退回「每次重新下载」。已改为计算属性，每次确保目录存在。
+- 另修正测试自身一处错误：`UIGraphicsImageRenderer` 默认跟随设备 scale（模拟器 @3x），8pt 生成 24px，而从 PNG 还原的 UIImage 无 scale 信息导致尺寸断言失败；已固定 `format.scale = 1`。
+- 一并为 `UserProfileDTO` 补 `public init`——public struct 的 memberwise init 默认为 internal，跨 module 无法构造，测试因此编译失败。与 `PublicWishDTO` 保持一致。
+- 验证：iOS 49/49 通过（原 41 + ProfileCache 5 + AvatarCache 3），Release 配置编译通过。
+- 未验证且不得误报：**修复效果未经真机确认**。另需说明一点预期：缓存需先成功加载一次才会有内容，因此装上新构建后的**第一次**冷启动仍会显示默认值，第二次起才不闪——若仅测一次会误判为未修复。构建 10 已提交 Beta 审核（`WAITING_FOR_REVIEW`），本轮修复不在其中。

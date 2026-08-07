@@ -166,6 +166,15 @@ public struct UserProfileDTO: Codable, Sendable, Equatable {
     public let avatarUrl: String?
     public let pendingReview: Bool
     public let reviewNote: String?
+
+    /// public struct 的 memberwise init 默认是 internal，跨 module 构造不了。
+    /// 与 `PublicWishDTO` 保持一致，显式提供。
+    public init(displayName: String, avatarUrl: String?, pendingReview: Bool, reviewNote: String?) {
+        self.displayName = displayName
+        self.avatarUrl = avatarUrl
+        self.pendingReview = pendingReview
+        self.reviewNote = reviewNote
+    }
 }
 
 // MARK: - 会话

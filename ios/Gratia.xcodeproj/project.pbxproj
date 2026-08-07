@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0434044F0A383E5A90B9399A /* ProfileCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF23C22DC7461B17113480AF /* ProfileCacheTests.swift */; };
 		06BD0DA0CF7CC9DFE19FE16D /* WishListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF7E5D59FD3A6B2900953D7 /* WishListViewModel.swift */; };
 		0987F4E2B085DC0C9C44817D /* TrackWishViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E3BD2F738F16B23B8994BFD /* TrackWishViewModelTests.swift */; };
 		0EC2FD4224AC1958CF9D7DEE /* GratiaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D52E7A0A9E533CD1D6639EB1 /* GratiaApp.swift */; };
@@ -17,6 +18,7 @@
 		27EEA41C50D52A49446615C7 /* ProfileCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF46A7A28BDF0A09ECBDD745 /* ProfileCache.swift */; };
 		33EA4DE80C7B23F659764940 /* DemoContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B93AFD88F1F09CF9754760DC /* DemoContent.swift */; };
 		3A975D1BB8F1FB4D09BA4767 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 904CCFDC34CCEFA8B2934CDA /* PrivacyInfo.xcprivacy */; };
+		3BC592BC5FD193B28D7B5762 /* AvatarCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DCF24DF1C505D78FC663BCA /* AvatarCache.swift */; };
 		3D5565C2A102345DE187038B /* DirectLoopSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367412C8CD688463EF20D212 /* DirectLoopSheets.swift */; };
 		3EC9816FD81BFAE09EF1C747 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4202E8BED51315DCDE154C96 /* ChatView.swift */; };
 		4020F96EA837D7CF4FCD395D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3528044807049C92C219ED7B /* InfoPlist.strings */; };
@@ -70,6 +72,7 @@
 		14F3360BE51627B3FE2F5148 /* WishResponseViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishResponseViewModel.swift; sourceTree = "<group>"; };
 		1865459B3D0E5FD55EC84318 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		1AF7E5D59FD3A6B2900953D7 /* WishListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishListViewModel.swift; sourceTree = "<group>"; };
+		1DCF24DF1C505D78FC663BCA /* AvatarCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarCache.swift; sourceTree = "<group>"; };
 		219E130EB02AFF224A486806 /* DeliveryPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliveryPreviewView.swift; sourceTree = "<group>"; };
 		243A2E7E364EFDC484724D5E /* PublishWishViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishWishViewModel.swift; sourceTree = "<group>"; };
 		278DAB8065683F8CB27FA482 /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
@@ -101,6 +104,7 @@
 		B93AFD88F1F09CF9754760DC /* DemoContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoContent.swift; sourceTree = "<group>"; };
 		BF46A7A28BDF0A09ECBDD745 /* ProfileCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCache.swift; sourceTree = "<group>"; };
 		C868C46CB1E1DA7E38BE3DAF /* AccountAPIDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountAPIDefaults.swift; sourceTree = "<group>"; };
+		CF23C22DC7461B17113480AF /* ProfileCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCacheTests.swift; sourceTree = "<group>"; };
 		D52E7A0A9E533CD1D6639EB1 /* GratiaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GratiaApp.swift; sourceTree = "<group>"; };
 		E293CB61121C6103E49CAA85 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		E45B738FB1B3A968B3E0CC5F /* UnreadStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnreadStore.swift; sourceTree = "<group>"; };
@@ -128,6 +132,7 @@
 				08BFAC383603EACB45D510E4 /* AccountSectionView.swift */,
 				9562D6D4180134409D0E9662 /* AccountViewModel.swift */,
 				1499A64B83A31383BB7736F2 /* Assets.xcassets */,
+				1DCF24DF1C505D78FC663BCA /* AvatarCache.swift */,
 				4202E8BED51315DCDE154C96 /* ChatView.swift */,
 				021B94A2D7B0CE8E42985D6A /* ContentView.swift */,
 				A16F7B3238AC5635EFD408DF /* ConversationsView.swift */,
@@ -196,6 +201,7 @@
 			children = (
 				C868C46CB1E1DA7E38BE3DAF /* AccountAPIDefaults.swift */,
 				F44DB39BFA09C419CF0E5000 /* PlaceSearchTests.swift */,
+				CF23C22DC7461B17113480AF /* ProfileCacheTests.swift */,
 				B2279F88B010B7F68495CAD5 /* PublishWishViewModelTests.swift */,
 				2E3BD2F738F16B23B8994BFD /* TrackWishViewModelTests.swift */,
 				5839488E244CE671E720CE8F /* WishListViewModelTests.swift */,
@@ -301,6 +307,7 @@
 				41FF06E7DF0C1CA882C69BDB /* AccountActivityViewModel.swift in Sources */,
 				5644D799C5217E9F272A42FE /* AccountSectionView.swift in Sources */,
 				CCE05391195D590BAE86270D /* AccountViewModel.swift in Sources */,
+				3BC592BC5FD193B28D7B5762 /* AvatarCache.swift in Sources */,
 				3EC9816FD81BFAE09EF1C747 /* ChatView.swift in Sources */,
 				8078745D4A8F8190DEF866B6 /* ContentView.swift in Sources */,
 				42979FC068C6085B915C278E /* ConversationsView.swift in Sources */,
@@ -338,6 +345,7 @@
 			files = (
 				21B617B991630BAFEB5CDBD4 /* AccountAPIDefaults.swift in Sources */,
 				A4CFE27ED03569FA1F4006E9 /* PlaceSearchTests.swift in Sources */,
+				0434044F0A383E5A90B9399A /* ProfileCacheTests.swift in Sources */,
 				CCD8833B5883B14B61291507 /* PublishWishViewModelTests.swift in Sources */,
 				0987F4E2B085DC0C9C44817D /* TrackWishViewModelTests.swift in Sources */,
 				925BCCF3EFC1B9791A3BA582 /* WishListViewModelTests.swift in Sources */,
@@ -376,7 +384,7 @@
 				CODE_SIGN_ENTITLEMENTS = Gratia/Gratia.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = HH9LKGK7DA;
 				INFOPLIST_FILE = Gratia/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -516,7 +524,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Gratia/Gratia.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				INFOPLIST_FILE = Gratia/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (

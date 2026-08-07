@@ -43,9 +43,10 @@ struct AccountSectionView: View {
         .motion(DesignSystem.Motion.content, value: viewModel.errorMessage)
         .task(id: viewModel.isSignedIn) {
             guard let token = viewModel.accessToken else {
-                // 退出登录必须连缓存一起清，否则换账号会看到上一个人的昵称。
+                // 退出登录必须连缓存一起清，否则换账号会看到上一个人的昵称和头像。
                 profile = nil
                 ProfileCache.clear()
+                AvatarCache.clear()
                 return
             }
             // 拿到新数据才覆盖：请求失败时保留缓存里的旧资料，
@@ -120,21 +121,10 @@ struct AccountSectionView: View {
             activeSheet = .profile
         } label: {
             HStack(spacing: DesignSystem.spacing16) {
-                Group {
-                    if let urlText = profile?.avatarUrl, let url = URL(string: urlText) {
-                        AsyncImage(url: url) { image in
-                            image.resizable().scaledToFill()
-                        } placeholder: {
-                            Image(systemName: "person").font(.title3).foregroundStyle(DesignSystem.Rose.deep)
-                        }
-                    } else {
-                        Image(systemName: "person").font(.title3.weight(.medium)).foregroundStyle(DesignSystem.Rose.deep)
-                    }
-                }
-                .frame(width: 52, height: 52)
-                .background(Circle().fill(DesignSystem.Rose.soft))
-                .clipShape(Circle())
-                .accessibilityHidden(true)
+                // 用带磁盘缓存的头像，不用 AsyncImage：后者每次冷启动都要重新
+                // 走一遍网络，中间那段必然显示灰色人像。见 AvatarCache。
+                CachedAvatar(url: profile?.avatarUrl.flatMap(URL.init(string:)), size: 52)
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: DesignSystem.spacing4) {
                     Text(profile?.displayName ?? "哈喽卧得用户")
