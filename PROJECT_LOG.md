@@ -1027,3 +1027,18 @@ Cloudflare Worker API
 - 构建 9 已打包上传，产物校验通过（Apple Distribution / HH9LKGK7DA / applesignin / build 9）。`CURRENT_PROJECT_VERSION` 已推进至 10。
 - 一处需纠正的中途误判：查询 zone 的 DNS 记录返回空列表，一度以为记录未迁移、网站已中断；实为 wrangler OAuth 令牌无 DNS 读权限（HTTP 403，首次查询未检查 `success` 字段）。实测解析与 HTTP 307 均正常，网站未受影响。
 - 未验证且不得误报：**新域名在国内直连环境下的可达性未经实测**——本机始终经代理，无法验证。需产品负责人在国内网络关闭代理后实测。另：Cloudflare 免费版在国内无节点，即使可达也是国际线路，延迟与丢包不佳；根本解决需 ICP 备案 + 境内服务器。构建 9 的 Beta 审核尚未提交，构建 8 仍处 `WAITING_FOR_REVIEW`。
+
+## 2026-08-07｜头像加载慢 / 每次冷启动先闪默认资料
+
+- 产品负责人报告两点：头像每次都要加载很久；且每次进入「我的」都先显示「哈喽卧得用户」与默认头像，之后才变成真实资料。
+- 根因一（慢）：头像原图直传，未做任何压缩。实测线上三张头像分别为 2319 KB / 1650 KB / 1650 KB，原始尺寸 4032×3024、2268×4032，而显示尺寸仅 52pt 圆形。`DirectLoopSheets.loadAvatarPreview` 直接使用 `loadTransferable` 的原始 Data。
+- 根因二（闪默认值）：`AccountSectionView` 的 `profile` 仅为 `@State`，冷启动恒为 nil，渲染时走 `?? "哈喽卧得用户"` 分支，须待网络返回才替换。这不是加载慢，而是**先显示了错误内容**。
+- 已确认服务端无法做图片变换：生产 Worker 的 bindings 实测为 DB / UPLOADS / ASSETS / PUBLIC_APP_ORIGIN / ADMIN_API_KEY / RATE_LIMIT_SALT，**没有 images binding**，`env.IMAGES` 为 undefined，故 Cloudflare Images 方案不可用。改为客户端压缩 + 存量图一次性处理。
+- 修复：
+  1. `DirectLoopSheets.compressedAvatar()`——上传前等比缩放至最长边 512px、JPEG 质量 0.8。
+  2. 新增 `ProfileCache`（UserDefaults）——`profile` 以缓存为初值；请求成功才覆盖并回写，失败时保留旧值；退出登录清除缓存，避免换账号显示上一个人的昵称。
+  3. `GratiaApp.init()` 放开 `URLCache.shared` 至 32 MB 内存 / 256 MB 磁盘——服务端已给 `cache-control: max-age=3600`，但系统默认磁盘缓存过小，头像易被挤出导致每次冷启动重下。
+- 存量数据已处理：三张头像下载后压缩并写回 R2，实测 2319→28 KB、1650→13 KB、1650→13 KB（均省约 99%）。原图已备份至 `~/Developer/gratia-backups/avatars-original-20260807-143351/`。写回后实测线上返回 28/13/13 KB。
+- 一处流程提醒：新增 `ProfileCache.swift` 后首次编译失败（`cannot find 'ProfileCache' in scope`）——`project.yml` 为文件列表式，新增源文件必须重新运行 xcodegen 才会进入工程。
+- 验证：iOS 41/41 通过。
+- 未验证且不得误报：**压缩后的加载耗时未在真实网络下实测**——本机经代理，实测耗时仅从 2.6s 降至 1.9s，瓶颈是代理往返延迟而非传输量；真实网络下 1.6 MB 与 14 KB 的差距应显著更大，但需真机确认。缓存消除闪现的效果需装上新构建后才能验证，当前 TestFlight 最新为构建 9（不含本轮修复）。

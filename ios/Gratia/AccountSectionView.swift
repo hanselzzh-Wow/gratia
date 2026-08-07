@@ -17,7 +17,9 @@ struct AccountSectionView: View {
 
     @State private var activeSheet: ActiveSheet?
     @Environment(\.accountAPIClient) private var accountAPI
-    @State private var profile: UserProfileDTO?
+    /// 以本机缓存作为初值：否则冷启动恒为 nil，会先闪一次「哈喽卧得用户」
+    /// 和默认头像，等网络回来才变成真实资料。见 ProfileCache。
+    @State private var profile: UserProfileDTO? = ProfileCache.load()
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spacing12) {
@@ -40,8 +42,18 @@ struct AccountSectionView: View {
         .motion(DesignSystem.Motion.content, value: viewModel.isSignedIn)
         .motion(DesignSystem.Motion.content, value: viewModel.errorMessage)
         .task(id: viewModel.isSignedIn) {
-            guard let token = viewModel.accessToken else { profile = nil; return }
-            profile = try? await accountAPI.profile(token: token)
+            guard let token = viewModel.accessToken else {
+                // 退出登录必须连缓存一起清，否则换账号会看到上一个人的昵称。
+                profile = nil
+                ProfileCache.clear()
+                return
+            }
+            // 拿到新数据才覆盖：请求失败时保留缓存里的旧资料，
+            // 总好过把已经显示对的名字换回「哈喽卧得用户」。
+            if let fresh = try? await accountAPI.profile(token: token) {
+                profile = fresh
+                ProfileCache.save(fresh)
+            }
         }
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
@@ -52,7 +64,10 @@ struct AccountSectionView: View {
                     .onDisappear {
                         Task {
                             guard let token = viewModel.accessToken else { return }
-                            profile = try? await accountAPI.profile(token: token)
+                            if let fresh = try? await accountAPI.profile(token: token) {
+                                profile = fresh
+                                ProfileCache.save(fresh)
+                            }
                         }
                     }
             }

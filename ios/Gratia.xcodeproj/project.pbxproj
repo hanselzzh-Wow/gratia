@@ -14,6 +14,7 @@
 		21B617B991630BAFEB5CDBD4 /* AccountAPIDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = C868C46CB1E1DA7E38BE3DAF /* AccountAPIDefaults.swift */; };
 		21F8DEAD1931168E73738A5D /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72D2E259FDEE2E3DB0B2E8F1 /* Models.swift */; };
 		2250F81DB572CCC7C34261AB /* WishResponseViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E606A18BF94217841CAC8C0 /* WishResponseViewModelTests.swift */; };
+		27EEA41C50D52A49446615C7 /* ProfileCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF46A7A28BDF0A09ECBDD745 /* ProfileCache.swift */; };
 		33EA4DE80C7B23F659764940 /* DemoContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B93AFD88F1F09CF9754760DC /* DemoContent.swift */; };
 		3A975D1BB8F1FB4D09BA4767 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 904CCFDC34CCEFA8B2934CDA /* PrivacyInfo.xcprivacy */; };
 		3D5565C2A102345DE187038B /* DirectLoopSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367412C8CD688463EF20D212 /* DirectLoopSheets.swift */; };
@@ -98,6 +99,7 @@
 		B2279F88B010B7F68495CAD5 /* PublishWishViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishWishViewModelTests.swift; sourceTree = "<group>"; };
 		B27A98F463E8A70126C14D6A /* PublishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishView.swift; sourceTree = "<group>"; };
 		B93AFD88F1F09CF9754760DC /* DemoContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoContent.swift; sourceTree = "<group>"; };
+		BF46A7A28BDF0A09ECBDD745 /* ProfileCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCache.swift; sourceTree = "<group>"; };
 		C868C46CB1E1DA7E38BE3DAF /* AccountAPIDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountAPIDefaults.swift; sourceTree = "<group>"; };
 		D52E7A0A9E533CD1D6639EB1 /* GratiaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GratiaApp.swift; sourceTree = "<group>"; };
 		E293CB61121C6103E49CAA85 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
@@ -142,6 +144,7 @@
 				8F0300063F1ECF5FCF9BF2BB /* NearbyView.swift */,
 				4A433CE58CF47758173F967F /* PlaceSearch.swift */,
 				904CCFDC34CCEFA8B2934CDA /* PrivacyInfo.xcprivacy */,
+				BF46A7A28BDF0A09ECBDD745 /* ProfileCache.swift */,
 				77C2F7482E67E46A0D063A27 /* ProfileView.swift */,
 				278DAB8065683F8CB27FA482 /* ProgressView.swift */,
 				B27A98F463E8A70126C14D6A /* PublishView.swift */,
@@ -311,6 +314,7 @@
 				21F8DEAD1931168E73738A5D /* Models.swift in Sources */,
 				ECFB6972EB99A62A04B9EAD5 /* NearbyView.swift in Sources */,
 				A4D226381CAF198173721447 /* PlaceSearch.swift in Sources */,
+				27EEA41C50D52A49446615C7 /* ProfileCache.swift in Sources */,
 				66166BD4D6B9358F1056E918 /* ProfileView.swift in Sources */,
 				E79E2361FE0424BC26618E45 /* ProgressView.swift in Sources */,
 				CB15F0F28EB1937AD1357F72 /* PublishView.swift in Sources */,
@@ -372,7 +376,7 @@
 				CODE_SIGN_ENTITLEMENTS = Gratia/Gratia.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = HH9LKGK7DA;
 				INFOPLIST_FILE = Gratia/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -512,7 +516,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Gratia/Gratia.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				INFOPLIST_FILE = Gratia/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (

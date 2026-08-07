@@ -2,6 +2,16 @@ import SwiftUI
 
 @main
 struct GratiaApp: App {
+    init() {
+        // AsyncImage 走 URLSession 的共享缓存，而系统默认的磁盘缓存很小，
+        // 头像很容易被挤掉，于是每次冷启动都要重新下载。服务端已经给了
+        // cache-control: max-age=3600，这里把容量放开，让它真的能命中。
+        URLCache.shared = URLCache(
+            memoryCapacity: 32 * 1024 * 1024,
+            diskCapacity: 256 * 1024 * 1024
+        )
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

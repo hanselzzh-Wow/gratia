@@ -498,8 +498,25 @@ struct ProfileEditSheet: View {
         guard let item = pickedAvatar,
               let data = try? await item.loadTransferable(type: Data.self),
               let image = UIImage(data: data) else { return }
-        avatarData = data
+        // 相册原图直传会上传好几 MB：线上已经存在 1.6–2.3 MB 的头像，
+        // 而它显示出来只是个 52pt 的小圆形，下载却要两三秒。
+        // 压到 512px / JPEG 0.8，肉眼看不出差别，体积降到几十 KB。
+        avatarData = Self.compressedAvatar(image) ?? data
         avatarPreview = Image(uiImage: image)
+    }
+
+    /// 等比缩放到最长边 512px 并重编码为 JPEG。
+    /// 512 是显示尺寸（52pt @3x ≈ 156px）的三倍余量，换更大的设备也够用。
+    static func compressedAvatar(_ image: UIImage, maxEdge: CGFloat = 512, quality: CGFloat = 0.8) -> Data? {
+        let longest = max(image.size.width, image.size.height)
+        let scale = longest > maxEdge ? maxEdge / longest : 1
+        let target = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1                  // 按像素输出，不要再乘设备 scale
+        let resized = UIGraphicsImageRenderer(size: target, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: target))
+        }
+        return resized.jpegData(compressionQuality: quality)
     }
 
     private func save() async {
