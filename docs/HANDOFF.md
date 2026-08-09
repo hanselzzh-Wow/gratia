@@ -26,14 +26,14 @@ App 内**不涉及任何金额**，**不收集任何联系方式**。
 | 运营台 | `https://hanselzzh-wow.github.io/ops/`（有待审内容会自动发邮件提醒） |
 | 法务页面 | `/legal/privacy/`、`/legal/terms/` 已公开 |
 | Apple 令牌撤销 | 已端到端验证通过 |
-| TestFlight | 构建 10 在 Beta 审核队列中；11–13 已上传未提交（不打断 10 的审核）。公开链接 `https://testflight.apple.com/join/ftyuGZ8n`（审核通过后生效，上限 100 人） |
+| TestFlight | 构建 10 在 Beta 审核队列中；11–16 已上传未提交（不打断 10 的审核）。公开链接 `https://testflight.apple.com/join/ftyuGZ8n`（审核通过后生效，上限 100 人） |
 | 推送通知 | **已启用**（2026-08-07）。密钥 `3AA48B42H3`，Sandbox & Production；已对 Apple 真实端点验证 |
-| 后端测试 | 49/49 |
+| 后端测试 | 50/50 |
 | iOS 测试 | 49/49 |
 
-### 构建号：下一个可用是 14
+### 构建号：下一个可用是 17
 
-构建 1–13 已被 App Store Connect 占用，构建号不能复用。`ios/project.yml` 的 `CURRENT_PROJECT_VERSION` 已置为 14；`scripts/ios-release.mjs` 会在归档前先核对有没有撞号。**上传成功后要立刻加一。**
+构建 1–16 已被 App Store Connect 占用，构建号不能复用。`ios/project.yml` 的 `CURRENT_PROJECT_VERSION` 已置为 17；`scripts/ios-release.mjs` 会在归档前先核对有没有撞号。**上传成功后要立刻加一。**
 
 > **同一时间只能有一个构建在 Beta 审核中。** 已提交的审核**无法通过 API 撤销**（`betaAppReviewSubmissions` 只允许 CREATE/GET），要换构建送审只能先在 App Store Connect 网页上停掉当前那个，否则提交会被 422「Another build in the same train is already in beta review」挡回。
 
