@@ -1013,6 +1013,103 @@ test("holds nickname and avatar changes for review before others can see them", 
   }
 });
 
+test("按 Accept-Language 返回英文错误，但绝不翻译业务数据", async () => {
+  const { request, env } = await setup();
+  env.WECHAT_MINI_PROGRAM_APP_ID = "id";
+  env.WECHAT_MINI_PROGRAM_APP_SECRET = "secret";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const href = String(url);
+    if (href.includes("api.weixin.qq.com")) {
+      return Response.json({ openid: `openid-${new URL(href).searchParams.get("js_code")}` });
+    }
+    return originalFetch(url, init);
+  };
+  try {
+    const login = async (code, lang) =>
+      (await json(await request("/api/auth/wechat", {
+        method: "POST",
+        headers: { "content-type": "application/json", ...(lang ? { "accept-language": lang } : {}) },
+        body: JSON.stringify({ code }),
+      }))).token;
+
+    const zhToken = await login("i18n-zh");
+    const enToken = await login("i18n-en", "en-US,en;q=0.9");
+
+    // 未登录：同一条错误，两种语言
+    const zhErr = await json(await request("/api/account/profile", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ displayName: "x" }),
+    }));
+    assert.equal(zhErr.error, "请先登录后再操作", "默认仍是中文");
+
+    const enErr = await json(await request("/api/account/profile", {
+      method: "POST",
+      headers: { "content-type": "application/json", "accept-language": "en-US,en;q=0.9" },
+      body: JSON.stringify({ displayName: "x" }),
+    }));
+    assert.equal(enErr.error, "Please sign in first.", "英文客户端应拿到英文");
+
+    // zh-Hans / zh-TW 都算中文，不该被判成英文
+    const hantErr = await json(await request("/api/account/profile", {
+      method: "POST",
+      headers: { "content-type": "application/json", "accept-language": "zh-Hant-TW,zh;q=0.9" },
+      body: JSON.stringify({ displayName: "x" }),
+    }));
+    assert.equal(hantErr.error, "请先登录后再操作");
+
+    // 昵称重名：英文
+    const zhH = { "content-type": "application/json", authorization: `Bearer ${zhToken}` };
+    const enH = {
+      "content-type": "application/json",
+      authorization: `Bearer ${enToken}`,
+      "accept-language": "en-US,en;q=0.9",
+    };
+    await request("/api/account/profile", {
+      method: "POST", headers: zhH, body: JSON.stringify({ displayName: "占位昵称" }),
+    });
+    const taken = await request("/api/account/profile", {
+      method: "POST", headers: enH, body: JSON.stringify({ displayName: "占位昵称" }),
+    });
+    assert.equal(taken.status, 409);
+    assert.equal((await taken.json()).error, "That name is already taken. Please choose another.");
+
+    // 字段级校验消息是模板拼出来的，也要翻译
+    const bad = await request("/api/account/wishes", {
+      method: "POST", headers: enH,
+      body: JSON.stringify({
+        requesterName: "", contact: "wx", city: "上海", landmark: "外滩",
+        occasion: "生日祝福", message: "请替我对着江面说一句生日快乐。",
+        deliveryType: "spoken_video", deadlineText: "本周六前", rewardFen: 0, contactConsent: true,
+      }),
+    });
+    assert.equal(bad.status, 400);
+    const badBody = await bad.json();
+    assert.match(
+      badBody.fields.requesterName, /must be 1–30 characters/,
+      "字段校验消息是 `${label}需为 …` 拼出来的，查表查不到，必须由模板规则翻译",
+    );
+
+    // —— 关键：业务数据绝不能被翻译 ——
+    const created = await json(await request("/api/account/wishes", {
+      method: "POST", headers: enH,
+      body: JSON.stringify({
+        requesterName: "Alex", contact: "wx", city: "上海", landmark: "外滩",
+        occasion: "生日祝福", message: "请替我对着江面说一句生日快乐。",
+        deliveryType: "spoken_video", deadlineText: "本周六前", rewardFen: 0, contactConsent: true,
+      }),
+    }));
+    assert.equal(
+      created.wish.occasion, "生日祝福",
+      "occasion 原样存库，翻译它会让英文用户写进一套新值，和历史数据对不上",
+    );
+    assert.equal(created.wish.city, "上海", "城市是用户输入的数据，不能翻译");
+    assert.equal(created.wish.message, "请替我对着江面说一句生日快乐。", "心愿正文不能被改动");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("昵称唯一：规范化之后重名的一律挡下", async () => {
   const { request, env } = await setup();
   env.WECHAT_MINI_PROGRAM_APP_ID = "id";

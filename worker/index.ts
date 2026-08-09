@@ -66,6 +66,7 @@ import {
 } from "../server/apple-identity";
 import { consumeRateLimit, RateLimitError } from "../server/rate-limit";
 import { sendPendingDigest } from "../server/ops-notifier";
+import { preferredLanguage, translateErrorPayload } from "../server/i18n";
 import { isPresetAvatar } from "../server/preset-avatars";
 import {
   registerDeviceToken,
@@ -137,7 +138,11 @@ function corsHeaders(request: Request, env: Env) {
 }
 
 function json(request: Request, env: Env, payload: unknown, status = 200) {
-  return Response.json(payload, {
+  // 错误文案按 Accept-Language 翻译。放在这一个出口做，几十个 throw 点
+  // 就都不必改，也不会有人新加一处时忘了翻译。
+  // 只动 `error` 与 `fields`——其余字段是业务数据，翻译它们等于篡改数据。
+  const body = translateErrorPayload(payload, preferredLanguage(request));
+  return Response.json(body, {
     status,
     headers: {
       "cache-control": "no-store",
