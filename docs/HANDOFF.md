@@ -273,7 +273,7 @@ Apple 要求使用 Sign in with Apple 且支持账户删除的 App **必须在�
 
 ### 不阻塞但已知
 
-- **界面没有多语言**：iOS 端 381 条、服务端 139 条中文硬编码。`InfoPlist.strings` 已有中英两版（桌面名跟随系统语言），但界面内容永远是中文。做全球市场时需要抽 `Localizable.strings`。
+- **中英双语已就绪**，见下方「本地化」一节。仍缺：`DemoContent` 与 `StoryFeed` 的演示数据未译（只在 `#if DEBUG` 下显示），运营台是纯中文（内部工具，刻意不译）。
 - **推送通知：代码已完整，等一把 APNs 密钥才真正生效**。服务端六个触发点、iOS 端权限申请与令牌上报、「我的 → 通知」入口都已就位，没配密钥时全链路静默跳过，不报错也不阻断任何业务流程。要让它真的发出去，见下方「启用推送」。
 - **心愿场景与交付形式仍是中国语境**：「生日祝福/口播视频/手写卡片」等选项写死在客户端。
 - **中国区上架另有门槛**：ICP 备案要求域名指向境内服务器，而后端在 Cloudflare；社交/UGC 类应用还涉及实名制要求。**TestFlight 不受影响**，仅正式上架含中国大陆时相关。这块需要专业合规意见，不要只依赖仓库里的记述。
@@ -317,6 +317,48 @@ npx wrangler secret put APNS_PRIVATE_KEY -c deploy/cloudflare/wrangler.jsonc \
 | APNs 回 `TooManyProviderTokenUpdates` | 鉴权 JWT 刷太勤。已按实例缓存 50 分钟，正常不该出现 |
 
 模拟器收不到真推送，只能用真机验。
+
+---
+
+## 八·六、本地化
+
+iOS 端 `ios/Gratia/en.lproj/Localizable.strings`（400 条），服务端 `server/i18n.ts`（89 条 + 一条模板规则）。**key 一律用中文原文**：SwiftUI 拿字面量当 `LocalizedStringKey` 查表、查不到就原样显示，所以中文那侧不需要任何文件，漏翻一条最多是那句仍是中文。
+
+### ⚠️ 三类中文绝对不能翻译
+
+| 类别 | 在哪 | 翻了会怎样 |
+| --- | --- | --- |
+| 地址解析关键词 | `PlaceSearch.swift` 的「省」「自治区」「市」… | 那是解析中文地址的规则，不是文案，翻译直接让地点识别失效 |
+| 心愿场景的存储值 | `BusinessVocabulary.occasions` | `occasion` 原样存库。英文环境要是传 `"Birthday wishes"` 上去，库里两套写法并存，筛选与历史数据全对不上，而且进了生产库很难回收 |
+| 交付形式的存储值 | `BusinessVocabulary.deliveryTypes` | 同上 |
+
+后两类的做法是**存中文、显示时翻译**，映射在 `ios/Gratia/BusinessVocabulary.swift`。服务端同理：`server/i18n.ts` 只翻 `error` 与 `fields`，其余字段（心愿正文、城市、昵称、occasion）一律不碰，测试里对这几项都有断言。
+
+### 三个不实际跑一遍就发现不了的坑
+
+1. **视图辅助函数的参数类型**。`stepHeader(title: String)` 这类，`Text(String)` 根本不查表，翻译写得再全也不生效，且没有任何警告。接收文案的参数必须声明成 `LocalizedStringKey`；接收动态内容（错误消息、编号）的才保持 `String`。
+2. **`GratiaCore` 是独立 SwiftPM 包**。`NSLocalizedString` 默认在包自己的 bundle 里找表，那里是空的，于是永远回落成中文。必须显式 `bundle: .main`（见 `APIError.swift`）。
+3. **`project.yml` 的 `knownRegions`**。不声明的话 `en.lproj` 压根不进包，英文设备照样显示中文，构建同样不报错。
+
+### 带插值的字符串
+
+`Text("第 \(step) 步，共 3 步")` 生成的 key 是 `"第 %lld 步，共 3 步"`——整数是 `%lld`、字符串是 `%@`，**key 必须逐字符对上**才查得到。写错了不报错，只是不生效。
+
+### 怎么验证
+
+```bash
+xcrun simctl launch booted com.hanselzzh.gratia -AppleLanguages "(en)"
+xcrun simctl launch booted com.hanselzzh.gratia -AppleLanguages "(zh-Hans)"
+```
+
+两种语言都要逐屏看过——尤其发布页（业务词汇）与「我的」（辅助函数最多）。服务端：
+
+```bash
+curl -s -X POST -H "accept-language: en-US" -H "content-type: application/json" \
+  -d '{"displayName":"x"}' https://api.hanselzhang.com/api/account/profile
+```
+
+语言判定从宽：`zh`、`zh-CN`、`zh-Hans`、`zh-TW` 都算中文，中文是默认。
 
 ---
 
