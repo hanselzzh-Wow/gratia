@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1600" viewBox="0 0 1600 1600">
+  <rect width="1600" height="1600" fill="#FFFFFF"/>
+
+  <!-- Brand symbol, optically matched to the wordmark rather than enlarged as an illustration. -->
+  <g transform="translate(306 720) scale(.278)" fill="#8F3F60" stroke="#8F3F60">
+    <path d="M300 730 Q470 640 560 520 T705 330"
+          fill="none" stroke-width="88" stroke-linecap="round"/>
+    <circle cx="300" cy="730" r="62" stroke="none"/>
+    <circle cx="705" cy="330" r="112" stroke="none"/>
+  </g>
+
+  <g fill="#8F3F60">
+    <!-- Stable type skeleton. -->
+    <text x="560" y="942"
+          font-family="Avenir Next, Avenir, sans-serif"
+          font-size="220" font-weight="500">Gra</text>
+
+    <!-- Custom t: a normal letter first, with one restrained forward gesture. -->
+    <rect x="944" y="766" width="28" height="176" rx="14"/>
+    <path d="M916 830 L982 823"
+          fill="none" stroke="#8F3F60" stroke-width="25"
+          stroke-linecap="round"/>
+
+    <!-- Custom i: the dot sits on the t's implied trajectory without a literal connector. -->
+    <rect x="1004" y="845" width="28" height="97" rx="14"/>
+    <circle cx="1018" cy="790" r="15"/>
+
+    <text x="1040" y="942"
+          font-family="Avenir Next, Avenir, sans-serif"
+          font-size="220" font-weight="500">a</text>
+  </g>
+</svg>

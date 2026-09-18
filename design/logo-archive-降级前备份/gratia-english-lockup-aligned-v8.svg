@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1400" width="1400" height="1400">
+  <rect width="1400" height="1400" fill="#FFFFFF"/>
+
+  <!--
+    Horizontal alignment system:
+    - Symbol visible top = capital-G top
+    - Symbol visible bottom = wordmark baseline
+    - Clear space between symbol and word = approximately one small-node diameter
+  -->
+
+  <!-- AI-source symbol, optically scaled to the wordmark's cap height -->
+  <g transform="translate(200 509) scale(.317)" fill="#8F3F60" stroke="#8F3F60">
+    <path d="M300 730 Q470 640 560 520 T705 330"
+          fill="none" stroke-width="88" stroke-linecap="round"/>
+    <circle cx="300" cy="730" r="62" stroke="none"/>
+    <circle cx="705" cy="330" r="112" stroke="none"/>
+  </g>
+
+  <!-- Slightly heavier Optima-based wordmark -->
+  <text x="490" y="760"
+        font-family="Optima, Palatino, serif"
+        font-size="230" font-weight="600" letter-spacing="-4"
+        fill="#291D22">Grat</text>
+
+  <!-- Custom i, redrawn at the heavier weight -->
+  <path d="M930 635 L960 632 L966 760 L925 760 Z" fill="#291D22"/>
+  <circle cx="945" cy="594" r="16" fill="#8F3F60"/>
+
+  <text x="982" y="760"
+        font-family="Optima, Palatino, serif"
+        font-size="230" font-weight="600"
+        fill="#291D22">a</text>
+</svg>

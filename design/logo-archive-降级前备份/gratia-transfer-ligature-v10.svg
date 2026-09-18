@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1600" viewBox="0 0 1600 1600">
+  <rect width="1600" height="1600" fill="#FFFFFF"/>
+
+  <!-- Original brand symbol: two people / two places connected by one rising route. -->
+  <g transform="translate(300 718) scale(.282)" fill="#8F3F60" stroke="#8F3F60">
+    <path d="M300 730 Q470 640 560 520 T705 330"
+          fill="none" stroke-width="88" stroke-linecap="round"/>
+    <circle cx="300" cy="730" r="62" stroke="none"/>
+    <circle cx="705" cy="330" r="112" stroke="none"/>
+  </g>
+
+  <!-- Mature word skeleton; only the t–i relationship is redrawn. -->
+  <g fill="#8F3F60">
+    <text x="560" y="942"
+          font-family="Avenir Next, Avenir, sans-serif"
+          font-size="220" font-weight="600">Gra</text>
+
+    <!-- Custom t: the crossbar becomes a miniature transfer path. -->
+    <rect x="945" y="764" width="31" height="178" rx="15.5"/>
+    <path d="M920 836 C945 836 965 831 981 821 C997 811 1007 803 1019 795"
+          fill="none" stroke="#8F3F60" stroke-width="27"
+          stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Custom i: its dot is the receiving endpoint of that path. -->
+    <rect x="1007" y="843" width="31" height="99" rx="15.5"/>
+    <circle cx="1019" cy="795" r="20"/>
+
+    <text x="1042" y="942"
+          font-family="Avenir Next, Avenir, sans-serif"
+          font-size="220" font-weight="600">a</text>
+  </g>
+</svg>

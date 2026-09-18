@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 430" width="1500" height="430">
+  <title>Gratia 哈喽卧得 bilingual reverse logo lockup</title>
+  <desc>深色背景使用的 Gratia 中英双语横向标志组合。</desc>
+  <rect width="1500" height="430" fill="#9A536D"/>
+  <g transform="translate(70 58) scale(.42)" fill="none" stroke="#FFFFFF" stroke-width="60" stroke-linecap="round">
+    <path d="M206 634 C366 728 606 674 772 430"/>
+  </g>
+  <g fill="#FFFFFF">
+    <circle cx="156.5" cy="324.3" r="24.4"/>
+    <circle cx="394.2" cy="238.6" r="43.7"/>
+    <text x="470" y="244" font-family="PingFang SC, Source Han Sans SC, Microsoft YaHei, sans-serif" font-size="122" font-weight="700" letter-spacing="14">哈喽卧得</text>
+    <text x="478" y="322" font-family="Avenir Next, Inter, Helvetica Neue, Arial, sans-serif" font-size="42" font-weight="700" letter-spacing="18">GRATIA</text>
+  </g>
+  <rect x="480" y="350" width="88" height="7" rx="3.5" fill="#F3E4E9"/>
+  <text x="590" y="358" font-family="PingFang SC, Source Han Sans SC, sans-serif" font-size="24" font-weight="500" letter-spacing="6" fill="#F3E4E9">远方的人 · 连接 · 心愿抵达现场</text>
+</svg>

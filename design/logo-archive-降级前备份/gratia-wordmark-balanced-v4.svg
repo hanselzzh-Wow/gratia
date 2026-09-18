@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1400" width="1600" height="1400">
+  <rect width="1600" height="1400" fill="#FDFCFB"/>
+
+  <!-- English-primary -->
+  <g transform="translate(80 90)">
+    <rect width="1440" height="550" rx="46" fill="#FAF4F6"/>
+
+    <g transform="translate(72 80) scale(.43)" fill="#8F3F60" stroke="#8F3F60">
+      <path d="M300 730 Q470 640 560 520 T705 330" fill="none" stroke-width="88" stroke-linecap="round"/>
+      <circle cx="300" cy="730" r="62" stroke="none"/>
+      <circle cx="705" cy="330" r="112" stroke="none"/>
+    </g>
+
+    <!-- Custom G: open circular body and rising inner terminal echo the symbol's path. -->
+    <g transform="translate(470 145)" fill="none" stroke="#291D22" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M151 43 C124 10 65 8 32 48 C1 86 11 151 58 174 C96 192 145 173 157 133 L157 112 L111 112"/>
+    </g>
+
+    <!-- Stable Avenir skeleton; optical spacing tuned for the exact word, not typeset defaults. -->
+    <text x="646" y="322" font-family="Avenir Next, Avenir, sans-serif" font-size="188" font-weight="500" fill="#291D22">
+      <tspan>r</tspan><tspan dx="-5">a</tspan><tspan dx="-8">t</tspan><tspan dx="-8">i</tspan><tspan dx="-5">a</tspan>
+    </text>
+
+    <text x="480" y="438" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="45" font-weight="500" fill="#735F67">
+      <tspan>哈</tspan><tspan dx="8">喽</tspan><tspan dx="10">卧</tspan><tspan dx="7">得</tspan>
+    </text>
+  </g>
+
+  <!-- Chinese-primary reverse -->
+  <g transform="translate(80 750)">
+    <rect width="1440" height="550" rx="46" fill="#8F3F60"/>
+
+    <g transform="translate(72 80) scale(.43)" fill="#FFFFFF" stroke="#FFFFFF">
+      <path d="M300 730 Q470 640 560 520 T705 330" fill="none" stroke-width="88" stroke-linecap="round"/>
+      <circle cx="300" cy="730" r="62" stroke="none"/>
+      <circle cx="705" cy="330" r="112" stroke="none"/>
+    </g>
+
+    <!-- Each Chinese glyph is independently placed for optical balance. -->
+    <text x="470" y="322" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="150" font-weight="600" fill="#FFFFFF">哈</text>
+    <text x="625" y="322" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="148" font-weight="600" fill="#FFFFFF">喽</text>
+    <text x="781" y="322" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="153" font-weight="600" fill="#FFFFFF">卧</text>
+    <text x="941" y="322" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="150" font-weight="600" fill="#FFFFFF">得</text>
+
+    <!-- Secondary English uses the same custom G at display-small scale. -->
+    <g transform="translate(485 378) scale(.32)" fill="none" stroke="#F4DEE7" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M151 43 C124 10 65 8 32 48 C1 86 11 151 58 174 C96 192 145 173 157 133 L157 112 L111 112"/>
+    </g>
+    <text x="545" y="438" font-family="Avenir Next, Avenir, sans-serif" font-size="61" font-weight="500" letter-spacing="1" fill="#F4DEE7">ratia</text>
+  </g>
+</svg>

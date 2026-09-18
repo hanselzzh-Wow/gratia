@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 430" width="1500" height="430">
+  <title>Gratia 哈喽卧得 bilingual logo lockup</title>
+  <desc>参考甲诚矿机横向标志比例，将 Gratia 符号与中英文品牌字标组合。</desc>
+  <g transform="translate(70 58) scale(.42)" fill="none" stroke="#9A536D" stroke-width="60" stroke-linecap="round">
+    <path d="M206 634 C366 728 606 674 772 430"/>
+  </g>
+  <g fill="#2A2024">
+    <circle cx="156.5" cy="324.3" r="24.4"/>
+    <circle cx="394.2" cy="238.6" r="43.7"/>
+  </g>
+  <g fill="#2A2024">
+    <text x="470" y="244" font-family="PingFang SC, Source Han Sans SC, Microsoft YaHei, sans-serif" font-size="122" font-weight="700" letter-spacing="14">哈喽卧得</text>
+    <text x="478" y="322" font-family="Avenir Next, Inter, Helvetica Neue, Arial, sans-serif" font-size="42" font-weight="700" letter-spacing="18">GRATIA</text>
+  </g>
+  <rect x="480" y="350" width="88" height="7" rx="3.5" fill="#9A536D"/>
+  <text x="590" y="358" font-family="PingFang SC, Source Han Sans SC, sans-serif" font-size="24" font-weight="500" letter-spacing="6" fill="#826D76">远方的人 · 连接 · 心愿抵达现场</text>
+</svg>

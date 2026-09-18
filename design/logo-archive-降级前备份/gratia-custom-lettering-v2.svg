@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1400" width="1600" height="1400">
+  <defs>
+    <!-- Custom-drawn Latin wordmark. No font glyphs or text elements. -->
+    <g id="gratia-custom" fill="none" stroke="currentColor" stroke-width="27" stroke-linecap="round" stroke-linejoin="round">
+      <!-- G: open circular gesture with a short inward terminal -->
+      <path d="M154 52 C127 15 64 12 31 53 C-1 93 13 160 62 178 C102 193 148 172 158 133 L158 112 L111 112"/>
+      <!-- r: upright humanist stem and open shoulder -->
+      <path d="M205 76 L205 178 M205 112 C220 78 252 66 278 86"/>
+      <!-- a: single-storey, open counter, rising terminal -->
+      <path d="M384 91 C361 66 319 74 310 116 C301 156 327 184 361 174 C383 168 391 146 389 119 M389 78 L389 178"/>
+      <!-- t: long ascender, low soft crossbar, curved exit -->
+      <path d="M469 35 L469 145 C469 171 487 185 511 172 M437 82 L507 82"/>
+      <!-- i: dot repeats the small-node geometry -->
+      <circle cx="556" cy="42" r="13" fill="currentColor" stroke="none"/>
+      <path d="M556 82 L556 178"/>
+      <!-- a: final terminal opens slightly farther for a graceful finish -->
+      <path d="M682 91 C659 66 617 74 608 116 C599 156 625 184 659 174 C681 168 689 146 687 119 M687 78 L687 178 C687 186 693 190 701 186"/>
+    </g>
+
+    <!-- Custom-drawn Chinese wordmark. Modular monoline construction; no font glyphs. -->
+    <g id="haluowode-custom" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+      <!-- 哈 -->
+      <path d="M6 45 H42 V132 H6 Z"/>
+      <path d="M66 53 L99 24 L132 53 M78 68 H121 M72 91 H127 V134 H72 Z"/>
+
+      <!-- 喽 -->
+      <path d="M156 45 H192 V132 H156 Z"/>
+      <path d="M208 38 H270 M239 25 V80 M214 42 L264 73 M264 42 L214 73"/>
+      <path d="M210 96 H270 M239 87 C235 110 225 130 210 144 M215 108 C235 116 253 129 270 144 M216 144 C240 135 258 119 265 96"/>
+
+      <!-- 卧 -->
+      <path d="M307 30 H366 V143 H307 Z M320 54 H366 M320 82 H358 M320 111 H366"/>
+      <path d="M400 28 V143 M400 67 L430 87"/>
+
+      <!-- 得 -->
+      <path d="M461 50 L484 27 M461 86 L490 56 M478 73 V143"/>
+      <path d="M511 30 H570 V87 H511 Z M511 58 H570"/>
+      <path d="M504 105 H580 M552 94 V143 M529 120 L540 132"/>
+    </g>
+  </defs>
+
+  <rect width="1600" height="1400" fill="#FDFCFB"/>
+
+  <!-- English-primary lockup -->
+  <g transform="translate(80 90)">
+    <rect width="1440" height="550" rx="46" fill="#FAF4F6"/>
+
+    <!-- New AI source geometry -->
+    <g transform="translate(80 82) scale(.43)" fill="#8F3F60" stroke="#8F3F60">
+      <path d="M300 730 Q470 640 560 520 T705 330" fill="none" stroke-width="88" stroke-linecap="round"/>
+      <circle cx="300" cy="730" r="62" stroke="none"/>
+      <circle cx="705" cy="330" r="112" stroke="none"/>
+    </g>
+
+    <!-- Bespoke Latin wordmark -->
+    <g transform="translate(500 190) scale(1.08)" color="#291D22">
+      <use href="#gratia-custom"/>
+    </g>
+
+    <!-- Bespoke Chinese secondary wordmark -->
+    <g transform="translate(508 440) scale(.56)" color="#735D66">
+      <use href="#haluowode-custom"/>
+    </g>
+  </g>
+
+  <!-- Chinese-primary reverse lockup -->
+  <g transform="translate(80 740)">
+    <rect width="1440" height="550" rx="46" fill="#8F3F60"/>
+
+    <g transform="translate(80 82) scale(.43)" fill="#FFFFFF" stroke="#FFFFFF">
+      <path d="M300 730 Q470 640 560 520 T705 330" fill="none" stroke-width="88" stroke-linecap="round"/>
+      <circle cx="300" cy="730" r="62" stroke="none"/>
+      <circle cx="705" cy="330" r="112" stroke="none"/>
+    </g>
+
+    <!-- Bespoke Chinese primary wordmark -->
+    <g transform="translate(500 158) scale(1.22)" color="#FFFFFF">
+      <use href="#haluowode-custom"/>
+    </g>
+
+    <!-- Bespoke Latin secondary wordmark -->
+    <g transform="translate(504 385) scale(.62)" color="#F4DEE7">
+      <use href="#gratia-custom"/>
+    </g>
+  </g>
+</svg>

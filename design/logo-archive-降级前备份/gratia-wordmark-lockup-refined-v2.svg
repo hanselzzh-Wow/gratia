@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1600" width="1600" height="1600">
+  <rect width="1600" height="1600" fill="#FDFCFB"/>
+
+  <text x="100" y="105" font-family="New York, Georgia, serif" font-size="40" font-weight="600" fill="#261C20">Gratia · Refined Wordmark Study</text>
+  <text x="100" y="150" font-family="STHeiti, PingFang SC, sans-serif" font-size="21" letter-spacing="2" fill="#8B7880">基于 Gratia-AppIcon-1024.ai 的中英文字标组合</text>
+
+  <!-- English primary / light -->
+  <g transform="translate(100 220)">
+    <rect width="1400" height="540" rx="36" fill="#FAF6F7"/>
+    <text x="54" y="62" font-family="Avenir Next, sans-serif" font-size="18" font-weight="600" letter-spacing="3" fill="#9C8790">ENGLISH PRIMARY</text>
+
+    <!-- Exact geometry from the new AI reference -->
+    <g transform="translate(42 76) scale(.43)">
+      <path d="M300 730 Q470 640 560 520 T705 330" fill="none" stroke="#8F3F60" stroke-width="88" stroke-linecap="round"/>
+      <circle cx="300" cy="730" r="62" fill="#8F3F60"/>
+      <circle cx="705" cy="330" r="112" fill="#8F3F60"/>
+    </g>
+
+    <!-- Refined serif wordmark; optical kerning tightened around r-a-t-i -->
+    <text x="430" y="326" font-family="New York, Georgia, serif" font-size="210" font-weight="500" letter-spacing="-7" fill="#261C20">Gratia</text>
+
+    <text x="442" y="420" font-family="STHeiti, PingFang SC, sans-serif" font-size="38" font-weight="300" letter-spacing="11" fill="#79666E">哈喽卧得</text>
+    <text x="442" y="462" font-family="Avenir Next, sans-serif" font-size="16" font-weight="500" letter-spacing="3" fill="#A8959D">WISHES, CARRIED ACROSS DISTANCE</text>
+  </g>
+
+  <!-- Chinese primary / reverse -->
+  <g transform="translate(100 830)">
+    <rect width="1400" height="540" rx="36" fill="#8F3F60"/>
+    <text x="54" y="62" font-family="Avenir Next, sans-serif" font-size="18" font-weight="600" letter-spacing="3" fill="#EACFDA">CHINESE PRIMARY / REVERSE</text>
+
+    <g transform="translate(42 76) scale(.43)">
+      <path d="M300 730 Q470 640 560 520 T705 330" fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round"/>
+      <circle cx="300" cy="730" r="62" fill="#FFFFFF"/>
+      <circle cx="705" cy="330" r="112" fill="#FFFFFF"/>
+    </g>
+
+    <!-- Modern Song-style Chinese wordmark: refined stroke contrast and open tracking -->
+    <text x="430" y="314" font-family="Songti SC, Songti TC, serif" font-size="154" font-weight="600" letter-spacing="10" fill="#FFFFFF">哈喽卧得</text>
+    <text x="442" y="414" font-family="New York, Georgia, serif" font-size="54" font-weight="500" letter-spacing="9" fill="#F7EAF0">Gratia</text>
+    <text x="442" y="464" font-family="STHeiti, PingFang SC, sans-serif" font-size="17" font-weight="300" letter-spacing="5" fill="#EACFDA">替远方的人，完成一个小心愿</text>
+  </g>
+
+  <text x="100" y="1480" font-family="STHeiti, PingFang SC, sans-serif" font-size="20" font-weight="300" fill="#8B7880">字形方向：英文优雅但不奢华；中文温柔但不幼态。正式商用稿将转为轮廓路径，避免字体依赖。</text>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect width="1024" height="1024" fill="#2F6FE0"/>
+
+  <!-- 路径：从起点到纸飞机的弧线轨迹 -->
+  <path d="M 268 690 Q 430 640 560 470" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 30" opacity="0.85"/>
+
+  <!-- 起点：远方的人 -->
+  <circle cx="268" cy="690" r="18" fill="#FFFFFF"/>
+
+  <!-- 纸飞机：心意与路径，纯白单色，无渐变 -->
+  <g transform="translate(560 470) rotate(-38)">
+    <path d="M -150 60 L 190 0 L -150 -60 L -80 0 Z" fill="#FFFFFF"/>
+    <path d="M -150 60 L -80 0 L -150 -60 Z" fill="#2F6FE0" opacity="0.32"/>
+  </g>
+</svg>
