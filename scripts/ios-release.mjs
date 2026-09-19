@@ -198,7 +198,10 @@ try {
 const ipa = join(exportPath, 'Gratia.ipa');
 
 // 5. 先验证再上传。验证不通过就没必要占用一个构建号。
-const auth = ['--apiKey', '${ASC_KEY_ID}', '--apiIssuer', '${ASC_ISSUER_ID}'];
+// App Store Connect API Key 的 ID 与 Issuer ID 从环境变量读取，不写进仓库。
+const { ASC_KEY_ID, ASC_ISSUER_ID } = process.env;
+if (!ASC_KEY_ID || !ASC_ISSUER_ID) fail('缺少环境变量 ASC_KEY_ID / ASC_ISSUER_ID');
+const auth = ['--apiKey', ASC_KEY_ID, '--apiIssuer', ASC_ISSUER_ID];
 console.log('→ 验证 IPA…');
 try {
   run('xcrun', ['altool', '--validate-app', '-f', ipa, '-t', 'ios', ...auth], {

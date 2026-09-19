@@ -1,55 +1,63 @@
-# 哈喽卧得
+# 哈喽卧得 · Gratia
 
-一个“替远方的人去现场完成小心愿”的产品。最终消费者客户端将使用 SwiftUI 开发为原生 iOS App，并以 TestFlight 和 App Store 上架为目标；当前仓库已有的 React 页面是历史原型和接口验证工具，不是最终消费者产品。
+**替一个去不了现场的人，把一件小事完成在那个地方。**
 
-新会话或新 AI 请先阅读短的 [PROJECT_MEMORY.md](PROJECT_MEMORY.md)：它包含当前目标、硬约束、活跃任务、阻塞与恢复顺序。完整的历史、验收证据与逐步工作记录维护在 [PROJECT_LOG.md](PROJECT_LOG.md)，需要追溯时再按需查阅。
+你写下地点和想说的话，一个正好在那座城市的人接下它，到现场拍一张、录一段或写一张卡片，再交回你手里。不涉及金额，不交换联系方式，不申请定位。
 
-产品是怎么一步步变成现在这样的、每次转向背后的取舍，见[迭代记录](docs/iteration-log.md)。**完成一个有意义的迭代后必须在那里追加一条**，规则见 [AGENTS.md](AGENTS.md)。
+<p>
+  <img src="docs/screenshots/04-publish.png" width="200" alt="发布心愿">
+  <img src="docs/screenshots/03-help.png" width="200" alt="帮助页">
+  <img src="docs/screenshots/05-profile.png" width="200" alt="我的">
+  <img src="docs/screenshots/02-search.png" width="200" alt="搜索">
+</p>
 
-原生客户端的页面结构、视觉方向和 UI 设计师交付要求见 [iOS UI 设计任务书](docs/ios-ui-design-brief.md)。
+| | |
+| --- | --- |
+| 角色 | 产品负责人：定义、取舍、验收；代码由多个 AI 编码代理按任务协议实现 |
+| 周期 | 2025.09 课题立项（跨境电商课程结项路演 99/100）→ 2026.07–08 独立开发 → 2026.08 复盘止损 |
+| 规模 | 原生 SwiftUI 约 1.1 万行，220+ 次提交，后端测试 30/30、iOS 测试 29/29 |
+| 交付 | 构建 16 已上传 App Store Connect 并进入 TestFlight 外部测试 |
+| 状态 | **已停止运营**。获客壁垒与成本复盘后主动止损，仓库保留作为完整的产品案例 |
 
-## 线上环境
+## 几个关键决策
 
-- 历史网页原型：[https://hanselzzh-wow.github.io/](https://hanselzzh-wow.github.io/)
-- 当前 MVP 运营台：[https://hanselzzh-wow.github.io/ops/](https://hanselzzh-wow.github.io/ops/)
-- 生产 API：[https://haluowode-mvp.hanselzzh.workers.dev](https://haluowode-mvp.hanselzzh.workers.dev)
+完整的决策记录在 [docs/iteration-log.md](docs/iteration-log.md)，每条都写了当时的处境、决定、理由、结果和没验证的部分。挑四条：
 
-GitHub Pages 当前只保留历史原型和 MVP 运营工具；未来 SwiftUI App 将直接调用 Cloudflare Worker API。D1 保存业务数据，R2 保存交付文件。运营台 PIN 保存在本机被 Git 忽略的 `.cloudflare.secrets` 中，不要写入网页、截图或公开仓库。
+- **把运营从闭环里拿掉。** 最初的匹配、沟通和交付都由运营手工完成，于是运营成了唯一同时握有双方微信和手机号的一方，中介本身就是最大的隐私暴露面。后来改成双方在 App 内私聊并直接交付，服务端刻意不向发布者返回响应者的联系方式，并用测试断言把这一点固定下来。
+- **四类内容审核补齐。** 排查出三处漏洞：故事公开绕过了对交付影像的审核；举报只进不出，没有处理接口；资料审核只有接口没有界面。补上以后，运营只有在收到一条具体举报时才能打开对应的私聊，不能随意翻看。
+- **小程序和 iOS 之间来回，但数据模型没重做。** 为了省下 Apple 开发者年费，先转去做微信小程序，做到可以提审时，卡在了个人主体资质上，于是又回到 App Store。之所以两次转向都没有重做数据，是因为账号层一开始就按不绑定平台的方式设计：回到 iOS 时只需加一个 Apple 登录方式。
+- **「不做」清单。** 不做支付，不做点赞数，不申请定位，不收集联系方式。每一条都是有意的取舍，不是没来得及做，详见 [产品说明](docs/project-overview.md)。
 
-## 环境要求
+## 技术结构
 
-- Node.js `>=22.13.0`
+```text
+ios/            SwiftUI 客户端（iOS 18+），XcodeGen 生成工程，本地 Swift Package 承载领域层
+worker/         Cloudflare Worker：公开 API、账户、私聊、交付、审核
+server/         Worker 使用的仓储层与通知（Apple 登录、推送、限流）
+drizzle/        D1 数据库迁移
+app/            Next.js 运营台与历史网页原型（GitHub Pages）
+miniprogram/    微信小程序 0.1 上线候选（已回退，保留）
+tests/          后端与部署配置测试（node --test）
+docs/           产品说明、架构、API 契约、验收清单、迭代记录
+```
+
+- 数据存在 D1，交付文件存在 R2，交付文件通过随机能力令牌访问
+- 支持 Sign in with Apple，删除账户时撤销 Apple 令牌（App Store 审核会实测这一项）
+- [scripts/ios-release.mjs](scripts/ios-release.mjs)：归档、校验产物签名、导出、验证、上传。这个脚本是为了避开两个会报"成功"却产出无签名包的坑写的
+
+## AI 协同开发方式
+
+这个项目由一个人主导，多个 AI 编码代理（Codex、Claude、Gemini）并行实现。协作方式记在仓库里：
+
+- [AGENTS.md](AGENTS.md)：代理的角色、写入边界、验收门槛
+- [.ai/](.ai/)：任务板、交接单、写入冻结规则。每个任务在独立的 worktree 完成，由负责人验收后再合入
+- [docs/agent-delivery-quality-gate.md](docs/agent-delivery-quality-gate.md)：交付质量门
+- [PROJECT_LOG.md](PROJECT_LOG.md)：只追加的验收证据，包括命令输出、测试数和 commit SHA
 
 ## 本地运行
 
-```bash
-npm install
-cp .dev.vars.example .dev.vars
-npm run dev
-```
+见 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
 
-先替换 `.dev.vars` 中的示例值。本地开发环境会模拟 D1 与 R2；运营台地址为 `/ops`，需要通过 `ADMIN_API_KEY` 对应的运营 PIN 进入。不要提交真实的 `.dev.vars`。
+---
 
-## 产品闭环
-
-- 心愿：发布、隐私隔离、人工审核、公开待匹配、状态追踪。
-- 供应：公开报名、种子供应者名册、同城筛选、暂停或恢复接单。
-- 履约：人工派单、接单确认、照片或视频上传、HTTPS 链接交付、发布者确认完成。
-- 运营：PIN 保护、操作限流、内部 CSV 导出、订单与供应者状态管理。
-- 存储：D1 保存业务记录，R2 保存交付文件，访问链接带随机能力令牌。
-
-试运营前请阅读 [试运营手册](docs/pilot-runbook.md)。
-
-## 常用命令
-
-- `npm run dev`：启动本地开发环境。
-- `npm run build`：生成 Cloudflare Worker 兼容的部署产物。
-- `npm test`：执行构建和完整业务闭环测试。
-- `npm run lint`：检查代码质量。
-- `npm run db:generate`：数据结构变化后生成 Drizzle 迁移。
-
-## 部署
-
-`.openai/hosting.json` 声明 Sites 项目与 D1、R2 绑定。数据结构变化后，需要将 `drizzle/` 下的新迁移随同部署产物一起发布。公开生产部署前，先完成试运营手册中的测试单和隐私检查。
-
-当前生产环境已按[独立 Cloudflare 部署说明](docs/cloudflare-direct-deployment.md)发布到项目所有者自己的 `workers.dev` 地址，并由稳定的 GitHub Pages 前端调用；不再依赖可能被平台安全层拦截的 `chatgpt.site` 地址。
+[Hansel Zhang](https://github.com/hanselzzh-Wow) · [hanselzhang.com](https://www.hanselzhang.com)
